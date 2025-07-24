@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from package.input_arg import input_int
+from package.input_arg import input_int_within
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ def choose_eigf(bundle: tuple[np.ndarray, np.ndarray,
     chosen_int: int
     i_chosen: int
     while True:
-        chosen_int = input_int(i_mode_min, i_mode_max)
+        chosen_int = input_int_within(i_mode_min, i_mode_max)
         i_chosen = chosen_int - 1
 
         if i_chosen in mode_list:

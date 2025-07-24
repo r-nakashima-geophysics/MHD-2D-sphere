@@ -142,8 +142,8 @@ def input_alpha(alpha_default: float) -> float:
 #
 
 
-def input_int(min_int: int,
-              max_int: int) -> int:
+def input_int_within(min_int: int,
+                     max_int: int) -> int:
     """Inputs an integer within an appropriate range
 
     Parameters
@@ -169,11 +169,11 @@ def input_int(min_int: int,
 
     Examples
     -----
-    >>> from package.input_arg import input_int
-    >>> input_int(0,10)
+    >>> from package.input_arg import input_int_within
+    >>> input_int_within(0,10)
     (quit: q):  1
     1
-    >>> input_int(0,10)
+    >>> input_int_within(0,10)
     (quit: q):  q
     INFO:package.input_arg:Quit
 
