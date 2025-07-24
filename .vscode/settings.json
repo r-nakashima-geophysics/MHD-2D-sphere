@@ -1,6 +1,4 @@
 {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
-    "grammarly.config.documentDomain": "academic",
-    "grammarly.files.include": ["**/*.py"]
+    "editor.formatOnSave": true
 }
