@@ -44,7 +44,7 @@ from typing import Final
 import caffeine
 import numpy as np
 
-from package.input_arg import input_m
+from package.input_arg import input_int
 from package.make_mat import make_mat, make_submat
 from package.solve_eig import solve_eig
 from package.time_measure import time_progress
@@ -57,7 +57,7 @@ from package.time_measure import time_progress
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = input_m(1)
+M_ORDER: Final[int] = input_int(1)
 
 # The magnetic Ekman number
 E_ETA: Final[float] = 0

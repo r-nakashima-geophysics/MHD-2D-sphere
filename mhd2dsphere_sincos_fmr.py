@@ -37,7 +37,7 @@ import numpy as np
 from scipy.optimize import root
 
 from package.dispersion_fmr import dispersion_fmr
-from package.input_arg import input_m
+from package.input_arg import input_int
 from package.load_data import wrapper_load_results
 from package.processing_results import pickup_eig
 
@@ -49,7 +49,7 @@ from package.processing_results import pickup_eig
 SWITCH_EQ: Final[str] = 'wkb'
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = input_m(1)
+M_ORDER: Final[int] = input_int(1)
 
 # Degrees
 N_INIT: Final[int] = M_ORDER  # M_ORDER <= N_INIT

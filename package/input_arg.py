@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
 
 
-def input_m(m_default: int) -> int:
+def input_int(m_default: int) -> int:
     """Inputs a zonal wavenumber
 
     When there is a command line argument, the default value of the
@@ -34,13 +34,13 @@ def input_m(m_default: int) -> int:
     -----
     When there is not a command line argument:
         python3
-        >>> from package.input_arg import input_m
-        >>> input_m(1)
+        >>> from package.input_arg import input_int
+        >>> input_int(1)
         1
     When there is a command line argument:
         python3 - 2
-        >>> from package.input_arg import input_m
-        >>> input_m(1)
+        >>> from package.input_arg import input_int
+        >>> input_int(1)
         2
 
     """
