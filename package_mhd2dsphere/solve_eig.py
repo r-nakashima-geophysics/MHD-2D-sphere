@@ -1,7 +1,7 @@
 """Solves the eigenvalue problem
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -10,7 +10,7 @@ import math
 
 import numpy as np
 
-from package.make_mat import make_mat, make_submat
+from package_mhd2dsphere.make_mat import make_mat, make_submat
 
 
 def wrapper_solve_eig(m_order: int,
@@ -24,7 +24,7 @@ def wrapper_solve_eig(m_order: int,
     """A wrapper of functions to solve the eigenvalue problem
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     alpha : float
@@ -37,7 +37,7 @@ def wrapper_solve_eig(m_order: int,
         A criterion for convergence (degree, ratio)
 
     Returns
-    -----
+    ----------
     bundle_with_vec : tuple of ndarray
         A tuple of results
 
@@ -80,7 +80,7 @@ def solve_eig(m_order: int,
     """Solves the eigenvalue problem
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     e_eta : float
@@ -93,7 +93,7 @@ def solve_eig(m_order: int,
         The total matrix
 
     Returns
-    -----
+    ----------
     eig_vecval : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray
@@ -123,7 +123,7 @@ def arrange_eig(m_order: int,
     """Arranges eigenvalues and normalized eigenvectors
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     eig_val : ndarray
@@ -132,7 +132,7 @@ def arrange_eig(m_order: int,
         Eigenvectors
 
     Returns
-    -----
+    ----------
     eig_vecval : ndarray
         Eigenvalues and normalized eigenvectors
 
@@ -171,21 +171,21 @@ def calc_ene(m_order: int,
     """Calculates the mean kinetic and magnetic energies
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     eig_vecval: ndarray
         Eigenvalues and eigenvectors
 
     Returns
-    -----
+    ----------
     mke : ndarray
         The mean kinetic energy
     mme : ndarray
         The mean magnetic energy
 
     Notes
-    -----
+    ----------
     This function is based on eq. (24) in Nakashima & Yoshida
     (submitted)[1]_.
 
@@ -218,7 +218,7 @@ def calc_qty(m_order: int,
     """Calculate various physical quantities from eigenvectors
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     e_eta : float
@@ -227,7 +227,7 @@ def calc_qty(m_order: int,
         Eigenvalues and normalized eigenvectors
 
     Returns
-    -----
+    ----------
     mke : ndarray
         The mean kinetic energy
     mme : ndarray
@@ -238,7 +238,7 @@ def calc_qty(m_order: int,
         The symmetry of eigenmodes
 
     Notes
-    -----
+    ----------
     This function is based on eq. () in
 
     """
@@ -290,7 +290,7 @@ def check_eig(m_order: int,
     """Checks the validity of eigenmodes
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     criterion_c : tuple of int and float
@@ -301,12 +301,12 @@ def check_eig(m_order: int,
         Eigenvalues and normalized eigenvectors
 
     Returns
-    -----
+    ----------
     check : ndarray
         The validity of eigenmodes
 
     Notes
-    -----
+    ----------
     This function is based on eq. (23) in Nakashima & Yoshida
     (submitted)[1]_.
 
@@ -357,7 +357,7 @@ def screening_eig(eig_vecval: np.ndarray,
     """Excludes invalid eigenmodes
 
     Parameters
-    -----
+    ----------
     eig_vecval : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray
@@ -366,7 +366,7 @@ def screening_eig(eig_vecval: np.ndarray,
         The validity of eigenmodes
 
     Returns
-    -----
+    ----------
     eig_vecval : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray

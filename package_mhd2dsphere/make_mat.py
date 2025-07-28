@@ -3,7 +3,7 @@ rotating sphere under the non-Malkus field
 B_phi = B_0 sin(theta) cos(theta)
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -17,14 +17,14 @@ def make_submat(m_order: int,
     """Makes submatrices
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     size_submat : int
         The size of submatrices
 
     Returns
-    -----
+    ----------
     submat_r : ndarray
         The (1,1)th submatrix
     submat_k1 : ndarray
@@ -35,7 +35,7 @@ def make_submat(m_order: int,
         The (2,2)th submatrix
 
     Notes
-    -----
+    ----------
     This function is based on eq. (22) in Nakashima & Yoshida
     (submitted)[1]_.
 
@@ -89,7 +89,7 @@ def make_mat(m_order: int,
     """Makes the total matrix
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     e_eta : float
@@ -100,12 +100,12 @@ def make_mat(m_order: int,
         The Lehnert number
 
     Returns
-    -----
+    ----------
     mat: np.ndarray
         The total matrix
 
     Notes
-    -----
+    ----------
     This function is based on eq. (22) in Nakashima & Yoshida
     (submitted)[1]_.
 

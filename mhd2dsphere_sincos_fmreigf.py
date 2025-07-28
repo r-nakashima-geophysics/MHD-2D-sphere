@@ -5,16 +5,16 @@ Plots a figure of the approximate eigenfunction of fast magnetic
 Rossby (MR) waves.
 
 Raises
------
+----------
 ALPHA should be smaller than 0.5
     If ALPHA is larger than 0.5.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -31,11 +31,11 @@ import numpy as np
 from scipy.optimize import root
 from scipy.special import obl_ang1, pro_ang1
 
-from package.dispersion_fmr import dispersion_fmr
-from package.load_data import load_legendre
-from package.make_eigf import adjust_sign, amp_range, choose_eigf, make_eigf
-from package.solve_eig import wrapper_solve_eig
-from package.yes_no_else import exe_yes_continue
+from package_mhd2dsphere.dispersion_fmr import dispersion_fmr
+from package_mhd2dsphere.load_data import load_legendre
+from package_mhd2dsphere.make_eigf import adjust_sign, amp_range, choose_eigf, make_eigf
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
+from package_common.yes_no_else import exe_yes_continue
 
 # ========== Parameters ==========
 
@@ -87,7 +87,7 @@ def wrapper_choose_eigf(
     plot
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -111,7 +111,7 @@ def wrapper_plot_fmreigf(psi_vec: np.ndarray,
     fast magnetic Rossby (MR) wave.
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -141,7 +141,7 @@ def plot_ns_fmreigf(psi: np.ndarray,
     (MR) wave.
 
     Parameters
-    -----
+    ----------
     psi : ndarray
         An eigenfunction of the stream function (psi)
     vpa : ndarray
@@ -230,12 +230,12 @@ def calc_fmreigf(i_mode: int) -> tuple[float, np.ndarray, float]:
     (MR) waves.
 
     Parameters
-    -----
+    ----------
     i_mode : int
         The index of a mode that you chose
 
     Returns
-    -----
+    ----------
     eig : float
         An approximate eigenvalue of fast magnetic Rossby (MR) waves
     fmreigf : ndarray

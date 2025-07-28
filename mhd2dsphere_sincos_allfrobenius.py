@@ -5,16 +5,16 @@ Plots a figure displaying the discontinuity in the coefficient of the
 first Frobenius series solution for all the eigenfunctions.
 
 Parameters
------
+----------
 ALPHA : float
     The Lehnert number
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -29,12 +29,12 @@ import caffeine
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package.input_arg import input_alpha
-from package.load_data import load_legendre
-from package.make_eigf import make_eigf
-from package.make_frobenius import calc_frobenius, make_fitting_data
-from package.processing_results import sort_sv
-from package.solve_eig import wrapper_solve_eig
+from package_common.input_arg import input_alpha
+from package_mhd2dsphere.load_data import load_legendre
+from package_mhd2dsphere.make_eigf import make_eigf
+from package_mhd2dsphere.make_frobenius import calc_frobenius, make_fitting_data
+from package_mhd2dsphere.processing_results import sort_sv
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
 # ========== Parameters ==========
 
@@ -88,7 +88,7 @@ def wrapper_plot_allfrobenius(
     eigenfunctions
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -178,12 +178,12 @@ def plot_allfrobenius(
     first Frobenius series solution for all the eigenfunctions
 
     Parameters
-    -----
+    ----------
     bundle_with_vec : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     [ymin1, ymax1] : list of float
@@ -289,7 +289,7 @@ def calc_jump(psi_vec: np.ndarray,
     Frobenius series solution
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -298,7 +298,7 @@ def calc_jump(psi_vec: np.ndarray,
         An eigenvalue
 
     Returns
-    -----
+    ----------
     c_1_jump : float
         The discontinuity in the coefficient of
             the first Frobenius series solution

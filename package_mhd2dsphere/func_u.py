@@ -13,12 +13,12 @@ def u_rigid(switch_theta: str = 'mu') \
     """A rigid body rotation (U=0)
 
     Parameters
-    -----
+    ----------
     switch_theta : str, default 'mu'
         The argument to switch whether you use either mu or theta
 
     Returns
-    -----
+    ----------
     rigid : callable
         A function to calculate the value of U
     rigid_d : callable

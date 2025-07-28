@@ -4,11 +4,11 @@ non-Malkus field B_phi = B_0 B(theta) sin(theta)
 Plots 2 figures (k-l, k-lambda) of the local dispersion relation.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -22,7 +22,7 @@ from typing import Callable, Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package import func_b, func_u
+from package_mhd2dsphere import func_b, func_u
 
 FUNC_B: Callable[[complex], complex]
 TEX_B: str
@@ -257,17 +257,17 @@ def calc_lambda(theta_rad: float) -> np.ndarray:
     """Calculates the local dispersion relation
 
     Parameters
-    -----
+    ----------
     theta_rad : float
         A colatitude
 
     Returns
-    -----
+    ----------
     g_lambda : ndarray
         Eigenvalues
 
     Notes
-    -----
+    ----------
     This function is based on eq. (33a) in Nakashima & Yoshida (in
     prep.)[1]_.
 
@@ -297,17 +297,17 @@ def calc_l2(theta_rad: float) -> np.ndarray:
     """Calculates the local dispersion relation
 
     Parameters
-    -----
+    ----------
     theta_rad : float
         A colatitude
 
     Returns
-    -----
+    ----------
     g_l2 : ndarray
         Squared meridional wavenumbers
 
     Notes
-    -----
+    ----------
     This function is based on eq. (33b) in Nakashima & Yoshida (in
     prep.)[1]_.
 

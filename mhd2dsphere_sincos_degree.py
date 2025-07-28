@@ -5,11 +5,11 @@ Plots a figure displaying the dependence of eigenvalues on the
 truncation degree.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -22,7 +22,7 @@ from typing import Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package.solve_eig import wrapper_solve_eig
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
 # ========== Parameters ==========
 
@@ -94,7 +94,7 @@ def plot_dependdegree(
     truncation degree
 
     Parameters
-    -----
+    ----------
     bundle_with_vec_1 : tuple of ndarray
         A tuple of results
     bundle_with_vec_2 : tuple of ndarray

@@ -17,7 +17,7 @@ def make_legendre(m_order: int,
     points
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     n_t : int

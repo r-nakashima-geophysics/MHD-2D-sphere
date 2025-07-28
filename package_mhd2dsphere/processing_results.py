@@ -13,14 +13,14 @@ def screening_eig_q(criterion_q: float,
     """Check the Q-values of eigenmodes
 
     Parameters
-    -----
+    ----------
     criterion_q : float
         A criterion for plotted eigenvalues based on the Q value
     bundle : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -67,12 +67,12 @@ def pickup_param(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     """Picks up some parameters from results
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     alpha_init : float
         The initial value of alpha
     alpha_end : float
@@ -105,7 +105,7 @@ def pickup_eig(eig_alpha: np.ndarray,
     """Picks up eigenvalues of various modes
 
     Parameters
-    -----
+    ----------
     eig_alpha : ndarray
         Eigenvalues for a given alpha
     mke_alpha : ndarray
@@ -114,7 +114,7 @@ def pickup_eig(eig_alpha: np.ndarray,
         The symmetry of eigenmodes for a given alpha
 
     Returns
-    -----
+    ----------
     dict_eig : dict of str and ndarray
         The dictionary to pick up eigenvalues ofvarious modes
 
@@ -174,12 +174,12 @@ def sort_sv(sym_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Sorts into sinuous and varicose modes
 
     Parameters
-    -----
+    ----------
     sym_alpha : ndarray
         The symmetry of eigenmodes for a given alpha
 
     Returns
-    -----
+    ----------
     sinuous : ndarray
         The identifier of sinuous modes
     varicose : ndarray
@@ -207,12 +207,12 @@ def sort_pr(eig_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Sorts into prograde and retrograde modes
 
     Parameters
-    -----
+    ----------
     eig_alpha : ndarray
         Eigenvalues for a given alpha
 
     Returns
-    -----
+    ----------
     prograde : ndarray
         The identifier of prograde modes
     retrograde : ndarray
@@ -240,12 +240,12 @@ def pickup_unstable(eig_alpha: np.ndarray) -> np.ndarray:
     """Picks up unstable modes
 
     Parameters
-    -----
+    ----------
     eig_alpha : ndarray
         Eigenvalues for a given alpha
 
     Returns
-    -----
+    ----------
     unstable : ndarray
         The identifier of unstable modes
 
@@ -269,12 +269,12 @@ def sort_alfvenic(mke_alpha: np.ndarray) \
     """Sorts into alfvenic and non-alfvenic modes
 
     Parameters
-    -----
+    ----------
     mke_alpha : ndarray
         The mean kinetic energy for a given alpha
 
     Returns
-    -----
+    ----------
     alfvenic : ndarray
         The identifier of alfvenic modes
     non_alfvenic : ndarray

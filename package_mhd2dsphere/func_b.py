@@ -13,12 +13,12 @@ def b_hydro(switch_theta: str = 'mu') \
     """The hydrodynamic case (B=0)
 
     Parameters
-    -----
+    ----------
     switch_theta : str, default 'mu'
         The argument to switch whether you use either mu or theta
 
     Returns
-    -----
+    ----------
     hydro : callable
         A function to calculate the value of B
     hydro_d : callable
@@ -85,12 +85,12 @@ def b_malkus(switch_theta: str = 'mu') \
     """The Malkus field (B=1)
 
     Parameters
-    -----
+    ----------
     switch_theta : str, default 'mu'
         The argument to switch whether you use either mu or theta
 
     Returns
-    -----
+    ----------
     malkus : callable
         A function to calculate the value of B
     malkus_d : callable
@@ -157,12 +157,12 @@ def b_sincos(switch_theta: str = 'mu') \
     """B = cos(theta)
 
     Parameters
-    -----
+    ----------
     switch_theta : str, default 'mu'
         The argument to switch whether you use either mu or theta
 
     Returns
-    -----
+    ----------
     sincos : callable
         A function to calculate the value of B
     sincps_d : callable
@@ -225,12 +225,12 @@ def b_sin2cos(switch_theta: str = 'mu') \
     """B = sin(theta) cos(theta)
 
     Parameters
-    -----
+    ----------
     switch_theta : str, default 'mu'
         The argument to switch whether you use either mu or theta
 
     Returns
-    -----
+    ----------
     sin2cos : callable
         A function to calculate the value of B
     sincps_d : callable

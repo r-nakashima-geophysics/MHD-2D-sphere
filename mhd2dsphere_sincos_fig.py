@@ -7,12 +7,12 @@ for 2D MHD waves on a rotating sphere under the non-Malkus field
 B_phi = B_0 sin(theta) cos(theta).
 
 Parameters
------
+----------
 M_ORDER : int
     The zonal wavenumber (order)
 
 Raises
------
+----------
 No plotted figures
     If all of the boolean values to switch whether to plot figures are
     False.
@@ -23,17 +23,17 @@ Meaningless figures are plotted
     case.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below. You
 must run mhd2dsphere_sincos.py with the same parameters before
 executing this code.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos_fig.py
 In the below example, M_ORDER will be set to 2.
@@ -52,10 +52,10 @@ from typing import Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package.input_arg import input_int
-from package.load_data import wrapper_load_results
-from package.processing_results import (pickup_eig, pickup_param,
-                                        screening_eig_q)
+from package_common.input_arg import input_int
+from package_mhd2dsphere.load_data import wrapper_load_results
+from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
+                                                    screening_eig_q)
 
 # ========== Parameters ==========
 
@@ -140,7 +140,7 @@ def wrapper_plot_eig(
     relation (linear-linear)
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results (linear-linear)
 
@@ -308,12 +308,12 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     """Plots a figure of the dispersion relation (linear-linear)
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results (linear-linear)
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     save_fig : set of int
@@ -480,7 +480,7 @@ def wrapper_plot_eig_log(
     relation (log-log)
 
     Parameters
-    -----
+    ----------
     bundle_log : tuple of ndarray
         A tuple of results (log-log)
 
@@ -740,12 +740,12 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     """Plots a figure of the dispersion relation (log-log)
 
     Parameters
-    -----
+    ----------
     bundle_log : tuple of ndarray
         A tuple of results (log-log)
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     save_fig : set of int

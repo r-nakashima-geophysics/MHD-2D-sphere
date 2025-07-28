@@ -5,20 +5,20 @@ Plots 1-2 figures displaying all the eigenfunctions for given
 parameters.
 
 Parameters
------
+----------
 ALPHA : float
     The Lehnert number
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, ALPHA will be set to the default value.
     python3 mhd2dsphere_sincos_alleigf.py
 In the below example, ALPHA will be set to 1.
@@ -36,11 +36,11 @@ import caffeine
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package.input_arg import input_alpha
-from package.load_data import load_legendre
-from package.make_eigf import make_eigf
-from package.processing_results import screening_eig_q
-from package.solve_eig import wrapper_solve_eig
+from package_common.input_arg import input_alpha
+from package_mhd2dsphere.load_data import load_legendre
+from package_mhd2dsphere.make_eigf import make_eigf
+from package_mhd2dsphere.processing_results import screening_eig_q
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
 # ========== Parameters ==========
 
@@ -103,7 +103,7 @@ def wrapper_plot_alleigf(
     eigenfunctions
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -244,12 +244,12 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
     """Plots a figure displaying all the eigenfunctions
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     save_fig2 : bool
@@ -358,12 +358,12 @@ def wrapper_screening_eig_q(
     """A wrapper of a function to check the Q-values of eigenmodes
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -396,7 +396,7 @@ def make_alleigf(eig: np.ndarray,
     """Makes all the eigenfunctions from an eigenvector
 
     Parameters
-    -----
+    ----------
     eig : ndarray
         Eigenvalues
     psi_vec : ndarray
@@ -405,7 +405,7 @@ def make_alleigf(eig: np.ndarray,
         Eigenvectors of the vector potential (a)
 
     Returns
-    -----
+    ----------
     psi_all : ndarray
         All the eigenfunctions of the stream function (psi)
     vpa_all : ndarray
@@ -437,14 +437,14 @@ def cmap_range(psi_all: np.ndarray,
     """Determines the range of the color map
 
     Parameters
-    -----
+    ----------
     psi_all : ndarray
         All the eigenfunctions of the stream function (psi)
     vpa_all : ndarray
         All the eigenfunctions of the vector potential (a)
 
     Returns
-    -----
+    ----------
     cmap_max : float
         The maximum value of the color map
 

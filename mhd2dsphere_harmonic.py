@@ -5,20 +5,20 @@ Plots a figure of the values of L^2 in the differential equation
 y''+L^2y=0.
 
 Parameters
------
+----------
 ALPHA : float
     The Lehnert number
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, ALPHA will be set to the default value.
     python3 mhd2dsphere_harmonic.py
 In the below example, ALPHA will be set to 1.
@@ -35,8 +35,8 @@ from typing import Callable, Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package import func_b, func_u
-from package.input_arg import input_alpha
+from package_mhd2dsphere import func_b, func_u
+from package_common.input_arg import input_alpha
 
 FUNC_B: Callable[[complex], complex]
 FUNC_DB: Callable[[complex], complex]
@@ -188,12 +188,12 @@ def calc_l2() -> np.ndarray:
     """Calculates the values of L^2
 
     Returns
-    -----
+    ----------
     grid_l2 : ndarray
         The values of L^2
 
     Notes
-    -----
+    ----------
     This function is based on eq. (25a) in Nakashima & Yoshida (in
     prep.)[1]_.
 
@@ -233,12 +233,12 @@ def cmap_range(grid_l2: np.ndarray) -> float:
     """Determines the range of the color map
 
     Parameters
-    -----
+    ----------
     grid_l2 : ndarray
         The values of L^2
 
     Returns
-    -----
+    ----------
     cmap_max : float
         The maximum value of the color map
 

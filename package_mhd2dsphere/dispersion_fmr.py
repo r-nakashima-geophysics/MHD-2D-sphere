@@ -15,7 +15,7 @@ def dispersion_fmr(eig: float,
     waves under the non-Malkus field B_phi = B_0 sin(theta) cos(theta)
 
     Parameters
-    -----
+    ----------
     eig : float
         An eigenvalue
     args : tuple of int and float and str
@@ -23,13 +23,13 @@ def dispersion_fmr(eig: float,
         (m_order, n_degree, alpha, switch_eq)
 
     Returns
-    -----
+    ----------
     dispersion_relation : float
         If dispersion_relation = 0, the dispersion relation is satisfied
         for given parameters.
 
     Notes
-    -----
+    ----------
     This function is based on eqs. (B.2) and (F.10) in Nakashima &
     Yoshida (submitted)[1]_.
 

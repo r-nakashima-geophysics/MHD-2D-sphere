@@ -11,14 +11,14 @@ def chebyshev(n_degree: int,
     """Calculates the value of a Chebyshev polynomial at a point
 
     Parameters
-    -----
+    ----------
     n_degree : int
         The degree of a Chebyshev polynomial
     s_complex : complex
         The position of a point
 
     Returns
-    -----
+    ----------
     value_chebyshev : complex
         The value of a Chebyshev polynomial at a point
 
@@ -37,14 +37,14 @@ def chebyshev_d(n_degree: int,
     polynomial at a point
 
     Parameters
-    -----
+    ----------
     n_degree : int
         The degree of a Chebyshev polynomial
     s_complex : complex
         The position of a point
 
     Returns
-    -----
+    ----------
     value_chebyshev_d : complex
         The value of the first derivative of a Chebyshev polynomial at
         a point
@@ -76,14 +76,14 @@ def chebyshev_d2(n_degree: int,
     polynomial at a point
 
     Parameters
-    -----
+    ----------
     n_degree : int
         The degree of a Chebyshev polynomial
     s_complex : complex
         The position of a point
 
     Returns
-    -----
+    ----------
     value_chebyshev_d2 : complex
         The value of the second derivative of a Chebyshev polynomial at
         a point
@@ -118,14 +118,14 @@ def chebyshev_d3(n_degree: int,
     polynomial at a point
 
     Parameters
-    -----
+    ----------
     n_degree : int
         The degree of a Chebyshev polynomial
     s_complex : complex
         The position of a point
 
     Returns
-    -----
+    ----------
     value_chebyshev_d3 : complex
         The value of the third derivative of a Chebyshev polynomial at
         a point

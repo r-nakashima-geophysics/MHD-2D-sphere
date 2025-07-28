@@ -6,8 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
-from package.make_legendre import make_legendre
-from package.yes_no_else import yes_exe_no_exit
+from package_mhd2dsphere.make_legendre import make_legendre
+from package_common.yes_no_else import yes_exe_no_exit
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
@@ -24,7 +24,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
     """A wrapper of a function to load .npz files of results
 
     Parameters
-    -----
+    ----------
     switch_plot : tuple of bool
         Boolean values to switch whether to plot figures
         0: dispersion relation (linear-linear)
@@ -37,7 +37,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
         The truncation degree
 
     Returns
-    -----
+    ----------
     bundle_all : tuple of ndarray
         A tuple of results (linear-linear)
     bundle_all_log : tuple of ndarray
@@ -92,19 +92,19 @@ def load_results(name_file: str) \
     """Loads .npz files of results
 
     Parameters
-    -----
+    ----------
     name_file : str
         The name of a loaded file
 
     Returns
-    -----
+    ----------
     lin_alpha : ndarray
         The sequence of alpha
     bundle : tuple of ndarray
         A tuple of results
 
     Raises
-    -----
+    ----------
     File not found
         If there are no output files of mhd2dsphere_sincos.py with the
         same parameters.
@@ -149,7 +149,7 @@ def load_legendre(m_order: int,
     points
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     n_t : int
@@ -158,12 +158,12 @@ def load_legendre(m_order: int,
         The number of the grid in the theta direction
 
     Returns
-    -----
+    ----------
     legendre_norm : ndarray
         Values of associated Legendre polynomials at grid points
 
     Raises
-    -----
+    ----------
     File not found. Do you want to run package/make_legendre.py?
         If there is no output file for the same parameters. Then, you
         can execute package/make_legendre.py.

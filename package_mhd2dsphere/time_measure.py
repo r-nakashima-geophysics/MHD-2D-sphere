@@ -9,7 +9,7 @@ def time_progress(num_calc: int,
     """Measure calculation times and displays its progress
 
     Parameters
-    -----
+    ----------
     num_cal : int
         The total iteration number
     i_calc : int
@@ -18,7 +18,7 @@ def time_progress(num_calc: int,
         The previous timestamp
 
     Returns
-    -----
+    ----------
     now
         The current timestamp
 

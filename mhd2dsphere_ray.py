@@ -4,12 +4,12 @@ non-Malkus field B_phi = B_0 B(theta) sin(theta)
 Plots a figure of the ray trajectory.
 
 Parameters
------
+----------
 FILE_PRM : str
     The name of a parameter file
 
 Raises
------
+----------
 Too many or too few input parameters in the parameter file
     If the parameter file is inappropriate.
 File not found
@@ -18,16 +18,16 @@ Too many input arguments
     If the command line arguments are too many.
 
 Notes
------
+----------
 You may save the parameter file in ./input/MHD2Dsphere_ray/.
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, the parameters will be set to the default values.
     python3 mhd2dsphere_ray.py
 In the below example, the parameter file will be
@@ -51,7 +51,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 from scipy.optimize import root
 
-from package import func_b, func_u
+from package_mhd2dsphere import func_b, func_u
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
@@ -108,12 +108,12 @@ def load_prm(name_file: str) -> list[float]:
     """Loads a file of parameters
 
     Parameters
-    -----
+    ----------
     name_file : str
         The name of a parameter file
 
     Results
-    -----
+    ----------
     prms : list of float
         A list of parameters
 
@@ -142,7 +142,7 @@ def wrapper_plot_ray(prms: list[float]) -> None:
     A wrapper of a function to plot a figure of the ray trajectory
 
     Parameters
-    -----
+    ----------
     prms : list of float
         A list of parameters
 
@@ -255,14 +255,14 @@ def plot_ray(prms: list[float],
     """Plots a figure of the ray trajectory
 
     Parameters
-    -----
+    ----------
     prms : list of float
         A list of parameters
     results : tuple of float and ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     [min_k, max_k] : list of float
@@ -378,12 +378,12 @@ def integrate_ray(prms: list[float]) \
     """Calculates the time integration
 
     Parameters
-    -----
+    ----------
     prms : list of float
         A list of parameters
 
     Results
-    -----
+    ----------
     results : tuple of float and ndarray
         A tuple of results
 
@@ -427,20 +427,20 @@ def dispersion(k_const: float,
     """The dispersion relation
 
     Parameters
-    -----
+    ----------
     k_const : float
         The scaled zonal wavenumber
     args : tuple of float
         A tuple of parameters other than k_const (theta_rad, l_wavenum)
 
     Returns
-    -----
+    ----------
     dispersion_relation : float
         If dispersion_relation = 0, the dispersion relation is satisfied
         for given parameters.
 
     Notes
-    -----
+    ----------
     This function is based on eq. (30) in Nakashima & Yoshida (submitted)
     [1]_.
 
@@ -475,7 +475,7 @@ def main_func(time: np.ndarray,
     """A function for the time integration
 
     Parameters
-    -----
+    ----------
     time : ndarray
         The scaled time
     vec : ndarray
@@ -484,7 +484,7 @@ def main_func(time: np.ndarray,
         The scaled zonal wavenumber
 
     Returns
-    -----
+    ----------
     d_vec : list of float
         The time integral of the integrands (phi, theta, l)
 
@@ -508,7 +508,7 @@ def d_phi(theta_rad: float,
     """Calculates the phi component of the group velocity
 
     Parameters
-    -----
+    ----------
     theta_rad : float
         A colatitude
     k_const : float
@@ -517,12 +517,12 @@ def d_phi(theta_rad: float,
         A meridional wavenumber
 
     Returns
-    -----
+    ----------
     d_phi : float
         the phi component of the group velocity divided by sin(theta)
 
     Notes
-    -----
+    ----------
     This function is based on eq. (31a) in Nakashima & Yoshida (in
     prep.)[1]_.
 
@@ -561,7 +561,7 @@ def d_theta(theta_rad: float,
     """Calculate the theta component of the group velocity
 
     Parameters
-    -----
+    ----------
     theta_rad : float
         A colatitude
     k_const : float
@@ -570,12 +570,12 @@ def d_theta(theta_rad: float,
         A meridional wavenumber
 
     Returns
-    -----
+    ----------
     d_theta : float
         the theta component of the group velocity multiplied by -1
 
     Notes
-    -----
+    ----------
     This function is based on eq. (31b) in Nakashima & Yoshida (in
     prep.)[1]_.
 
@@ -608,7 +608,7 @@ def d_l(theta_rad: float,
     """Calculates the rate of change of the local meridional wavenumber
 
     Parameters
-    -----
+    ----------
     theta_rad : float
         A colatitude
     k_const : float
@@ -617,12 +617,12 @@ def d_l(theta_rad: float,
         A meridional wavenumber
 
     Returns
-    -----
+    ----------
     d_l : float
         the rate of change of the local meridional wavenumber
 
     Notes
-    -----
+    ----------
     This function is based on eq. (32c) in Nakashima & Yoshida (in
     prep.)[1]_.
 
@@ -659,12 +659,12 @@ def critical_lat(k_const: float) -> set[float]:
     """Calculates critical latitudes
 
     Parameters
-    -----
+    ----------
     k_const : float
         A scaled zonal wavenumber
 
     Returns
-    -----
+    ----------
     set_theta_c : set of float
         critical latitudes
 

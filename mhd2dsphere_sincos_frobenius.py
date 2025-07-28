@@ -5,18 +5,18 @@ Plots a figure of the comparison between the Frobenius series solutions
 and a numerical solution.
 
 Raises
------
+----------
 Lack of fitting data. You need to reduce the value of the variable
 NUM_DATA.
     If there are not enough grid points for fitting because a critical
     latitude is near the poles.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -33,11 +33,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.gridspec import GridSpec
 
-from package.load_data import load_legendre
-from package.make_eigf import choose_eigf, make_eigf
-from package.make_frobenius import calc_frobenius, make_fitting_data
-from package.solve_eig import wrapper_solve_eig
-from package.yes_no_else import exe_yes_continue
+from package_mhd2dsphere.load_data import load_legendre
+from package_mhd2dsphere.make_eigf import choose_eigf, make_eigf
+from package_mhd2dsphere.make_frobenius import calc_frobenius, make_fitting_data
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
+from package_common.yes_no_else import exe_yes_continue
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ def wrapper_choose_eigf(
     plot
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -121,7 +121,7 @@ def wrapper_plot_frobenius(psi_vec: np.ndarray,
     between the Frobenius series solutions and a numerical solution
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -237,7 +237,7 @@ def plot_frobenius(psi_vec: np.ndarray,
     solution and a numerical solution
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -246,7 +246,7 @@ def plot_frobenius(psi_vec: np.ndarray,
         An eigenvalue
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
     theta_c : float

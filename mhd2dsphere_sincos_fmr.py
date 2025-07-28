@@ -5,20 +5,20 @@ Plots a figure of the approximate dispersion relation for fast magnetic
 Rossby (MR) waves.
 
 Parameters
------
+----------
 M_ORDER : int
     The zonal wavenumber (order)
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos_fmr.py
 In the below example, M_ORDER will be set to 2.
@@ -36,10 +36,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import root
 
-from package.dispersion_fmr import dispersion_fmr
-from package.input_arg import input_int
-from package.load_data import wrapper_load_results
-from package.processing_results import pickup_eig
+from package_mhd2dsphere.dispersion_fmr import dispersion_fmr
+from package_common.input_arg import input_int
+from package_mhd2dsphere.load_data import wrapper_load_results
+from package_mhd2dsphere.processing_results import pickup_eig
 
 # ========== Parameters ==========
 
@@ -94,7 +94,7 @@ def wrapper_plot_fmr(
     dispersion relation for fast magnetic Rossby (MR) waves
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -167,12 +167,12 @@ def plot_fmr(
     magnetic Rossby (MR) waves
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
     Returns
-    -----
+    ----------
     fig_bundle : tuple
         A tuple of figures
 

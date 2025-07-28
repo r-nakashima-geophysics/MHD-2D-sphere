@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from package.input_arg import input_int_within
+from package_common.input_arg import input_int_within
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
@@ -19,19 +19,19 @@ def choose_eigf(bundle: tuple[np.ndarray, np.ndarray,
     """Chooses eigenmodes which you want to plot
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
     size_mat : int
         The size of matrices
 
     Returns
-    -----
+    ----------
     subbundle : tuple of ndarray and complex and int
         A tuple of results that you want to plot
 
     Raises
-    -----
+    ----------
     Invalid eigenmode
         When you choose an eigenmode that can not be displayed.
 
@@ -105,7 +105,7 @@ def make_eigf(psi_vec: np.ndarray,
     """Makes an eigenfunction from an eigenvector
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -116,7 +116,7 @@ def make_eigf(psi_vec: np.ndarray,
         Values of associated Legendre polynomials at grid points
 
     Returns
-    -----
+    ----------
     psi : ndarray
         An eigenfunction of the stream function (psi)
     vpa : ndarray
@@ -156,7 +156,7 @@ def make_eigf_grid(psi_vec: np.ndarray,
     """Makes a meshgrid of an eigenfunction from an eigenvector
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -169,7 +169,7 @@ def make_eigf_grid(psi_vec: np.ndarray,
         Values of associated Legendre polynomials at grid points
 
     Returns
-    -----
+    ----------
     psi_grid.real : ndarray
         A meshgrid of the stream function (psi)
     vpa_grid.real : ndarray
@@ -214,14 +214,14 @@ def amp_range(psi: np.ndarray,
     """Determines the range of amplitude in a 1D plot
 
     Parameters
-    -----
+    ----------
     psi : ndarray
         An eigenfunction of the stream function (psi)
     vpa : ndarray
         An eigenfunction of the vector potential (a)
 
     Returns
-    -----
+    ----------
     amp_max : float
         The maximum value of the amplitude of the eigenfunction
     amp_min : float
@@ -252,14 +252,14 @@ def adjust_sign(psi: np.ndarray,
     """Adjusts the sign of eigenfunctions
 
     Parameters
-    -----
+    ----------
     psi : ndarray
         An eigenfunction of the stream function (psi)
     num_theta : int
         The number of the grid in the theta direction
 
     Returns
-    -----
+    ----------
     sign : int
         The sign of the eigenfunction
 

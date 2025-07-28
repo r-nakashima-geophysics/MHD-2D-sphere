@@ -7,26 +7,26 @@ concerning the dispersion relation for 2D MHD waves on a rotating
 sphere under the non-Malkus field B_phi = B_0 sin(theta) cos(theta).
 
 Parameters
------
+----------
 M_ORDER : int
     The zonal wavenumber (order)
 
 Raises
------
+----------
 No saved file
     If all of the boolean values to switch whether to calculate are
     False.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 Examples
------
+----------
 In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos.py
 In the below example, M_ORDER will be set to 2.
@@ -44,10 +44,10 @@ from typing import Final
 import caffeine
 import numpy as np
 
-from package.input_arg import input_int
-from package.make_mat import make_mat, make_submat
-from package.solve_eig import solve_eig
-from package.time_measure import time_progress
+from package_common.input_arg import input_int
+from package_mhd2dsphere.make_mat import make_mat, make_submat
+from package_mhd2dsphere.solve_eig import solve_eig
+from package_mhd2dsphere.time_measure import time_progress
 
 # ========== Parameters ==========
 
@@ -114,7 +114,7 @@ def wrapper_solve_eig_foralpha() \
     """A wrapper of a function to solve the eigenvalue problem
 
     Returns
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results (linear-linear)
     bundle_log : tuple of ndarray
@@ -211,7 +211,7 @@ def save_results(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     """Saves files
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results (linear-linear)
     bundle_log : tuple of ndarray

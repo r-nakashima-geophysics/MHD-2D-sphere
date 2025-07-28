@@ -5,11 +5,11 @@ Plots 2 figures (north-south 1D plot and 2D contour map) of the
 eigenfunction of a chosen eigenmode.
 
 Notes
------
+----------
 Parameters other than command line arguments are described below.
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -23,10 +23,10 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package.load_data import load_legendre
-from package.make_eigf import amp_range, choose_eigf, make_eigf, make_eigf_grid
-from package.solve_eig import wrapper_solve_eig
-from package.yes_no_else import exe_yes_continue
+from package_mhd2dsphere.load_data import load_legendre
+from package_mhd2dsphere.make_eigf import amp_range, choose_eigf, make_eigf, make_eigf_grid
+from package_mhd2dsphere.solve_eig import wrapper_solve_eig
+from package_common.yes_no_else import exe_yes_continue
 
 # ========== Parameters ==========
 
@@ -97,7 +97,7 @@ def wrapper_choose_eigf(
     plot
 
     Parameters
-    -----
+    ----------
     bundle : tuple of ndarray
         A tuple of results
 
@@ -121,7 +121,7 @@ def wrapper_plot_eigf(psi_vec: np.ndarray,
     chosen eigenmode
 
     Parameters
-    -----
+    ----------
     psi_vec : ndarray
         An eigenvector of the stream function (psi)
     vpa_vec : ndarray
@@ -158,7 +158,7 @@ def plot_ns(psi: np.ndarray,
     (north-south 1D plot)
 
     Parameters
-    -----
+    ----------
     psi : ndarray
         An eigenfunction of the stream function (psi)
     vpa : ndarray
@@ -246,7 +246,7 @@ def plot_map(psi_grid: np.ndarray,
     contour map)
 
     Parameters
-    -----
+    ----------
     psi_grid : ndarray
         A meshgrid of the stream function (psi)
     vpa_grid : ndarray

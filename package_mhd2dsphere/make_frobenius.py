@@ -2,7 +2,7 @@
 sphere under the non-Malkus field B_phi = B_0 sin(theta) cos(theta)
 
 References
------
+----------
 [1] Nakashima & Yoshida (submitted)
 
 """
@@ -21,7 +21,7 @@ def calc_frobenius(m_order: int,
     the non-Malkus field B_phi = B_0 sin(theta) cos(theta)
 
     Parameters
-    -----
+    ----------
     m_order : int
         The zonal wavenumber (order)
     alpha : float
@@ -34,14 +34,14 @@ def calc_frobenius(m_order: int,
         A critical latitude
 
     Returns
-    -----
+    ----------
     psi1 : ndarray
         The first Frobenius solution
     psi2 : ndarray
         The second Frobenius solution
 
     Notes
-    -----
+    ----------
     This function is based on eqs. (17) and (18) in Nakashima & Yoshida
     (submitted)[1]_.
 
@@ -93,7 +93,7 @@ def make_fitting_data(psi1: np.ndarray,
     """Makes data for the fittings of the Frobenius solutions
 
     Parameters
-    -----
+    ----------
     psi1 : ndarray
         An eigenfunction of the stream function (psi)
     psi2 : ndarray

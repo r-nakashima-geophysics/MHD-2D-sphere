@@ -11,7 +11,7 @@ Parameters
 M_ORDER : int
     Zonal wavenumber (order)
 
-Raises
+Warns
 ----------
 No plotted figures
     If all of the boolean values to switch whether to plot figures are
@@ -45,15 +45,14 @@ import math
 import os
 import sys
 from pathlib import Path
-from typing import Final
 
 import matplotlib.pyplot as plt
 import numpy as np
-import numpy.typing as npt
 
-from package.default_logger import DefaultLogger
-from package.default_timer import DefaultTimer
-from package.input_arg import input_int
+from package_common.common_types import *
+from package_common.default_logger import DefaultLogger
+from package_common.default_timer import DefaultTimer
+from package_common.input_arg import input_int
 
 # ========== Parameters ========== #
 
@@ -112,36 +111,33 @@ NUM_ALPHA: Final[int] \
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[npt.NDArray[np.float64]] \
+LIN_N: Final[ArrayFloat] \
     = np.linspace(N_INIT, N_END, NUM_N)
-LIN_ALPHA: Final[npt.NDArray[np.float64]] \
+LIN_ALPHA: Final[ArrayFloat] \
     = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[npt.NDArray[np.float64]] \
+LIN_ALPHA_LOG: Final[ArrayFloat] \
     = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
 
 
-def wrapper_eigene() -> tuple[npt.NDArray[np.float64],
-                              npt.NDArray[np.float64],
-                              npt.NDArray[np.float64]]:
-    """Wrapper of functions to calculate the dispersion relation and
-    energy partitioning.
+def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
+    """Calculate the dispersion relation and energy partitioning.
 
     Returns
     ----------
-    eig : npt.NDArray[np.float64]
+    eig : ArrayFloat
         Eigenvalues (linear)
-    ene : npt.NDArray[np.float64]
+    ene : ArrayFloat
         Energy partitioning
-    eig_log : npt.NDArray[np.float64]
+    eig_log : ArrayFloat
         Eigenvalues (log)
 
     """
 
-    eig: npt.NDArray[np.float64] \
+    eig: ArrayFloat \
         = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
-    ene: npt.NDArray[np.float64] \
+    ene: ArrayFloat \
         = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
-    eig_log: npt.NDArray[np.float64] \
+    eig_log: ArrayFloat \
         = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
 
     n_degree: int
@@ -288,7 +284,7 @@ def calc_ene(n_degree: int,
 #
 
 
-def plot_eig(eig: npt.NDArray[np.float64]) -> None:
+def plot_eig(eig: ArrayFloat) -> None:
     """Plots a figure of the dispersion relation (linear-linear)
 
     Parameters
@@ -364,7 +360,7 @@ def plot_eig(eig: npt.NDArray[np.float64]) -> None:
 #
 
 
-def plot_ene(ene: npt.NDArray[np.float64]) -> None:
+def plot_ene(ene: ArrayFloat) -> None:
     """Plots a figure of energy partitioning
 
     Parameters
@@ -445,7 +441,7 @@ def plot_ene(ene: npt.NDArray[np.float64]) -> None:
 #
 
 
-def plot_eig_log(eig_log: npt.NDArray[np.float64]) -> None:
+def plot_eig_log(eig_log: ArrayFloat) -> None:
     """Plots a figure of the dispersion relation (log-log)
 
     Parameters
@@ -458,7 +454,7 @@ def plot_eig_log(eig_log: npt.NDArray[np.float64]) -> None:
     i_n: int
 
     fig: plt.Figure
-    axes: npt.NDArray[np.float64]
+    axes: ArrayFloat
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
     for i_n_inv in range(NUM_N):
@@ -553,13 +549,13 @@ if __name__ == '__main__':
     TIMER.start()
 
     if True not in SWITCH_PLOT:
-        DefaultLogger(__name__).info('No plotted figures')
+        DefaultLogger(__name__).warning('No plotted figures')
         sys.exit()
     #
 
-    results: tuple[npt.NDArray[np.float64],
-                   npt.NDArray[np.float64],
-                   npt.NDArray[np.float64]] \
+    results: tuple[ArrayFloat,
+                   ArrayFloat,
+                   ArrayFloat] \
         = wrapper_eigene()
 
     plt.rcParams['text.usetex'] = True
