@@ -1,37 +1,35 @@
-"""A decorator to decide whether to execute a function"""
+"""A Python module to define a decorator for deciding whether to execute
+a function"""
 
-import logging
 import sys
-from typing import Callable
 
-logging.basicConfig(level=logging.INFO)
-logger: logging.Logger = logging.getLogger(__name__)
+from package_common.common_types import Any, Callable, Final
+from package_common.default_logger import DefaultLogger
 
 
-def yes_exe_no_exit(func) -> Callable[..., None]:
-    """A decorator to execute a function when you input 'yes' and to
-    exit the program when you input 'no'
+def yes_exe_no_exit(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to execute a function when the character 'yes' is input
+    and to exit the script when the character 'no' is input.
 
     Parameters
     ----------
     func : Callable
-        A function executed when you input 'yes'
+        The function executed when the character 'yes' is input.
 
     Returns
     ----------
-    new_function : Callable
-        A function executed when you input 'yes'
+    new_func : Callable
+        A function executed when the character 'yes' is input.
 
-    Raises
+    Warnings
     ----------
     Quit
-        If you input 'n' or 'no'.
+        If the character 'n' or 'no' is input.
     Invalid input
-        If you input characters other than 'y', 'yes', 'n', or 'no'.
+        If characters other than 'y', 'yes', 'n', or 'no' are input.
 
     Examples
     ----------
-    >>> from package.yes_no_else import yes_exe_no_exit
     >>> def test():
     ...     print('test')
     ...
@@ -42,58 +40,56 @@ def yes_exe_no_exit(func) -> Callable[..., None]:
     >>> wrapper()
     (yes/no) yes
     test
-
     """
 
-    def new_function(*args, **kwargs) -> None:
+    FUNCTION_NAME: Final[str] = sys._getframe().f_code.co_name
+
+    def new_func(*args: tuple[Any, ...],
+                 **kwargs: dict[str, Any]) -> Any:
 
         yes_no: str
-
         while True:
-            yes_no = input('(yes/no) ').lower()
+            yes_no = input('(yes/no) ').lower().strip()
 
             if yes_no in ('y', 'yes'):
                 func(*args, **kwargs)
                 break
-            #
 
             if yes_no in ('n', 'no'):
-                logger.info('Quit')
-                sys.exit()
-            #
+                DefaultLogger(FUNCTION_NAME).info('Quit')
+                sys.exit(0)
 
-            logger.error('Invalid input')
+            DefaultLogger(FUNCTION_NAME).error('Invalid input')
         #
     #
 
-    return new_function
+    return new_func
 #
 
 
-def exe_yes_continue(func) -> Callable[..., None]:
-    """A decorator to execute a function, and then to re-execute a
-    function only when you input 'yes'
+def exe_yes_continue(func: Callable[..., Any]) -> Callable[..., Any]:
+    """Decorator to execute a function, and then to continue to execute
+    a function while the character 'yes' is input.
 
     Parameters
     ----------
     func :
-        A function executed when you input 'yes'
+        The function executed when the character 'yes' is input.
 
     Returns
     ----------
     new_function : Callable
-        A function executed when you input 'yes'
+        The function executed when the character 'yes' is input.
 
-    Raises
+    Warnings
     ----------
     Quit
-        If you input 'n' or 'no'.
+        If the character 'n' or 'no' is input.
     Invalid input
-        If you input characters other than 'y', 'yes', 'n', or 'no'.
+        If characters other than 'y', 'yes', 'n', or 'no' are input.
 
     Examples
     ----------
-    >>> from package.yes_no_else import exe_yes_continue
     >>> def test():
     ...     print('test')
     ...
@@ -106,35 +102,28 @@ def exe_yes_continue(func) -> Callable[..., None]:
     Re-execute? (yes/no) yes
     test
     Re-execute? (yes/no) no
-    INFO:package.yes_no_else:Quit
-
     """
 
-    def new_function(*args, **kwargs) -> None:
+    FUNCTION_NAME: Final[str] = sys._getframe().f_code.co_name
+
+    def new_function(*args: tuple[Any, ...],
+                     **kwargs: dict[str, Any]) -> Any:
 
         yes_no: str = 'y'
-        may_be_invalid: bool = False
 
         while True:
+            func(*args, **kwargs)
 
-            if yes_no in ('y', 'yes'):
-                may_be_invalid = False
-                func(*args, **kwargs)
-            #
+            while True:
+                yes_no = input('Re-execute? (yes/no) ').lower().strip()
 
-            if yes_no in ('n', 'no'):
-                logger.info('Quit')
-                sys.exit()
-            #
+                if yes_no in ('y', 'yes'):
+                    break
 
-            if may_be_invalid:
-                logger.error('Invalid input')
-            #
+                if yes_no in ('n', 'no'):
+                    DefaultLogger(FUNCTION_NAME).info('Quit')
+                    sys.exit(0)
 
-            may_be_invalid = True
-            yes_no = input('Re-execute? (yes/no) ').lower()
-        #
-    #
+                DefaultLogger(FUNCTION_NAME).error('Invalid input')
 
     return new_function
-#
