@@ -3,8 +3,8 @@ time of a Python script.
 """
 
 from time import perf_counter
-from typing import Optional
 
+from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 
 
@@ -20,7 +20,7 @@ class DefaultTimer:
     __elapsed_time : Optional[float]
         The elapsed time.
 
-    Warns
+    Warnings
     ----------
     Timer has not been started.
         If `start()` has not been called before `show()` or `end()` are
@@ -28,10 +28,9 @@ class DefaultTimer:
 
     Examples
     --------
-    >>> from package.default_timer import DefaultTimer
-    >>> timer = DefaultTimer(name="my_timer")
-    >>> timer.start()
-    >>> timer.end()
+    >>> my_timer = DefaultTimer(name="my_timer")
+    >>> my_timer.start()
+    >>> my_timer.end()
     """
 
     def __init__(self,

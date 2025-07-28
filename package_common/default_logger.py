@@ -13,7 +13,6 @@ class DefaultLogger:
 
     Examples
     --------
-    >>> from package.default_logger import DefaultLogger
     >>> logger = DefaultLogger(name="my_logger")
     >>> logger.debug("This is a debug message.")
     >>> logger.info("This is an info message.")
@@ -31,9 +30,10 @@ class DefaultLogger:
         ----------
         name : str
             The name of the logger.
-        level : int, optional
-            The logging level, default logging.DEBUG.
+        level : int, optional, default logging.DEBUG
+            The logging level.
         """
+
         self.__logger: logging.Logger = logging.getLogger(name)
         self.__logger.setLevel(level)
         self.__logger.propagate = False

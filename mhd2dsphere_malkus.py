@@ -11,7 +11,7 @@ Parameters
 M_ORDER : int
     Zonal wavenumber (order)
 
-Warns
+Warnings
 ----------
 No plotted figures
     If all of the boolean values to switch whether to plot figures are
@@ -33,11 +33,9 @@ doi: 10.1080/03091929.2024.2384388
 Examples
 ----------
 Run the script with the default value of M_ORDER.
-
     $ python3 mhd2dsphere_malkus.py
 
 Run the script with a specified value, e.g., M_ORDER = 2.
-
     $ python3 mhd2dsphere_malkus.py 2
 """
 
@@ -49,7 +47,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import *
+from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.input_arg import input_int
@@ -210,7 +208,7 @@ def calc_eig(n_degree: int,
 
     if name_mode not in NAMES_MODE:
         DefaultLogger(__name__).error('Invalid ID')
-        sys.exit()
+        sys.exit(1)
     #
 
     if n_degree == 0:
@@ -550,7 +548,7 @@ if __name__ == '__main__':
 
     if True not in SWITCH_PLOT:
         DefaultLogger(__name__).warning('No plotted figures')
-        sys.exit()
+        sys.exit(0)
     #
 
     results: tuple[ArrayFloat,
