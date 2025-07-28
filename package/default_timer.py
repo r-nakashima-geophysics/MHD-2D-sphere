@@ -42,12 +42,12 @@ class DefaultTimer:
         self.__elapsed_time: Optional[float] = None
 
     def start(self) -> None:
-        """Method to start the timer."""
+        """Instance method to start the timer."""
         self.__logger.info("Start")
         self.__start_time = perf_counter()
 
     def show(self) -> None:
-        """ Method to show the elapsed time."""
+        """Instance method to show the elapsed time."""
         if self.__start_time is None:
             self.__logger.warning("Timer has not been started.")
         else:
@@ -56,6 +56,6 @@ class DefaultTimer:
                 f"Elapsed time: {self.__elapsed_time:.2f} sec.")
 
     def end(self) -> None:
-        """Method to end the timer."""
+        """Instance method to end the timer."""
         self.show()
         self.__logger.info("End")

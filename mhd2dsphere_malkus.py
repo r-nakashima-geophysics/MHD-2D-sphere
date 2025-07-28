@@ -1,61 +1,70 @@
-"""A code for 2D ideal MHD waves on a rotating sphere under the Malkus
-field B_phi = B_0 sin(theta)
+"""A Python script to calculate the dispersion relation of
+two-dimensional (2D) ideal magnetohydrodynamic (MHD) waves on a rotating
+sphere under the Malkus background field, B_phi = B_0 sin(theta).
 
-Plots 1-3 figures (linear-linear, energy partitioning, and log-log)
-concerning the dispersion relation for 2D ideal MHD waves on a rotating
-sphere under the Malkus field B_phi = B_0 sin(theta).
+This script can generate up to three figures: a linear-linear plot of
+the dispersion relation, a plot showing energy partitioning for various
+eigenmodes, and a log-log plot of the dispersion relation.
 
 Parameters
------
+----------
 M_ORDER : int
-    The zonal wavenumber (order)
+    Zonal wavenumber (order)
 
 Raises
------
+----------
 No plotted figures
     If all of the boolean values to switch whether to plot figures are
     False.
 
 Notes
------
-Parameters other than command line arguments are described below.
+----------
+All other parameters aside from command line arguments are described
+within the script.
 
 References
------
-[1] Nakashima & Yoshida (submitted)
+----------
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
------
-In the below example, M_ORDER will be set to the default value.
-    python3 mhd2dsphere_malkus.py
-In the below example, M_ORDER will be set to 2.
-    python3 mhd2dsphere_malkus.py 2
+----------
+Run the script with the default value of M_ORDER.
 
+    $ python3 mhd2dsphere_malkus.py
+
+Run the script with a specified value, e.g., M_ORDER = 2.
+
+    $ python3 mhd2dsphere_malkus.py 2
 """
 
-import logging
 import math
 import os
 import sys
 from pathlib import Path
-from time import perf_counter
 from typing import Final
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 
-from package.input_arg import input_m
+from package.default_logger import DefaultLogger
+from package.default_timer import DefaultTimer
+from package.input_arg import input_int
 
-# ========== Parameters ==========
+# ========== Parameters ========== #
 
-# Boolean values to switch whether to plot figures
-# 0: dispersion relation (linear-linear)
-# 1: energy partitioning
-# 2: dispersion relation (log-log)
+# The boolean values to switch whether to plot figures
+# SWITCH_PLOT[0]: The linear-linear plot of the dispersion relation
+# SWITCH_PLOT[1]: The plot showing energy partitioning
+# SWITCH_PLOT[2]: The log-log plot of the dispersion relation
 SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
 
-# The zonal wavenumber (order)
-M_ORDER: Final[int] = input_m(1)
+# Zonal wavenumber (order)
+M_ORDER: Final[int] = input_int(1)
 
 # Degrees
 N_INIT: Final[int] = M_ORDER  # M_ORDER <= N_INIT
@@ -92,7 +101,7 @@ NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_ene.png'
 NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eiglog.png'
 FIG_DPI: Final[int] = 600
 
-# ================================
+# ================================ #
 
 NAMES_MODE: Final[tuple[str, str]] = ('fMR', 'sMR')
 NUM_MODE: Final[int] = len(NAMES_MODE)
@@ -103,31 +112,37 @@ NUM_ALPHA: Final[int] \
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[np.ndarray] = np.linspace(N_INIT, N_END, NUM_N)
-LIN_ALPHA: Final[np.ndarray] \
+LIN_N: Final[npt.NDArray[np.float64]] \
+    = np.linspace(N_INIT, N_END, NUM_N)
+LIN_ALPHA: Final[npt.NDArray[np.float64]] \
     = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[np.ndarray] \
+LIN_ALPHA_LOG: Final[npt.NDArray[np.float64]] \
     = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
 
 
-def wrapper_eigene() -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """A wrapper of functions to calculate the dispersion relation and
-    energy partitioning
+def wrapper_eigene() -> tuple[npt.NDArray[np.float64],
+                              npt.NDArray[np.float64],
+                              npt.NDArray[np.float64]]:
+    """Wrapper of functions to calculate the dispersion relation and
+    energy partitioning.
 
     Returns
-    -----
-    eig : ndarray
-        Eigenvalues (linear-linear)
-    ene : ndarray
+    ----------
+    eig : npt.NDArray[np.float64]
+        Eigenvalues (linear)
+    ene : npt.NDArray[np.float64]
         Energy partitioning
-    eig_log : ndarray
-        Eigenvalues (log-log)
+    eig_log : npt.NDArray[np.float64]
+        Eigenvalues (log)
 
     """
 
-    eig: np.ndarray = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
-    ene: np.ndarray = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
-    eig_log: np.ndarray = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
+    eig: npt.NDArray[np.float64] \
+        = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
+    ene: npt.NDArray[np.float64] \
+        = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
+    eig_log: npt.NDArray[np.float64] \
+        = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
 
     n_degree: int
     alpha: float
@@ -170,7 +185,7 @@ def calc_eig(n_degree: int,
     """Calculates the dispersion relation
 
     Parameters
-    -----
+    ----------
     n_degree : int
         A degree of the associated Legendre polynomial
     alpha : float
@@ -179,17 +194,17 @@ def calc_eig(n_degree: int,
         'fMR' or 'sMR'
 
     Returns
-    -----
+    ----------
     eig : float
         An eigenvalue
 
     Raises
-    -----
+    ----------
     Invalid ID
         If name_mode is neither 'fMR' nor 'sMR'.
 
     Notes
-    -----
+    ----------
     If n_degree = 0, eig is set to 0. This function is based on eq. (1)
     in Nakashima & Yoshida (submitted)[1]_.
 
@@ -198,7 +213,7 @@ def calc_eig(n_degree: int,
     eig: float
 
     if name_mode not in NAMES_MODE:
-        logger.error('Invalid ID')
+        DefaultLogger(__name__).error('Invalid ID')
         sys.exit()
     #
 
@@ -226,7 +241,7 @@ def calc_ene(n_degree: int,
     """Calculates energy partitioning
 
     Parameters
-    -----
+    ----------
     n_degree : int
         A degree of the associated Legendre polynomial
     alpha : float
@@ -235,12 +250,12 @@ def calc_ene(n_degree: int,
         'fMR' or 'sMR'
 
     Returns
-    -----
+    ----------
     ene : float
         Energy partitioning
 
     Notes
-    -----
+    ----------
     If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for
     fast MR waves and 1 for slow MR waves. This function is based on
     the equation in the caption of Fig. 3 in Nakashima & Yoshida (in
@@ -273,11 +288,11 @@ def calc_ene(n_degree: int,
 #
 
 
-def plot_eig(eig: np.ndarray) -> None:
+def plot_eig(eig: npt.NDArray[np.float64]) -> None:
     """Plots a figure of the dispersion relation (linear-linear)
 
     Parameters
-    -----
+    ----------
     eig : ndarray
         Eigenvalues
 
@@ -349,11 +364,11 @@ def plot_eig(eig: np.ndarray) -> None:
 #
 
 
-def plot_ene(ene: np.ndarray) -> None:
+def plot_ene(ene: npt.NDArray[np.float64]) -> None:
     """Plots a figure of energy partitioning
 
     Parameters
-    -----
+    ----------
     ene : ndarray
         Energy partitioning
 
@@ -430,11 +445,11 @@ def plot_ene(ene: np.ndarray) -> None:
 #
 
 
-def plot_eig_log(eig_log: np.ndarray) -> None:
+def plot_eig_log(eig_log: npt.NDArray[np.float64]) -> None:
     """Plots a figure of the dispersion relation (log-log)
 
     Parameters
-    -----
+    ----------
     eig_log : ndarray
         Eigenvalues (log-log)
 
@@ -443,7 +458,7 @@ def plot_eig_log(eig_log: np.ndarray) -> None:
     i_n: int
 
     fig: plt.Figure
-    axes: np.ndarray
+    axes: npt.NDArray[np.float64]
     fig, axes = plt.subplots(1, 2, figsize=(10, 5))
 
     for i_n_inv in range(NUM_N):
@@ -534,17 +549,17 @@ def plot_eig_log(eig_log: np.ndarray) -> None:
 
 
 if __name__ == '__main__':
-    TIME_INIT: Final[float] = perf_counter()
-
-    logging.basicConfig(level=logging.INFO)
-    logger: logging.Logger = logging.getLogger(__name__)
+    TIMER: Final[DefaultTimer] = DefaultTimer(__name__)
+    TIMER.start()
 
     if True not in SWITCH_PLOT:
-        logger.info('No plotted figures')
+        DefaultLogger(__name__).info('No plotted figures')
         sys.exit()
     #
 
-    results: tuple[np.ndarray, np.ndarray, np.ndarray] \
+    results: tuple[npt.NDArray[np.float64],
+                   npt.NDArray[np.float64],
+                   npt.NDArray[np.float64]] \
         = wrapper_eigene()
 
     plt.rcParams['text.usetex'] = True
@@ -559,8 +574,7 @@ if __name__ == '__main__':
         plot_eig_log(results[2])
     #
 
-    TIME_ELAPSED: Final[float] = perf_counter() - TIME_INIT
-    print(f'{__name__}: {TIME_ELAPSED:.3f} s')
+    TIMER.end()
 
     plt.show()
 #

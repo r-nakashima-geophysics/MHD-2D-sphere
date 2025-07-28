@@ -50,7 +50,7 @@ class DefaultLogger:
 
     def debug(self,
               message: str) -> None:
-        """Method to log a debug message.
+        """Instance method to log a debug message.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class DefaultLogger:
 
     def info(self,
              message: str) -> None:
-        """Method to log an information message.
+        """Instance method to log an information message.
 
         Parameters
         ----------
@@ -72,7 +72,7 @@ class DefaultLogger:
 
     def warning(self,
                 message: str) -> None:
-        """Method to log a warning message.
+        """Instance method to log a warning message.
 
         Parameters
         ----------
@@ -83,7 +83,7 @@ class DefaultLogger:
 
     def error(self,
               message: str) -> None:
-        """Method to log an error message.
+        """Instance method to log an error message.
 
         Parameters
         ----------
@@ -94,7 +94,7 @@ class DefaultLogger:
 
     def critical(self,
                  message: str) -> None:
-        """Method to log a critical message.
+        """Instance method to log a critical message.
 
         Parameters
         ----------
