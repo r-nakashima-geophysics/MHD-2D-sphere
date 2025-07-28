@@ -1,29 +1,27 @@
-"""Assists the input of parameters"""
+"""A Python module to assist the input of parameters"""
 
-import logging
 import sys
 
-logging.basicConfig(level=logging.INFO)
-logger: logging.Logger = logging.getLogger(__name__)
+from package_common.default_logger import DefaultLogger
 
 
-def input_int(m_default: int) -> int:
-    """Inputs a zonal wavenumber
+def input_int(integer_default: int) -> int:
+    """Input an integer
 
     When there is a command line argument, the default value of the
-    zonal wavenumber (order) is overwritten with its argument.
+    integer is overwritten with the argument.
 
     Parameters
     ----------
-    m_default : int
-        A default value of the zonal wavenumber (order)
+    integer_default : int
+        The default value of the integer
 
     Returns
     ----------
-    m_order : int
-        An overwritten zonal wavenumber (order)
+    integer : int
+        The overwritten integer or the default value
 
-    Raises
+    Warnings
     ----------
     Invalid argument
         If the command line argument is invalid.
@@ -32,57 +30,55 @@ def input_int(m_default: int) -> int:
 
     Examples
     ----------
-    When there is not a command line argument:
-        python3
-        >>> from package.input_arg import input_int
+    Run a script without a command line argument:
+        $ python3
+        >>> from package_common.input_arg import input_int
         >>> input_int(1)
         1
-    When there is a command line argument:
-        python3 - 2
-        >>> from package.input_arg import input_int
-        >>> input_int(1)
-        2
 
+    Run a script with a command line argument:
+        $ python3 - 2 
+        >>> from package_common.input_arg import input_int 
+        >>> input_int(1) 
+        2
     """
 
-    m_order: int
+    function_name: str = sys._getframe().f_code.co_name
+    integer: int
 
     if len(sys.argv) == 2:
         arg1: str = sys.argv[1]
 
         if not (arg1.isdigit() and float(arg1).is_integer()):
-            logger.error('Invalid argument')
+            DefaultLogger(function_name).error('Invalid argument')
             sys.exit()
         else:
-            m_order = int(arg1)
-        #
+            integer = int(arg1)
 
     elif len(sys.argv) > 2:
-        logger.error('Too many input arguments')
+        DefaultLogger(function_name).error('Too many input arguments')
         sys.exit()
     else:
-        m_order = m_default
-    #
+        integer = integer_default
 
-    return m_order
-#
+    return integer
 
 
-def input_alpha(alpha_default: float) -> float:
-    """Inputs the Lehnert number
+def input_float(float_default: float) -> float:
+    """Input a floating point number
 
     When there is a command line argument, the default value of the
-    Lehnert number is overwritten with its argument.
+    floating point number is overwritten with the argument.
 
     Parameters
     ----------
-    alpha_default : float
-        A default value of the Lehnert number
+    float_default : float
+        The default value of the floating point number
 
     Returns
     ----------
-    alpha : float
-        An overwritten Lehnert number
+    floating_point_num : float
+        The overwritten floating point number or the default value
 
     Raises
     ----------
@@ -93,17 +89,17 @@ def input_alpha(alpha_default: float) -> float:
 
     Examples
     ----------
-    When there is not a command line argument:
-        python3
-        >>> from package.input_arg import input_alpha
-        >>> input_alpha(1)
-        1
-    When there is a command line argument:
-        python3 - 2
-        >>> from package.input_arg import input_alpha
-        >>> input_alpha(1)
-        2.0
+    Run a script without a command line argument:
+        $ python3 
+        >>> from package_common.input_arg import input_float 
+        >>> input_float(1.0)
+        1.0
 
+    Run a script with a command line argument:
+        $ python3 - 2
+        >>> from package_common.input_arg import input_float
+        >>> input_float(1.0)
+        2.0
     """
 
     def is_num(input_str) -> bool:
@@ -114,99 +110,89 @@ def input_alpha(alpha_default: float) -> float:
             check = False
         else:
             check = True
-        #
-        return check
-    #
 
-    alpha: float
+        return check
+
+    function_name: str = sys._getframe().f_code.co_name
+    floating_point_num: float
 
     if len(sys.argv) == 2:
         arg1: str = sys.argv[1]
 
         if not is_num(arg1):
-            logger.error('Invalid argument')
+            DefaultLogger(function_name).error('Invalid argument')
             sys.exit()
         else:
-            alpha = float(arg1)
-        #
-    #
+            floating_point_num = float(arg1)
 
     elif len(sys.argv) > 2:
-        logger.error('Too many input arguments')
+        DefaultLogger(function_name).error('Too many input arguments')
         sys.exit()
     else:
-        alpha = alpha_default
-    #
+        floating_point_num = float_default
 
-    return alpha
-#
+    return floating_point_num
 
 
-def input_int_within(min_int: int,
-                     max_int: int) -> int:
-    """Inputs an integer within an appropriate range
+def input_int_within(integer_min: int,
+                     integer_max: int) -> int:
+    """Input an integer within an specified range
 
     Parameters
     ----------
-    min_int : int
-        The minimum value of an appropriate range of integers
-    max_int : int
-        The maximum value of an appropriate range of integers
+    integer_min : int
+        The minimum value of an specified range of integers
+    integer_max : int
+        The maximum value of an specified range of integers
 
     Returns
     ----------
-    chosen_int : int
-        A chosen appropriate integer
+    integer_chosen : int
+        A chosen specified integer
 
-    Raises
+    Warnings
     ----------
     Quit
-        If you input 'q' to quit inputting numbers.
+        If the character 'q' is inputted.
     Invalid integer
-        If the inputted integer is not within the appropriate range.
+        If the inputted integer is not within the specified range.
     Invalid input
         If the inputted character is not an integer.
 
     Examples
     ----------
-    >>> from package.input_arg import input_int_within
+    >>> from package_common.input_arg import input_int_within
     >>> input_int_within(0,10)
     (quit: q):  1
     1
-    >>> input_int_within(0,10)
-    (quit: q):  q
-    INFO:package.input_arg:Quit
-
     """
 
-    chosen_int: int
+    integer_chosen: int
+    function_name: str = sys._getframe().f_code.co_name
+
+    input_str: str
+    check_int: bool
 
     while True:
-        input_str: str = input('(quit: q):  ')
+        input_str = input('(quit: q):  ')
 
-        check_int: bool = False
+        check_int = False
         if input_str.isdigit() and float(input_str).is_integer():
 
-            chosen_int = int(input_str)
+            integer_chosen = int(input_str)
 
-            if min_int <= chosen_int <= max_int:
+            if integer_min <= integer_chosen <= integer_max:
                 break
-            #
 
             check_int = True
-        #
 
         if input_str == 'q':
-            logger.info('Quit')
+            DefaultLogger(function_name).info('Quit')
             sys.exit()
-        #
 
         if check_int:
-            logger.error('Invalid integer')
+            DefaultLogger(function_name).error('Invalid integer')
         else:
-            logger.error('Invalid input')
-        #
-    #
+            DefaultLogger(function_name).error('Invalid input')
 
-    return chosen_int
-#
+    return integer_chosen

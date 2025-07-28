@@ -29,10 +29,11 @@ import caffeine
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_alpha
+from package_common.input_arg import input_float
 from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import make_eigf
-from package_mhd2dsphere.make_frobenius import calc_frobenius, make_fitting_data
+from package_mhd2dsphere.make_frobenius import (calc_frobenius,
+                                                make_fitting_data)
 from package_mhd2dsphere.processing_results import sort_sv
 from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
@@ -42,7 +43,7 @@ from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 M_ORDER: Final[int] = 1
 
 # The Lehnert number
-ALPHA: Final[float] = input_alpha(0.1)
+ALPHA: Final[float] = input_float(0.1)
 
 # The truncation degree
 N_T: Final[int] = 2000
