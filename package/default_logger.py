@@ -25,7 +25,7 @@ class DefaultLogger:
     def __init__(self,
                  name: str,
                  level: int = logging.DEBUG) -> None:
-        """Initializer for DefaultLogger class.
+        """Initialize the DefaultLogger instance.
 
         Parameters
         ----------
@@ -39,10 +39,10 @@ class DefaultLogger:
         self.__logger.propagate = False
 
         if not self.__logger.handlers:
-            fmt: str \
-                = "\033[1m/%(levelname)s/\033[0m" \
-                + " [%(asctime)s] %(name)s: %(message)s"
+            fmt: str = \
+                "/%(levelname)s/ [%(asctime)s] %(name)s: %(message)s"
             handler: logging.StreamHandler = logging.StreamHandler()
+            handler.setLevel(level)
             formatter: logging.Formatter = logging.Formatter(
                 fmt=fmt, datefmt="%Y-%m-%d %H:%M:%S")
             handler.setFormatter(formatter)
@@ -50,7 +50,7 @@ class DefaultLogger:
 
     def debug(self,
               message: str) -> None:
-        """Instance method to log a debug message.
+        """Log a debug message.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class DefaultLogger:
 
     def info(self,
              message: str) -> None:
-        """Instance method to log an information message.
+        """Log an information message.
 
         Parameters
         ----------
@@ -72,7 +72,7 @@ class DefaultLogger:
 
     def warning(self,
                 message: str) -> None:
-        """Instance method to log a warning message.
+        """Log a warning message.
 
         Parameters
         ----------
@@ -83,7 +83,7 @@ class DefaultLogger:
 
     def error(self,
               message: str) -> None:
-        """Instance method to log an error message.
+        """Log an error message.
 
         Parameters
         ----------
@@ -94,7 +94,7 @@ class DefaultLogger:
 
     def critical(self,
                  message: str) -> None:
-        """Instance method to log a critical message.
+        """Log a critical message.
 
         Parameters
         ----------

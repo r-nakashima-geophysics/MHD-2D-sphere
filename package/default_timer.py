@@ -15,10 +15,16 @@ class DefaultTimer:
     ----------
     __logger : DefaultLogger
         The instance of the logger.
-    __start_time : float
+    __start_time : Optional[float]
         The starting time of the timer.
-    __elapsed_time : float
+    __elapsed_time : Optional[float]
         The elapsed time.
+
+    Warns
+    ----------
+    Timer has not been started.
+        If `start()` has not been called before `show()` or `end()` are
+        called.
 
     Examples
     --------
@@ -28,8 +34,9 @@ class DefaultTimer:
     >>> timer.end()
     """
 
-    def __init__(self, name: str) -> None:
-        """Initializer for DefaultTimer class.
+    def __init__(self,
+                 name: str) -> None:
+        """Initialize the DefaultTimer instance.
 
         Parameters
         ----------
@@ -42,20 +49,21 @@ class DefaultTimer:
         self.__elapsed_time: Optional[float] = None
 
     def start(self) -> None:
-        """Instance method to start the timer."""
+        """Start the timer."""
         self.__logger.info("Start")
         self.__start_time = perf_counter()
 
     def show(self) -> None:
-        """Instance method to show the elapsed time."""
+        """Show the elapsed time."""
         if self.__start_time is None:
-            self.__logger.warning("Timer has not been started.")
+            DefaultLogger(__class__.__name__).warning(
+                "Timer has not been started.")
         else:
             self.__elapsed_time = perf_counter() - self.__start_time
             self.__logger.info(
-                f"Elapsed time: {self.__elapsed_time:.2f} sec.")
+                f"Elapsed time: {self.__elapsed_time:.1f} sec.")
 
     def end(self) -> None:
-        """Instance method to end the timer."""
+        """End the timer."""
         self.show()
         self.__logger.info("End")
