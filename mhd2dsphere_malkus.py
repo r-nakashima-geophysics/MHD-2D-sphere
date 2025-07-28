@@ -150,7 +150,7 @@ def wrapper_eigene() -> tuple[npt.NDArray[np.float64],
     for i_n in range(NUM_N):
         n_degree = LIN_N[i_n]
 
-        if (SWITCH_PLOT[0] or SWITCH_PLOT[1]):
+        if SWITCH_PLOT[0]:
             for i_alpha in range(NUM_ALPHA):
                 alpha = LIN_ALPHA[i_alpha]
 
@@ -161,7 +161,7 @@ def wrapper_eigene() -> tuple[npt.NDArray[np.float64],
             #
         #
 
-        if SWITCH_PLOT[2]:
+        if (SWITCH_PLOT[1] or SWITCH_PLOT[2]):
             for i_alpha in range(NUM_ALPHA_LOG):
                 alpha = 10**LIN_ALPHA_LOG[i_alpha]
 
