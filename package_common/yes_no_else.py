@@ -13,24 +13,24 @@ def yes_exe_no_exit(func) -> Callable[..., None]:
     exit the program when you input 'no'
 
     Parameters
-    -----
+    ----------
     func : Callable
         A function executed when you input 'yes'
 
     Returns
-    -----
+    ----------
     new_function : Callable
         A function executed when you input 'yes'
 
     Raises
-    -----
+    ----------
     Quit
         If you input 'n' or 'no'.
     Invalid input
         If you input characters other than 'y', 'yes', 'n', or 'no'.
 
     Examples
-    -----
+    ----------
     >>> from package.yes_no_else import yes_exe_no_exit
     >>> def test():
     ...     print('test')
@@ -75,24 +75,24 @@ def exe_yes_continue(func) -> Callable[..., None]:
     function only when you input 'yes'
 
     Parameters
-    -----
+    ----------
     func :
         A function executed when you input 'yes'
 
     Returns
-    -----
+    ----------
     new_function : Callable
         A function executed when you input 'yes'
 
     Raises
-    -----
+    ----------
     Quit
         If you input 'n' or 'no'.
     Invalid input
         If you input characters other than 'y', 'yes', 'n', or 'no'.
 
     Examples
-    -----
+    ----------
     >>> from package.yes_no_else import exe_yes_continue
     >>> def test():
     ...     print('test')

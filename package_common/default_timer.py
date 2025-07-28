@@ -5,7 +5,7 @@ time of a Python script.
 from time import perf_counter
 from typing import Optional
 
-from package.default_logger import DefaultLogger
+from package_common.default_logger import DefaultLogger
 
 
 class DefaultTimer:

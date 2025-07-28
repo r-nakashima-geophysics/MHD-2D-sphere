@@ -14,24 +14,24 @@ def input_int(m_default: int) -> int:
     zonal wavenumber (order) is overwritten with its argument.
 
     Parameters
-    -----
+    ----------
     m_default : int
         A default value of the zonal wavenumber (order)
 
     Returns
-    -----
+    ----------
     m_order : int
         An overwritten zonal wavenumber (order)
 
     Raises
-    -----
+    ----------
     Invalid argument
         If the command line argument is invalid.
     Too many input arguments
         If the command line arguments are too many.
 
     Examples
-    -----
+    ----------
     When there is not a command line argument:
         python3
         >>> from package.input_arg import input_int
@@ -75,24 +75,24 @@ def input_alpha(alpha_default: float) -> float:
     Lehnert number is overwritten with its argument.
 
     Parameters
-    -----
+    ----------
     alpha_default : float
         A default value of the Lehnert number
 
     Returns
-    -----
+    ----------
     alpha : float
         An overwritten Lehnert number
 
     Raises
-    -----
+    ----------
     Invalid argument
         If the command line argument is invalid.
     Too many input arguments
         If the command line arguments are too many.
 
     Examples
-    -----
+    ----------
     When there is not a command line argument:
         python3
         >>> from package.input_arg import input_alpha
@@ -147,19 +147,19 @@ def input_int_within(min_int: int,
     """Inputs an integer within an appropriate range
 
     Parameters
-    -----
+    ----------
     min_int : int
         The minimum value of an appropriate range of integers
     max_int : int
         The maximum value of an appropriate range of integers
 
     Returns
-    -----
+    ----------
     chosen_int : int
         A chosen appropriate integer
 
     Raises
-    -----
+    ----------
     Quit
         If you input 'q' to quit inputting numbers.
     Invalid integer
@@ -168,7 +168,7 @@ def input_int_within(min_int: int,
         If the inputted character is not an integer.
 
     Examples
-    -----
+    ----------
     >>> from package.input_arg import input_int_within
     >>> input_int_within(0,10)
     (quit: q):  1
