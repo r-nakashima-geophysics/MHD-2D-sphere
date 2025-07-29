@@ -1,10 +1,10 @@
-"""A Python module to define a class for handling a log message."""
+"""A Python module to define a class for handling log messages."""
 
 import logging
 
 
 class DefaultLogger:
-    """Class to handle a log message.
+    """Class to handle log messages.
 
     Attributes
     ----------
@@ -57,6 +57,7 @@ class DefaultLogger:
         message : str
             The message to log.
         """
+
         self.__logger.debug(message)
 
     def info(self,
@@ -68,6 +69,7 @@ class DefaultLogger:
         message : str
             The message to log.
         """
+
         self.__logger.info(message)
 
     def warning(self,
@@ -79,6 +81,7 @@ class DefaultLogger:
         message : str
             The message to log.
         """
+
         self.__logger.warning(message)
 
     def error(self,
@@ -90,6 +93,7 @@ class DefaultLogger:
         message : str
             The message to log.
         """
+
         self.__logger.error(message)
 
     def critical(self,
@@ -101,4 +105,5 @@ class DefaultLogger:
         message : str
             The message to log.
         """
+
         self.__logger.critical(message)

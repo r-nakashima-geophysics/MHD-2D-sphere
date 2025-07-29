@@ -49,11 +49,13 @@ class DefaultTimer:
 
     def start(self) -> None:
         """Start the timer."""
+
         self.__logger.info("Start")
         self.__start_time = perf_counter()
 
     def show(self) -> None:
         """Show the elapsed time."""
+
         if self.__start_time is None:
             DefaultLogger(__class__.__name__).warning(
                 "Timer has not been started.")
@@ -64,5 +66,6 @@ class DefaultTimer:
 
     def end(self) -> None:
         """End the timer."""
+
         self.show()
         self.__logger.info("End")
