@@ -52,7 +52,7 @@ from typing import Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_int
+from package_common.input_arg import input_value
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
@@ -75,7 +75,7 @@ SWITCH_COLOR: Final[str] = 'ene'
 SWITCH_DISP_ETA: Final[bool] = False
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = input_int(1)
+M_ORDER: Final[int] = input_value(1, int)
 
 # The magnetic Ekman number
 E_ETA: Final[float] = 0

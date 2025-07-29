@@ -35,7 +35,7 @@ from typing import Callable, Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_float
+from package_common.input_arg import input_value
 from package_mhd2dsphere import func_b, func_u
 
 FUNC_B: Callable[[complex], complex]
@@ -64,7 +64,7 @@ FUNC_U, FUNC_DU, FUNC_D2U, TEX_U, NAME_U = func_u.u_rigid('theta')
 M_ORDER: Final[int] = 1
 
 # The Lehnert number
-ALPHA: Final[float] = input_float(0.1)
+ALPHA: Final[float] = input_value(0.1, float)
 
 # The number of the grid in the theta direction
 THETA_INIT: Final[float] = 0

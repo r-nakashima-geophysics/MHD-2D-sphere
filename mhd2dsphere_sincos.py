@@ -44,7 +44,7 @@ from typing import Final
 import caffeine
 import numpy as np
 
-from package_common.input_arg import input_int
+from package_common.input_arg import input_value
 from package_mhd2dsphere.make_mat import make_mat, make_submat
 from package_mhd2dsphere.solve_eig import solve_eig
 from package_mhd2dsphere.time_measure import time_progress
@@ -57,7 +57,7 @@ from package_mhd2dsphere.time_measure import time_progress
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = input_int(1)
+M_ORDER: Final[int] = input_value(1, int)
 
 # The magnetic Ekman number
 E_ETA: Final[float] = 0

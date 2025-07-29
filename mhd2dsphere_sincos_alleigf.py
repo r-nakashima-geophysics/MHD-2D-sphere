@@ -36,7 +36,7 @@ import caffeine
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_float
+from package_common.input_arg import input_value
 from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import make_eigf
 from package_mhd2dsphere.processing_results import screening_eig_q
@@ -52,7 +52,7 @@ SWITCH_DISP_ETA: Final[bool] = False
 M_ORDER: Final[int] = 1
 
 # The Lehnert number
-ALPHA: Final[float] = input_float(0.1)
+ALPHA: Final[float] = input_value(0.1, float)
 
 # The magnetic Ekman number
 E_ETA: Final[float] = 0

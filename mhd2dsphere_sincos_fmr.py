@@ -36,8 +36,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import root
 
+from package_common.input_arg import input_value
 from package_mhd2dsphere.dispersion_fmr import dispersion_fmr
-from package_common.input_arg import input_int
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import pickup_eig
 
@@ -49,7 +49,7 @@ from package_mhd2dsphere.processing_results import pickup_eig
 SWITCH_EQ: Final[str] = 'wkb'
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = input_int(1)
+M_ORDER: Final[int] = input_value(1, int)
 
 # Degrees
 N_INIT: Final[int] = M_ORDER  # M_ORDER <= N_INIT

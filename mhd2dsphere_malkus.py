@@ -50,7 +50,7 @@ import numpy as np
 from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
-from package_common.input_arg import input_int
+from package_common.input_arg import input_value
 
 # ========== Parameters ========== #
 
@@ -61,7 +61,7 @@ from package_common.input_arg import input_int
 SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
 
 # Zonal wavenumber (order)
-M_ORDER: Final[int] = input_int(1)
+M_ORDER: Final[int] = input_value(1, int)
 
 # Degrees
 N_INIT: Final[int] = M_ORDER  # M_ORDER <= N_INIT
