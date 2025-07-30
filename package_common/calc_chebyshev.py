@@ -1,4 +1,4 @@
-"""Makes data of Chebyshev polynomials"""
+"""A Python module to calculate the values relating to the Chebyshev polynomials"""
 
 import cmath
 
@@ -8,7 +8,7 @@ from numba import njit
 @njit
 def chebyshev(n_degree: int,
               s_complex: complex) -> complex:
-    """Calculates the value of a Chebyshev polynomial at a point
+    """Calculate the value of a Chebyshev polynomial at a point
 
     Parameters
     ----------

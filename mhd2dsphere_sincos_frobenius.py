@@ -33,11 +33,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.gridspec import GridSpec
 
+from package_common.decorator_yesno.py import exe_yes_continue
 from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import choose_eigf, make_eigf
-from package_mhd2dsphere.make_frobenius import calc_frobenius, make_fitting_data
+from package_mhd2dsphere.make_frobenius import (calc_frobenius,
+                                                make_fitting_data)
 from package_mhd2dsphere.solve_eig import wrapper_solve_eig
-from package_common.yes_no_else import exe_yes_continue
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

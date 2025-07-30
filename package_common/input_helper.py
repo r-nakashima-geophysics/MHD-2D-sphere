@@ -104,7 +104,7 @@ def input_value_within(min_value: T,
     input_str: str
     chosen_value: T
     while True:
-        input_str = input('(quit: q):  ').lower().strip()
+        input_str = input('(quit: q):  ').strip().lower()
 
         if input_str == 'q':
             logger.info('Quit')

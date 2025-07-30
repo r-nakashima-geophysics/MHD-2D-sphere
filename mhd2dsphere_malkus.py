@@ -50,7 +50,7 @@ import numpy as np
 from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
-from package_common.input_arg import input_value
+from package_common.input_helper import input_value
 
 # ========== Parameters ========== #
 

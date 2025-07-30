@@ -7,19 +7,19 @@ from package_common.common_types import Any, Callable, Final
 from package_common.default_logger import DefaultLogger
 
 
-def yes_exe_no_exit(func: Callable[..., Any]) -> Callable[..., Any]:
+def yes_exe_no_exit(func: Callable[..., None]) -> Callable[..., None]:
     """Decorator to execute a function when the character 'yes' is input
     and to exit the script when the character 'no' is input.
 
     Parameters
     ----------
-    func : Callable
+    func : Callable[..., None]
         The function executed when the character 'yes' is input.
 
     Returns
     ----------
-    new_func : Callable
-        A function executed when the character 'yes' is input.
+    new_func : Callable[..., None]
+        The wrapped function.
 
     Warnings
     ----------
@@ -42,44 +42,42 @@ def yes_exe_no_exit(func: Callable[..., Any]) -> Callable[..., Any]:
     test
     """
 
-    FUNCTION_NAME: Final[str] = sys._getframe().f_code.co_name
+    function_name: Final[str] = sys._getframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(name=function_name)
 
     def new_func(*args: tuple[Any, ...],
-                 **kwargs: dict[str, Any]) -> Any:
+                 **kwargs: dict[str, Any]) -> None:
 
         yes_no: str
         while True:
-            yes_no = input('(yes/no) ').lower().strip()
+            yes_no = input('(yes/no) ').strip().lower()
 
             if yes_no in ('y', 'yes'):
                 func(*args, **kwargs)
                 break
 
             if yes_no in ('n', 'no'):
-                DefaultLogger(FUNCTION_NAME).info('Quit')
+                logger.info('Quit')
                 sys.exit(0)
 
-            DefaultLogger(FUNCTION_NAME).error('Invalid input')
-        #
-    #
+            logger.error('Invalid input')
 
     return new_func
-#
 
 
-def exe_yes_continue(func: Callable[..., Any]) -> Callable[..., Any]:
+def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     """Decorator to execute a function, and then to continue to execute
-    a function while the character 'yes' is input.
+    it while the character 'yes' is input.
 
     Parameters
     ----------
-    func :
+    func : Callable[..., None]
         The function executed when the character 'yes' is input.
 
     Returns
     ----------
-    new_function : Callable
-        The function executed when the character 'yes' is input.
+    new_func : Callable[..., None]
+        The wrapped function.
 
     Warnings
     ----------
@@ -104,26 +102,26 @@ def exe_yes_continue(func: Callable[..., Any]) -> Callable[..., Any]:
     Re-execute? (yes/no) no
     """
 
-    FUNCTION_NAME: Final[str] = sys._getframe().f_code.co_name
+    function_name: Final[str] = sys._getframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(name=function_name)
 
     def new_function(*args: tuple[Any, ...],
                      **kwargs: dict[str, Any]) -> Any:
 
         yes_no: str = 'y'
-
         while True:
             func(*args, **kwargs)
 
             while True:
-                yes_no = input('Re-execute? (yes/no) ').lower().strip()
+                yes_no = input('Re-execute? (yes/no) ').strip().lower()
 
                 if yes_no in ('y', 'yes'):
                     break
 
                 if yes_no in ('n', 'no'):
-                    DefaultLogger(FUNCTION_NAME).info('Quit')
+                    logger.info('Quit')
                     sys.exit(0)
 
-                DefaultLogger(FUNCTION_NAME).error('Invalid input')
+                logger.error('Invalid input')
 
     return new_function

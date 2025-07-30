@@ -35,7 +35,7 @@ from typing import Callable, Final
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_value
+from package_common.input_helper import input_value
 from package_mhd2dsphere import func_b, func_u
 
 FUNC_B: Callable[[complex], complex]

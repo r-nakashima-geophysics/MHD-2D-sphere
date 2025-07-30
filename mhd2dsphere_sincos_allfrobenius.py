@@ -29,7 +29,7 @@ import caffeine
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.input_arg import input_value
+from package_common.input_helper import input_value
 from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import make_eigf
 from package_mhd2dsphere.make_frobenius import (calc_frobenius,

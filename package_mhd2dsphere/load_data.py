@@ -6,8 +6,8 @@ from pathlib import Path
 
 import numpy as np
 
+from package_common.decorator_yesno.py import yes_exe_no_exit
 from package_mhd2dsphere.make_legendre import make_legendre
-from package_common.yes_no_else import yes_exe_no_exit
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
