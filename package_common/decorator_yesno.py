@@ -1,6 +1,7 @@
 """A Python module to define a decorator for deciding whether to execute
 a function"""
 
+import inspect
 import sys
 
 from package_common.common_types import Any, Callable, Final
@@ -42,7 +43,7 @@ def yes_exe_no_exit(func: Callable[..., None]) -> Callable[..., None]:
     test
     """
 
-    function_name: Final[str] = sys._getframe().f_code.co_name
+    function_name: Final[str] = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(name=function_name)
 
     def new_func(*args: tuple[Any, ...],
@@ -102,7 +103,7 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     Re-execute? (yes/no) no
     """
 
-    function_name: Final[str] = sys._getframe().f_code.co_name
+    function_name: Final[str] = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(name=function_name)
 
     def new_function(*args: tuple[Any, ...],

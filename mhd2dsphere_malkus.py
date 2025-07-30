@@ -543,8 +543,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
 
 
 if __name__ == '__main__':
-    TIMER: Final[DefaultTimer] = DefaultTimer(__name__)
-    TIMER.start()
+    timer: DefaultTimer = DefaultTimer(__name__)
+    timer.start()
 
     if True not in SWITCH_PLOT:
         DefaultLogger(__name__).warning('No plotted figures')
@@ -568,7 +568,7 @@ if __name__ == '__main__':
         plot_eig_log(results[2])
     #
 
-    TIMER.end()
+    timer.end()
 
     plt.show()
 #

@@ -1,5 +1,6 @@
 """A Python module to assist the input of parameters."""
 
+import inspect
 import sys
 
 from package_common.common_types import Callable, TypeVar
@@ -42,11 +43,11 @@ def input_value(default: T,
         >>> input_value(1.0, float)
         1.0
     Run a script with a command line argument (say 2):
-        >>> input_value(1, int) 
+        >>> input_value(1, int)
         2
     """
 
-    function_name: str = sys._getframe().f_code.co_name
+    function_name: str = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(name=function_name)
 
     if len(sys.argv) == 2:
@@ -98,7 +99,7 @@ def input_value_within(min_value: T,
     1
     """
 
-    function_name: str = sys._getframe().f_code.co_name
+    function_name: str = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(name=function_name)
 
     input_str: str
@@ -114,7 +115,6 @@ def input_value_within(min_value: T,
             chosen_value = cast(input_str)
             if min_value <= chosen_value <= max_value:
                 return chosen_value
-            else:
-                logger.error('Out of range')
+            logger.error('Out of range')
         except ValueError:
             logger.error('Invalid input')
