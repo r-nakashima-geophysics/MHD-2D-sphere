@@ -20,9 +20,16 @@ def progress_bar(num_calc: int,
         The instance of the timer.
     name : Optional[str], optional, default None
         The name of the progress bar.
+
+    Examples
+    --------
+    >>> timer = DefaultTimer("my_timer")
+    >>> n = 100
+    >>> for i in range(n):
+    ...     progress_bar(n, i, timer, "my_progress_bar")
     """
 
-    num_mark: int = 40
+    num_mark: int = 20
     mark_blank: str = ' '
     mark_filled: str = '█'
 
@@ -38,8 +45,10 @@ def progress_bar(num_calc: int,
         rate: int = int(((i_calc+1)/num_calc) * num_mark)
         remaining_hours: float \
             = (num_calc - i_calc - 1) * rap_time / 3600
+
         p_bar = mark_filled * rate + mark_blank * (num_mark - rate)
-        text = f'Finish {remaining_hours:.1f} hours later'
+        text = f'Finish {remaining_hours:.1f} hrs later ' \
+            + f'(rap: {rap_time:.2f} sec)'
         print(
             f'\r{name} [{p_bar}] {i_calc+1}/{num_calc}: {text}', end='')
 
