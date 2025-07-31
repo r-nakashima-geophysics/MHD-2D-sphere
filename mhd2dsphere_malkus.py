@@ -39,6 +39,7 @@ Run the script with a specified value, e.g., M_ORDER = 2.
     $ python3 mhd2dsphere_malkus.py 2
 """
 
+import inspect
 import math
 import os
 import sys
@@ -51,6 +52,7 @@ from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
+from package_common.progress_bar import progress_bar
 
 # ========== Parameters ========== #
 
@@ -131,12 +133,12 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
 
     """
 
-    eig: ArrayFloat \
-        = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
-    ene: ArrayFloat \
-        = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
-    eig_log: ArrayFloat \
-        = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
+    function_name: str = inspect.currentframe().f_code.co_name
+    progress_timer: DefaultTimer = DefaultTimer(name=function_name)
+
+    eig: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
+    ene: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
+    eig_log: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
 
     n_degree: int
     alpha: float
@@ -151,9 +153,6 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
                 for name_mode in NAMES_MODE:
                     eig[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
                         = calc_eig(n_degree, alpha, name_mode)
-                #
-            #
-        #
 
         if (SWITCH_PLOT[1] or SWITCH_PLOT[2]):
             for i_alpha in range(NUM_ALPHA_LOG):
@@ -164,13 +163,10 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
                         = calc_ene(n_degree, alpha, name_mode)
                     eig_log[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
                         = calc_eig(n_degree, alpha, name_mode)
-                #
-            #
-        #
-    #
+
+        progress_bar(NUM_N, i_n, progress_timer, function_name)
 
     return eig, ene, eig_log
-#
 
 
 def calc_eig(n_degree: int,
@@ -209,12 +205,10 @@ def calc_eig(n_degree: int,
     if name_mode not in NAMES_MODE:
         DefaultLogger(__name__).error('Invalid ID')
         sys.exit(1)
-    #
 
     if n_degree == 0:
         eig = 0
         return eig
-    #
 
     nn1: int = n_degree * (n_degree+1)
     sq_rt: float = math.sqrt(1 + 4*(alpha**2)*nn1*(nn1-2))
@@ -223,10 +217,8 @@ def calc_eig(n_degree: int,
         eig = (-M_ORDER-M_ORDER*sq_rt) / (2*nn1)
     elif name_mode == 'sMR':
         eig = (-M_ORDER+M_ORDER*sq_rt) / (2*nn1)
-    #
 
     return eig
-#
 
 
 def calc_ene(n_degree: int,
@@ -262,7 +254,6 @@ def calc_ene(n_degree: int,
     if n_degree == 0:
         ene = 0
         return ene
-    #
 
     if alpha == 0:
         if name_mode == 'fMR':
@@ -271,15 +262,12 @@ def calc_ene(n_degree: int,
         if name_mode == 'sMR':
             ene = 1
             return ene
-        #
-    #
 
     ma2: float = (M_ORDER**2) * (alpha**2)
     lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
     ene = (lambda_mr**2) / ((lambda_mr**2)+ma2)
 
     return ene
-#
 
 
 def plot_eig(eig: ArrayFloat) -> None:
@@ -313,8 +301,6 @@ def plot_eig(eig: ArrayFloat) -> None:
             axis.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
                       color=[0, i_n/NUM_N, 1],
                       label=r'$n=$'+f' {N_INIT+i_n} slow MR')
-        #
-    #
 
     axis.grid()
 
@@ -344,7 +330,7 @@ def plot_eig(eig: ArrayFloat) -> None:
         leg = axis.legend(
             handles=handle, labels=label, loc='lower left',
             fontsize=14)
-    #
+
     leg.get_frame().set_alpha(1)
 
     axis.tick_params(labelsize=14)
@@ -355,7 +341,6 @@ def plot_eig(eig: ArrayFloat) -> None:
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
     path_fig: Path = PATH_DIR_FIG / NAME_FIG_1
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 def plot_ene(ene: ArrayFloat) -> None:
@@ -381,7 +366,6 @@ def plot_ene(ene: ArrayFloat) -> None:
             axis.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1], linewidth=3)
-        #
 
         if i_n not in (0, NUM_N-1):
             axis.semilogx(
@@ -399,8 +383,6 @@ def plot_ene(ene: ArrayFloat) -> None:
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
-        #
-    #
 
     axis.grid()
 
@@ -436,7 +418,6 @@ def plot_ene(ene: ArrayFloat) -> None:
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
     path_fig: Path = PATH_DIR_FIG / NAME_FIG_2
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 def plot_eig_log(eig_log: ArrayFloat) -> None:
@@ -489,8 +470,6 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
-        #
-    #
 
     axes[0].grid()
     axes[1].grid()
@@ -539,7 +518,6 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
     path_fig: Path = PATH_DIR_FIG / NAME_FIG_3
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 if __name__ == '__main__':
@@ -549,7 +527,6 @@ if __name__ == '__main__':
     if True not in SWITCH_PLOT:
         DefaultLogger(__name__).warning('No plotted figures')
         sys.exit(0)
-    #
 
     results: tuple[ArrayFloat,
                    ArrayFloat,
@@ -560,15 +537,13 @@ if __name__ == '__main__':
 
     if SWITCH_PLOT[0]:
         plot_eig(results[0])
-    #
+
     if SWITCH_PLOT[1]:
         plot_ene(results[1])
-    #
+
     if SWITCH_PLOT[2]:
         plot_eig_log(results[2])
-    #
 
     timer.end()
 
     plt.show()
-#

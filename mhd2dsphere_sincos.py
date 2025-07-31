@@ -47,7 +47,7 @@ import numpy as np
 from package_common.input_helper import input_value
 from package_mhd2dsphere.make_mat import make_mat, make_submat
 from package_mhd2dsphere.solve_eig import solve_eig
-from package_mhd2dsphere.time_measure import time_progress
+from package_common.progress_bar import time_progress
 
 # ========== Parameters ==========
 

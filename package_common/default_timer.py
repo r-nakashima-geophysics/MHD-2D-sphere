@@ -19,6 +19,8 @@ class DefaultTimer:
         The starting time of the timer.
     __elapsed_time : Optional[float]
         The elapsed time.
+    __split_time : Optional[float]
+        The split time.
 
     Warnings
     ----------
@@ -46,6 +48,7 @@ class DefaultTimer:
         self.__logger: DefaultLogger = DefaultLogger(name=name)
         self.__start_time: Optional[float] = None
         self.__elapsed_time: Optional[float] = None
+        self.__split_time: Optional[float] = None
 
     def start(self) -> None:
         """Start the timer."""
@@ -69,3 +72,11 @@ class DefaultTimer:
 
         self.show()
         self.__logger.info("End")
+
+    def rap(self) -> Optional[float]:
+        """Measure the rap time."""
+
+        if self.__split_time is None:
+            self.__split_time = perf_counter()
+            return None
+        return perf_counter() - self.__split_time
