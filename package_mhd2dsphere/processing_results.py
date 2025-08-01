@@ -51,9 +51,6 @@ def screening_eig_q(criterion_q: float,
                 mme[i_alpha, i_mode] = math.nan
                 ohm[i_alpha, i_mode] = math.nan
                 sym[i_alpha, i_mode] = None
-            #
-        #
-    #
 
     bundle = (bundle[0], eig, mke, mme, ohm, sym)
 
@@ -196,8 +193,6 @@ def sort_sv(sym_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             sinuous[i_mode] = 1
         elif sym_alpha[i_mode] == 'varicose':
             varicose[i_mode] = 1
-        #
-    #
 
     return sinuous, varicose
 #
@@ -229,8 +224,6 @@ def sort_pr(eig_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             prograde[i_mode] = 1
         elif eig_alpha[i_mode].real < 0:
             retrograde[i_mode] = 1
-        #
-    #
 
     return prograde, retrograde
 #
@@ -257,8 +250,6 @@ def pickup_unstable(eig_alpha: np.ndarray) -> np.ndarray:
     for i_mode in range(size_mat):
         if math.fabs(eig_alpha[i_mode].imag) > 0:
             unstable[i_mode] = 1
-        #
-    #
 
     return unstable
 #
@@ -293,7 +284,6 @@ def sort_alfvenic(mke_alpha: np.ndarray) \
             non_alfvenic[i_mode] = 1
         else:
             alfvenic[i_mode] = 1
-    #
 
     return alfvenic, non_alfvenic
 #

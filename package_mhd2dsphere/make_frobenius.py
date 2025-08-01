@@ -82,7 +82,6 @@ def calc_frobenius(m_order: int,
         + coef_b[0]*delta_mu + coef_b[1]*(delta_mu**2)
 
     return psi1, psi2
-#
 
 
 def make_fitting_data(psi1: np.ndarray,
@@ -117,7 +116,6 @@ def make_fitting_data(psi1: np.ndarray,
     elif eq_or_pole == 'pole':
         psi1_data = psi1[i_theta_c-num_data:i_theta_c].real
         psi2_data = psi2[i_theta_c-num_data:i_theta_c].real
-    #
 
     data = psi1_data / psi2_data
 

@@ -51,7 +51,6 @@ def make_submat(m_order: int,
     for i_submat in range(size_submat):
         submat_r[i_submat, i_submat] \
             = 1 / ((m_order+i_submat)*(m_order+1+i_submat))
-    #
 
     submat_k1: np.ndarray = np.zeros((size_submat, size_submat))
     for i_submat in range(size_submat-1):
@@ -63,19 +62,16 @@ def make_submat(m_order: int,
             = (m_order-2+i_submat) * (m_order+3+i_submat) \
             * knm[1+i_submat] \
             / ((m_order+1+i_submat)*(m_order+2+i_submat))
-    #
 
     submat_k2: np.ndarray = np.zeros((size_submat, size_submat))
     for i_submat in range(size_submat-1):
         submat_k2[i_submat, i_submat+1] = knm[1+i_submat]
         submat_k2[i_submat+1, i_submat] = knm[1+i_submat]
-    #
 
     submat_d: np.ndarray = np.zeros((size_submat, size_submat))
     for i_submat in range(size_submat):
         submat_d[i_submat, i_submat] \
             = (m_order+i_submat) * (m_order+1+i_submat)
-    #
 
     return submat_r, submat_k1, submat_k2, submat_d
 #
@@ -125,7 +121,6 @@ def make_mat(m_order: int,
         mat = np.zeros((size_mat, size_mat))
     else:
         mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
-    #
 
     mat[0*size_submat:1*size_submat, 0*size_submat:1*size_submat] \
         = -m_order * submat_r
@@ -137,7 +132,6 @@ def make_mat(m_order: int,
     if e_eta != 0:
         mat[1*size_submat:2*size_submat, 1*size_submat:2*size_submat] \
             = -1j * e_eta * submat_d
-    #
 
     return mat
 #

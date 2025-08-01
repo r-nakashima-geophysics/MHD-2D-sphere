@@ -15,7 +15,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -23,7 +27,6 @@ In the below example, ALPHA will be set to the default value.
     python3 mhd2dsphere_harmonic.py
 In the below example, ALPHA will be set to 1.
     python3 mhd2dsphere_harmonic.py 1
-
 """
 
 import math
@@ -177,7 +180,6 @@ def plot_l2() -> None:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX[0]
     else:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX[1]
-    #
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
@@ -194,9 +196,8 @@ def calc_l2() -> np.ndarray:
 
     Notes
     ----------
-    This function is based on eq. (25a) in Nakashima & Yoshida (in
-    prep.)[1]_.
-
+    This function is based on eq. (25a) in Nakashima & Yoshida
+    (2024)[1]_.
     """
 
     sin: np.ndarray = np.sin(GRID_THETA)
@@ -205,7 +206,6 @@ def calc_l2() -> np.ndarray:
 
     if not SWITCH_MS:
         critical += (GRID_LAMBDA**2)
-    #
 
     d_critical: np.ndarray = (M_ORDER**2) * (ALPHA**2) \
         * 2 * GRID_B * GRID_DB / (sin+EPS)

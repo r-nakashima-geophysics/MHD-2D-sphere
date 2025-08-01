@@ -35,17 +35,14 @@ def u_rigid(switch_theta: str = 'mu') \
     def rigid_mu(mu_complex: complex) -> complex:
         _ = mu_complex
         return 0
-    #
 
     def rigid_d_mu(mu_complex: complex) -> complex:
         _ = mu_complex
         return 0
-    #
 
     def rigid_d2_mu(mu_complex: complex) -> complex:
         _ = mu_complex
         return 0
-    #
 
     rigid: Callable[[complex], complex] = rigid_mu
     rigid_d: Callable[[complex], complex] = rigid_d_mu
@@ -55,22 +52,18 @@ def u_rigid(switch_theta: str = 'mu') \
         def rigid_theta(theta_complex: complex) -> complex:
             _ = theta_complex
             return 0
-        #
 
         def rigid_d_theta(theta_complex: complex) -> complex:
             _ = theta_complex
             return 0
-        #
 
         def rigid_d2_theta(theta_complex: complex) -> complex:
             _ = theta_complex
             return 0
-        #
 
         rigid = rigid_theta
         rigid_d = rigid_d_theta
         rigid_d2 = rigid_d2_theta
-    #
 
     tex: str = r'0'
     name: str = 'rigid'

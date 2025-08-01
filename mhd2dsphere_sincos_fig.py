@@ -30,7 +30,11 @@ executing this code.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -38,7 +42,6 @@ In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos_fig.py
 In the below example, M_ORDER will be set to 2.
     python3 mhd2dsphere_sincos_fig.py 2
-
 """
 
 import logging
@@ -160,7 +163,6 @@ def wrapper_plot_eig(
         axis.set_axisbelow(True)
 
         axis.set_xlim(ALPHA_INIT, ALPHA_END)
-    #
 
     ax1[0].set_ylim(EIG_RE_INIT, EIG_RE_END)
     ax1[1].set_ylim(EIG_RE_INIT, EIG_RE_END)
@@ -169,7 +171,6 @@ def wrapper_plot_eig(
         axis.set_xlabel(
             r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
             fontsize=16)
-    #
 
     if save_fig & {1, 2}:
         ax1[0].set_ylabel(
@@ -182,7 +183,6 @@ def wrapper_plot_eig(
         ax1[0].set_ylabel(
             r'$\lambda=\omega/2\Omega_0$',
             fontsize=16)
-    #
 
     ax1[0].set_title('Sinuous', fontsize=16)
     ax1[1].set_title('Varicose', fontsize=16)
@@ -192,7 +192,6 @@ def wrapper_plot_eig(
     for axis in (ax1[0], ax1[1], ax2[0], ax2[1]):
         axis.tick_params(labelsize=14)
         axis.minorticks_on()
-    #
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         fig1.suptitle(
@@ -214,7 +213,6 @@ def wrapper_plot_eig(
             + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
             fontsize=16)
-    #
 
     fig1.tight_layout()
     fig2.tight_layout()
@@ -231,8 +229,6 @@ def wrapper_plot_eig(
             axpos = ax2[0].get_position()
             cbar_ax_2 = fig2.add_axes(
                 (0.88, axpos.y0, 0.01, axpos.height))
-        #
-    #
 
     if SWITCH_COLOR == 'ene':
         cbar = fig1.colorbar(
@@ -256,7 +252,7 @@ def wrapper_plot_eig(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
             cbar.ax.tick_params(labelsize=14)
             cbar.set_label(label=CBAR_LABEL, size=16)
-        #
+
     elif SWITCH_COLOR == 'ohm':
         cbar = fig1.colorbar(sc1[0], cax=cbar_ax_1)
         cbar.set_label(label=CBAR_LABEL, size=16)
@@ -267,8 +263,6 @@ def wrapper_plot_eig(
         elif 2 in save_fig:
             cbar = fig2.colorbar(sc2[1], cax=cbar_ax_2)
             cbar.set_label(label=CBAR_LABEL, size=16)
-        #
-    #
 
     name_fig_full: str
 
@@ -276,7 +270,6 @@ def wrapper_plot_eig(
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
     else:
         name_fig_full = NAME_FIG
-    #
 
     if SWITCH_COLOR == 'blk':
         name_fig_full += NAME_FIG_SUFFIX_2[0]
@@ -284,7 +277,6 @@ def wrapper_plot_eig(
         name_fig_full += NAME_FIG_SUFFIX_2[1]
     elif SWITCH_COLOR == 'ohm':
         name_fig_full += NAME_FIG_SUFFIX_2[2]
-    #
 
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
 
@@ -296,7 +288,7 @@ def wrapper_plot_eig(
     fig1.savefig(path_fig[0], dpi=FIG_DPI)
     if save_fig & {1, 2}:
         fig2.savefig(path_fig[1], dpi=FIG_DPI)
-    #
+
 #
 
 
@@ -332,9 +324,9 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     fig2: plt.Figure
     ax1: np.ndarray
     ax2: np.ndarray
-    # real part
+ real part
     fig1, ax1 = plt.subplots(1, 2, figsize=(10, 7))
-    # imaginary part
+ imaginary part
     fig2, ax2 = plt.subplots(1, 2, figsize=(10, 5))
 
     sc1: list = [None, ] * 2
@@ -350,7 +342,7 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = OHM_MAX
-    #
+
 
     alpha: float
     ones_alpha: np.ndarray
@@ -381,21 +373,21 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     ax2[0].scatter(ones_alpha, dict_eig['s_u'].imag,
                                    s=0.2, c='red')
                     save_fig.add(1)
-                #
+            
                 if False in np.isnan(dict_eig['v_u']):
                     ax1[1].scatter(ones_alpha, dict_eig['v_u'].real,
                                    s=0.2, c='red')
                     ax2[1].scatter(ones_alpha, dict_eig['v_u'].imag,
                                    s=0.2, c='red')
                     save_fig.add(2)
-                #
+            
             else:
                 ax2[0].scatter(ones_alpha, dict_eig['s'].imag,
                                s=0.1, c='black')
                 ax2[1].scatter(ones_alpha, dict_eig['v'].imag,
                                s=0.1, c='black')
                 save_fig.union({1, 2})
-            #
+        
 
         elif SWITCH_COLOR in ('ene', 'ohm'):
 
@@ -405,7 +397,7 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     * (mke[i_alpha, :]-0.5*np.ones(SIZE_MAT)))
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
-            #
+        
 
             if E_ETA == 0:  # ene
 
@@ -433,14 +425,14 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(1)
-                #
+            
                 if False in np.isnan(dict_eig['v_u']):
                     sc2[1] = ax2[1].scatter(
                         ones_alpha, dict_eig['v_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(2)
-                #
+            
             else:
                 sc1[0] = ax1[0].scatter(
                     ones_alpha, dict_eig['s'].real, s=0.1,
@@ -460,9 +452,9 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
                 save_fig.union({1, 2})
-            #
-        #
-    #
+        
+    
+
 
     fig_bundle: tuple[
         plt.Figure, plt.Figure, np.ndarray, np.ndarray, list, list] \
@@ -503,25 +495,25 @@ def wrapper_plot_eig_log(
     for axis in ax_all:
         axis.grid()
         axis.set_axisbelow(True)
-    #
+
 
     for axis in (ax1[0, 0], ax1[0, 1], ax1[1, 0], ax1[1, 1]):
         axis.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
         axis.set_ylim(10**EIG_RE_LOG_INIT, 10**EIG_RE_LOG_END)
-    #
+
     for axis in (ax2[0, 0], ax2[0, 1], ax2[1, 0], ax2[1, 1]):
         axis.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    #
+
 
     for axis in ax_all:
         axis.set_xscale('log')
-    #
+
     for axis in (ax1[0, 0], ax1[0, 1], ax1[1, 0], ax1[1, 1]):
         axis.set_yscale('log')
-    #
+
     for axis in (ax2[0, 0], ax2[0, 1], ax2[1, 0], ax2[1, 1]):
         axis.set_yscale('symlog', linthresh=10**EIG_IM_LOG_MIN)
-    #
+
 
     ax1[1, 0].set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
@@ -594,11 +586,11 @@ def wrapper_plot_eig_log(
         ax1[1, 1].set_title(
             r'Varicose, Prograde ($\lambda>0$)',
             fontsize=16)
-    #
+
 
     for axis in ax_all:
         axis.tick_params(labelsize=12)
-    #
+
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         fig1.suptitle(
@@ -620,7 +612,7 @@ def wrapper_plot_eig_log(
             + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
             fontsize=16)
-    #
+
 
     fig1.tight_layout()
     fig2.tight_layout()
@@ -638,8 +630,8 @@ def wrapper_plot_eig_log(
             expos2 = ax2[0, 0].get_position()
             cbar_ax_2 = fig2.add_axes(
                 (0.88, expos2.y0, 0.01, expos2.height))
-        #
-    #
+    
+
 
     if SWITCH_COLOR == 'ene':
 
@@ -678,7 +670,7 @@ def wrapper_plot_eig_log(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
             cbar2.ax.tick_params(labelsize=14)
             cbar2.set_label(label=CBAR_LABEL, size=16)
-        #
+    
     elif SWITCH_COLOR == 'ohm':
         cbar1 = fig1.colorbar(sc1[0], cax=cbar_ax_1)
         cbar1.set_label(label=CBAR_LABEL, size=16)
@@ -694,13 +686,13 @@ def wrapper_plot_eig_log(
         elif 4 in save_fig:
             cbar2 = fig2.colorbar(sc2[3], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
-        #
-    #
+    
 
-    # ax1[0, 1].scatter(0.013, 0.00012, s=50, c='white', marker='*',
-    #                   linewidth=0.5, edgecolors="black")
-    # ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
-    #                   linewidth=0.5, edgecolors="black")
+
+ ax1[0, 1].scatter(0.013, 0.00012, s=50, c='white', marker='*',
+                   linewidth=0.5, edgecolors="black")
+ ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
+                   linewidth=0.5, edgecolors="black")
 
     name_fig_full: str
 
@@ -708,7 +700,7 @@ def wrapper_plot_eig_log(
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
     else:
         name_fig_full = NAME_FIG
-    #
+
 
     if SWITCH_COLOR == 'blk':
         name_fig_full += NAME_FIG_SUFFIX_2[0]
@@ -716,7 +708,7 @@ def wrapper_plot_eig_log(
         name_fig_full += NAME_FIG_SUFFIX_2[1]
     elif SWITCH_COLOR == 'ohm':
         name_fig_full += NAME_FIG_SUFFIX_2[2]
-    #
+
 
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
 
@@ -728,7 +720,7 @@ def wrapper_plot_eig_log(
     fig1.savefig(path_fig[0], dpi=FIG_DPI)
     if save_fig & {1, 2, 3, 4}:
         fig2.savefig(path_fig[1], dpi=FIG_DPI)
-    #
+
 #
 
 
@@ -764,9 +756,9 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     fig2: plt.Figure
     ax1: np.ndarray
     ax2: np.ndarray
-    # real part
+ real part
     fig1, ax1 = plt.subplots(2, 2, figsize=(10, 10))
-    # imaginary part
+ imaginary part
     fig2, ax2 = plt.subplots(2, 2, figsize=(10, 10))
 
     sc1: list = [None, ] * 4
@@ -782,7 +774,7 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = OHM_LOG_MAX
-    #
+
 
     alpha: float
     ones_alpha: np.ndarray
@@ -826,28 +818,28 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     ax2[0, 0].scatter(ones_alpha, dict_eig['sr_u'].imag,
                                       s=0.2, c='red')
                     save_fig.add(1)
-                #
+            
                 if False in np.isnan(dict_eig['sp_u']):
                     ax1[0, 1].scatter(ones_alpha, dict_eig['sp_u'].real,
                                       s=0.2, c='red')
                     ax2[0, 1].scatter(ones_alpha, dict_eig['sp_u'].imag,
                                       s=0.2, c='red')
                     save_fig.add(2)
-                #
+            
                 if False in np.isnan(dict_eig['vr_u']):
                     ax1[1, 0].scatter(ones_alpha, dict_eig['vr_u'].real,
                                       s=0.2, c='red')
                     ax2[1, 0].scatter(ones_alpha, dict_eig['vr_u'].imag,
                                       s=0.2, c='red')
                     save_fig.add(3)
-                #
+            
                 if False in np.isnan(dict_eig['vp_u']):
                     ax1[1, 1].scatter(ones_alpha, dict_eig['vp_u'].real,
                                       s=0.2, c='red')
                     ax2[1, 1].scatter(ones_alpha, dict_eig['vp_u'].imag,
                                       s=0.2, c='red')
                     save_fig.add(4)
-                #
+            
             else:
                 ax2[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].imag, s=0.1, c='black')
@@ -858,7 +850,7 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                 ax2[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].imag, s=0.1, c='black')
                 save_fig.union({1, 2, 3, 4})
-            #
+        
 
         elif SWITCH_COLOR in ('ene', 'ohm'):
 
@@ -868,7 +860,7 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     * (mke[i_alpha, :]-0.5*np.ones(SIZE_MAT)))
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
-            #
+        
 
             if E_ETA == 0:  # ene
                 ax1[0, 0].scatter(
@@ -911,28 +903,28 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(1)
-                #
+            
                 if False in np.isnan(dict_eig['sp_u']):
                     sc2[1] = ax2[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(2)
-                #
+            
                 if False in np.isnan(dict_eig['vr_u']):
                     sc2[2] = ax2[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(3)
-                #
+            
                 if False in np.isnan(dict_eig['vp_u']):
                     sc2[3] = ax2[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     save_fig.add(4)
-                #
+            
             else:
                 sc1[0] = ax1[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
@@ -968,9 +960,9 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
                 save_fig.add({1, 2, 3, 4})
-            #
-        #
-    #
+        
+    
+
 
     mask_x: np.ndarray = 10**lin_alpha
     ax2[0, 0].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='grey')
@@ -995,15 +987,15 @@ if __name__ == '__main__':
     if True not in SWITCH_PLOT:
         logger.info('No plotted figures')
         sys.exit()
-    #
+
     if SWITCH_COLOR not in ('blk', 'ene', 'ohm'):
         logger.warning('Invalid value for \'SWITCH_COLOR\'')
         sys.exit()
-    #
+
     if (E_ETA == 0) and (SWITCH_COLOR == 'ohm'):
         logger.warning('Meaningless figures are plotted')
         sys.exit()
-    #
+
 
     results: tuple[np.ndarray, np.ndarray, np.ndarray,
                    np.ndarray, np.ndarray, np.ndarray]
@@ -1018,7 +1010,7 @@ if __name__ == '__main__':
 
         if (E_ETA != 0) and (CRITERION_Q > 0):
             results = screening_eig_q(CRITERION_Q, results)
-        #
+    
 
         ALPHA_INIT: float
         ALPHA_END: float
@@ -1028,12 +1020,12 @@ if __name__ == '__main__':
             = pickup_param(results)
 
         wrapper_plot_eig(results)
-    #
+
     if SWITCH_PLOT[1]:
 
         if (E_ETA != 0) and (CRITERION_Q > 0):
             results_log = screening_eig_q(CRITERION_Q, results_log)
-        #
+    
 
         ALPHA_LOG_INIT: float
         ALPHA_LOG_END: float
@@ -1043,7 +1035,7 @@ if __name__ == '__main__':
             = pickup_param(results_log)
 
         wrapper_plot_eig_log(results_log)
-    #
+
 
     TIME_ELAPSED: Final[float] = perf_counter() - TIME_INIT
     print(f'{__name__}: {TIME_ELAPSED:.3f} s')

@@ -15,7 +15,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -23,7 +27,6 @@ In the below example, ALPHA will be set to the default value.
     python3 mhd2dsphere_sincos_alleigf.py
 In the below example, ALPHA will be set to 1.
     python3 mhd2dsphere_sincos_alleigf.py 1
-
 """
 
 import math
@@ -133,7 +136,6 @@ def wrapper_plot_alleigf(
 
         axis.tick_params(labelsize=14)
         axis.minorticks_on()
-    #
 
     if save_fig2:
         ax1[1, 0].set_xlabel(
@@ -153,7 +155,6 @@ def wrapper_plot_alleigf(
             r'$\lambda=\omega/2\Omega_0$', fontsize=16)
         ax1[1, 1].set_xlabel(
             r'$\lambda=\omega/2\Omega_0$', fontsize=16)
-    #
 
     ax1[0, 0].set_ylabel('colatitude [degree]', fontsize=16)
     ax1[1, 0].set_ylabel('colatitude [degree]', fontsize=16)
@@ -186,7 +187,6 @@ def wrapper_plot_alleigf(
                             fontsize=16)
         ax1[1, 1].set_title(r'Varicose $|\tilde{a}|$',
                             fontsize=16)
-    #
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         fig1.suptitle(
@@ -206,7 +206,6 @@ def wrapper_plot_alleigf(
             r'Eigenfunctions [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
             + r'$E_\eta=$' + f' {E_ETA}', fontsize=16)
-    #
 
     fig1.tight_layout()
     fig2.tight_layout()
@@ -219,7 +218,6 @@ def wrapper_plot_alleigf(
     else:
         name_fig_full_1 = NAME_FIG
         name_fig_full_2 = NAME_FIG
-    #
 
     name_fig_full_1 += NAME_FIG_SUFFIX_2[0]
     name_fig_full_2 += NAME_FIG_SUFFIX_2[1]
@@ -232,7 +230,7 @@ def wrapper_plot_alleigf(
     fig1.savefig(path_fig_1, dpi=FIG_DPI)
     if save_fig2:
         fig2.savefig(path_fig_2, dpi=FIG_DPI)
-    #
+
 #
 
 
@@ -259,7 +257,6 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
 
     if (E_ETA != 0) and (CRITERION_Q > 0):
         bundle = wrapper_screening_eig_q(bundle)
-    #
 
     psi_vec: np.ndarray
     vpa_vec: np.ndarray
@@ -278,9 +275,9 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
     fig2: plt.Figure
     ax1: np.ndarray
     ax2: np.ndarray
-    # real part
+ real part
     fig1, ax1 = plt.subplots(2, 2, figsize=(10, 10))
-    # imaginary part
+ imaginary part
     fig2, ax2 = plt.subplots(2, 2, figsize=(10, 10))
 
     plot_fig2: bool
@@ -293,7 +290,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
 
         if math.isnan(eig[i_mode].real):
             continue
-        #
+    
 
         psi[0] = np.abs(psi_all[i_mode, :].real)
         vpa[0] = np.abs(vpa_all[i_mode, :].real)
@@ -306,7 +303,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
         if (np.nanmax(psi[1]) > 0) or (np.nanmax(vpa[1]) > 0):
             plot_fig2 = True
             save_fig2 = True
-        #
+    
 
         if sym[i_mode] == 'sinuous':
             ax1[0, 0].scatter(
@@ -322,7 +319,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
                 ax2[0, 1].scatter(
                     ones_lambda, LIN_THETA, s=0.001, c=vpa[1],
                     cmap='Purples', vmin=cmap_min, vmax=cmap_max)
-            #
+        
         elif sym[i_mode] == 'varicose':
             ax1[1, 0].scatter(
                 ones_lambda, LIN_THETA, s=0.001, c=psi[0],
@@ -337,9 +334,9 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
                 ax2[1, 1].scatter(
                     ones_lambda, LIN_THETA, s=0.001, c=vpa[1],
                     cmap='Purples', vmin=cmap_min, vmax=cmap_max)
-            #
-        #
-    #
+        
+    
+
 
     fig_bundle: tuple[plt.Figure, plt.Figure, np.ndarray, np.ndarray] \
         = (fig1, fig2, ax1, ax2)
@@ -422,11 +419,11 @@ def make_alleigf(eig: np.ndarray,
 
         if math.isnan(eig[i_mode].real):
             continue
-        #
+    
 
         psi_all[i_mode, :], vpa_all[i_mode, :] = make_eigf(
             psi_vec[:, i_mode], vpa_vec[:, i_mode], M_ORDER, PNM_NORM)
-    #
+
 
     return psi_all, vpa_all
 #

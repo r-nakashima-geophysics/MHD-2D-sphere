@@ -15,8 +15,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import math
@@ -214,12 +217,10 @@ def plot_allfrobenius(
 
         if math.isnan(eig[i_mode].real):
             continue
-        #
 
         c_1_jump[0][i_mode], c_2[0][i_mode], integral[0][i_mode] \
             = calc_jump(
             psi_vec[:, i_mode], vpa_vec[:, i_mode], eig[i_mode])
-    #
 
     sinuous: np.ndarray
     varicose: np.ndarray
@@ -263,7 +264,6 @@ def plot_allfrobenius(
                        label=r'$I_\mathrm{num}$')
         ax2[1].scatter(eig_v.real, integral[2].real, s=1, color='black',
                        label=r'$I_\mathrm{num}$')
-    #
 
     i_almost_max: int = int(SIZE_MAT * 0.95)
 
@@ -317,7 +317,7 @@ def calc_jump(psi_vec: np.ndarray,
         mu_c = mu_c_tmp
     else:
         mu_c = -mu_c_tmp
-    #
+
     theta_c: float = np.arccos(mu_c).real
     i_theta_c: int = int(np.argmin(np.abs(LIN_THETA-theta_c)))
 
@@ -331,7 +331,6 @@ def calc_jump(psi_vec: np.ndarray,
         integral = math.nan
 
         return c_1_jump, c_2, integral
-    #
 
     psi: np.ndarray = np.array([])
     psi1: np.ndarray = np.array([])

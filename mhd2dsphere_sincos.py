@@ -23,7 +23,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -31,7 +35,6 @@ In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos.py
 In the below example, M_ORDER will be set to 2.
     python3 mhd2dsphere_sincos.py 2
-
 """
 
 import logging
@@ -45,9 +48,9 @@ import caffeine
 import numpy as np
 
 from package_common.input_helper import input_value
+from package_common.progress_bar import time_progress
 from package_mhd2dsphere.make_mat import make_mat, make_submat
 from package_mhd2dsphere.solve_eig import solve_eig
-from package_common.progress_bar import time_progress
 
 # ========== Parameters ==========
 
@@ -167,10 +170,8 @@ def wrapper_solve_eig_foralpha() \
             sym[i_alpha, :] = phys_qtys[3]
 
             now = time_progress(NUM_ALPHA, i_alpha, now)
-        #
 
         bundle = (eig, mke, mme, ohm, sym)
-    #
 
     if SWITCH_CALC[1]:
 
@@ -195,10 +196,8 @@ def wrapper_solve_eig_foralpha() \
             sym[i_alpha, :] = phys_qtys[3]
 
             now = time_progress(NUM_ALPHA_LOG, i_alpha, now)
-        #
 
         bundle_log = (eig, mke, mme, ohm, sym)
-    #
 
     return bundle, bundle_log
 #
@@ -239,7 +238,6 @@ def save_results(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
         np.savez(path_file,
                  lin_alpha=LIN_ALPHA, eig=eig, mke=mke,
                  mme=mme, ohm=ohm, sym=sym)
-    #
 
     if SWITCH_CALC[1]:
 
@@ -253,7 +251,7 @@ def save_results(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
         np.savez(path_file,
                  lin_alpha=10**LIN_ALPHA_LOG, eig=eig, mke=mke,
                  mme=mme, ohm=ohm, sym=sym)
-    #
+
 #
 
 
@@ -266,7 +264,6 @@ if __name__ == '__main__':
     if True not in SWITCH_CALC:
         logger.info('No saved file')
         sys.exit()
-    #
 
     caffeine.on(display=False)
 

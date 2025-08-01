@@ -9,8 +9,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import math
@@ -151,7 +154,6 @@ def plot_kl() -> None:
         axis.minorticks_on()
 
         axis.set_aspect('equal')
-    #
 
     fig.suptitle(
         r'Local dispersion relation [$B_{0\phi}=' + TEX_B + r'$]',
@@ -175,7 +177,6 @@ def plot_kl() -> None:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1[0]
     else:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1[1]
-    #
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
@@ -222,7 +223,6 @@ def plot_klambda() -> None:
 
         axis.tick_params(labelsize=16)
         axis.minorticks_on()
-    #
 
     fig.suptitle(
         r'Local dispersion relation [$B_{0\phi}=' + TEX_B + r'$]',
@@ -246,7 +246,6 @@ def plot_klambda() -> None:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_2[0]
     else:
         name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_2[1]
-    #
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
@@ -268,8 +267,8 @@ def calc_lambda(theta_rad: float) -> np.ndarray:
 
     Notes
     ----------
-    This function is based on eq. (33a) in Nakashima & Yoshida (in
-    prep.)[1]_.
+    This function is based on eq. (33a) in Nakashima & Yoshida
+    (2024)[1]_.
 
     """
 
@@ -287,7 +286,6 @@ def calc_lambda(theta_rad: float) -> np.ndarray:
         g_lambda = (rossby+sq_rt) / 2
     else:
         g_lambda = GRID_K_1 * (value_b**2) * sin * wavenum2
-    #
 
     return g_lambda
 #
@@ -308,8 +306,8 @@ def calc_l2(theta_rad: float) -> np.ndarray:
 
     Notes
     ----------
-    This function is based on eq. (33b) in Nakashima & Yoshida (in
-    prep.)[1]_.
+    This function is based on eq. (33b) in Nakashima & Yoshida
+    (2024)[1]_.
 
     """
 
@@ -320,7 +318,6 @@ def calc_l2(theta_rad: float) -> np.ndarray:
 
     if not SWITCH_MS:
         critical += (GRID_LAMBDA**2)
-    #
 
     g_l2: np.ndarray \
         = -(GRID_K_2**2) - GRID_LAMBDA*GRID_K_2*sin/(critical+EPS)

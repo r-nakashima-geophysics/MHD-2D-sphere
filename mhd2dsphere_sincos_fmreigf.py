@@ -15,8 +15,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import logging
@@ -165,10 +168,9 @@ def plot_ns_fmreigf(psi: np.ndarray,
               + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
     if np.nanmax(np.abs(psi.imag)) > 0:
         axis.plot(LIN_THETA, psi.imag, color='red', linestyle=':')
-    #
+
     if np.nanmax(np.abs(vpa.imag)) > 0:
         axis.plot(LIN_THETA, vpa.imag, color='blue', linestyle=':')
-    #
 
     eig_fmr: float
     eigf_fmr: np.ndarray
@@ -187,7 +189,6 @@ def plot_ns_fmreigf(psi: np.ndarray,
         axis.plot(LIN_THETA, eigf_fmr, color='black',
                   linestyle=':', linewidth=2.5,
                   label=r'$\mathrm{S}_{mn}(-\mathrm{i}c,\mu)/\sqrt{\Lambda}$')
-    #
 
     max_amp, min_amp = amp_range(psi, vpa)
 
@@ -267,7 +268,6 @@ def calc_fmreigf(i_mode: int) -> tuple[float, np.ndarray, float]:
         sqrt_c2 = math.sqrt(-c2_spheroidal.real)
         angular, _ = obl_ang1(
             M_ORDER, n_degree, sqrt_c2, np.cos(LIN_THETA))
-    #
 
     fmreigf: np.ndarray = angular / np.sqrt(critical.real)
 
@@ -286,7 +286,6 @@ if __name__ == '__main__':
     if ALPHA > 0.5:
         logger.warning('ALPHA should be smaller than 0.5')
         sys.exit()
-    #
 
     PNM_NORM: Final[np.ndarray] = load_legendre(M_ORDER, N_T, NUM_THETA)
     results = wrapper_solve_eig(

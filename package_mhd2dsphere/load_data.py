@@ -68,7 +68,6 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
                       bundle[2], bundle[3], bundle[4])
     else:
         bundle_all = (np.ndarray([]), ) * 6
-    #
 
     if switch_plot[1]:
 
@@ -80,7 +79,6 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
 
         bundle_all_log = (lin_alpha, bundle[0], bundle[1],
                           bundle[2], bundle[3], bundle[4])
-    #
 
     return bundle_all, bundle_all_log
 #
@@ -133,7 +131,7 @@ def load_results(name_file: str) \
         mme = npz_kw['mme']
         ohm = npz_kw['ohm']
         sym = npz_kw['sym']
-    #
+
     bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
                   np.ndarray, np.ndarray] \
         = (eig, mke, mme, ohm, sym)
@@ -173,7 +171,6 @@ def load_legendre(m_order: int,
     @yes_exe_no_quit
     def wrapper_make_legendre(m_order, n_t, num_theta) -> None:
         make_legendre(m_order, n_t, num_theta)
-    #
 
     path_dir: Path = Path('.') / 'output' / 'make_legendre'
     name_file: str = f'make_legendre_m{m_order}N{n_t}th{num_theta}.npy'
@@ -188,7 +185,5 @@ def load_legendre(m_order: int,
             + 'Do you want to run package/make_legendre.py?')
         wrapper_make_legendre(m_order, n_t, num_theta)
         legendre_norm = np.load(path_file)
-    #
 
     return legendre_norm
-#

@@ -205,7 +205,6 @@ def calc_ene(m_order: int,
 
         mke += nn1 * (np.abs(eig_vecval[i_n, :])**2)
         mme += nn1 * (np.abs(eig_vecval[size_submat+i_n, :])**2)
-    #
 
     return mke, mme
 #
@@ -260,9 +259,8 @@ def calc_qty(m_order: int,
 
             ohm += (nn1**2) * (
                 np.abs(eig_vecval[size_submat+i_n, :])**2)
-        #
+
         ohm *= e_eta
-    #
 
     even: np.ndarray = np.zeros(size_mat)
     odd: np.ndarray = np.zeros(size_mat)
@@ -270,14 +268,12 @@ def calc_qty(m_order: int,
     for i_n in range(int(size_submat/2)):
         even += np.abs(eig_vecval[2*i_n, :])
         odd += np.abs(eig_vecval[2*i_n+1, :])
-    #
+
     for i_mode in range(size_mat):
         if even[i_mode] > odd[i_mode]:
             sym[i_mode] = 'sinuous'
         else:
             sym[i_mode] = 'varicose'
-        #
-    #
 
     return mke, mme, ohm, sym
 #
@@ -334,15 +330,12 @@ def check_eig(m_order: int,
         else:
             high_psi += (np.abs(eig_vecval[i_n, :])**2)
             high_a += (np.abs(eig_vecval[size_submat+i_n, :])**2)
-        #
-    #
 
     check: np.ndarray
     if alpha != 0:
         check = (low_psi > high_psi*r_c) * (low_a > high_a*r_c)
     else:
         check = low_psi > high_psi*r_c
-    #
 
     return check
 #
@@ -389,8 +382,6 @@ def screening_eig(eig_vecval: np.ndarray,
             mme[i_mode] = math.nan
             ohm[i_mode] = math.nan
             sym[i_mode] = None
-        #
-    #
 
     phys_qtys = (mke, mme, ohm, sym)
 

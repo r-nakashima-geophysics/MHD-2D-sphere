@@ -50,8 +50,6 @@ def make_legendre(m_order: int,
 
             legendre_norm[n_order, :] \
                 = norm * lpmv(m_order, n_order, np.cos(lin_theta))
-        #
-    #
 
     os.makedirs(path_dir, exist_ok=True)
 

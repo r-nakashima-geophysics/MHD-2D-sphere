@@ -10,8 +10,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import math
@@ -182,10 +185,9 @@ def plot_ns(psi: np.ndarray,
               + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
     if np.nanmax(np.abs(psi.imag)) > 0:
         axis.plot(LIN_THETA, psi.imag, color='red', linestyle=':')
-    #
+
     if np.nanmax(np.abs(vpa.imag)) > 0:
         axis.plot(LIN_THETA, vpa.imag, color='blue', linestyle=':')
-    #
 
     amp_max: float
     amp_min: float
@@ -209,7 +211,6 @@ def plot_ns(psi: np.ndarray,
             r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
             + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
             fontsize=16)
-    #
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         fig.suptitle(
@@ -221,7 +222,6 @@ def plot_ns(psi: np.ndarray,
             r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
             + r'$E_\eta=$' + f' {E_ETA}', fontsize=16)
-    #
 
     leg: plt.Legend = axis.legend(loc='best', fontsize=11)
     leg.get_frame().set_alpha(1)
@@ -326,7 +326,6 @@ def plot_map(psi_grid: np.ndarray,
             + r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
             + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
             fontsize=16)
-    #
 
     fig.tight_layout()
 

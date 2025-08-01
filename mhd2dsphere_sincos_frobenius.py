@@ -17,8 +17,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import logging
@@ -263,7 +266,7 @@ def plot_frobenius(psi_vec: np.ndarray,
         mu_c = mu_c_tmp
     else:
         mu_c = -mu_c_tmp
-    #
+
     theta_c: float = np.arccos(mu_c).real
     i_theta_c: int = int(np.argmin(np.abs(LIN_THETA-theta_c)))
 
@@ -272,7 +275,6 @@ def plot_frobenius(psi_vec: np.ndarray,
             'Lack of fitting data. '
             + 'You need to reduce the value of the variable NUM_DATA.')
         sys.exit()
-    #
 
     psi: np.ndarray = np.array([])
     psi1: np.ndarray = np.array([])
@@ -382,8 +384,6 @@ def plot_frobenius(psi_vec: np.ndarray,
             lin_mu_pole[i_theta] = 1
         elif i_theta > i_theta_c:
             lin_mu_eq[i_theta] = 1
-        #
-    #
 
     axes[2].plot(
         LIN_THETA, psi.real, color='black',

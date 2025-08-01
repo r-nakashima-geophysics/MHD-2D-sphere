@@ -24,7 +24,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -34,7 +38,6 @@ In the below example, the parameter file will be
 ./input/MHD2Dsphere_ray/prm.dat. (You need not type
 './input/MHD2Dsphere_ray/'.)
     python3 mhd2dsphere_ray prm.dat
-
 """
 
 import logging
@@ -131,7 +134,6 @@ def load_prm(name_file: str) -> list[float]:
             'Too many or too few input parameters '
             + 'in the parameter file')
         sys.exit()
-    #
 
     return prms
 #
@@ -197,7 +199,7 @@ def wrapper_plot_ray(prms: list[float]) -> None:
     axin[1].set_yticks([-180, -90, 0, 90, 180])
 
     axin[0].tick_params(labelsize=14)
-    # axin[0].tick_params(labelsize=12, axis="x", labelrotation=45)
+ axin[0].tick_params(labelsize=12, axis="x", labelrotation=45)
     axin[1].tick_params(labelsize=14)
     axin[0].minorticks_on()
     axin[1].minorticks_on()
@@ -218,7 +220,7 @@ def wrapper_plot_ray(prms: list[float]) -> None:
             r'$(k_\mathrm{init},l_\mathrm{init})=$'
             + f' ({k_wavenum_init:8.5f}, {l_init})',
             fontsize=16)
-    #
+
 
     fig.suptitle(
         r'Ray trajectory [$B_{0\phi}=' + TEX_B + r'$] : '
@@ -234,13 +236,13 @@ def wrapper_plot_ray(prms: list[float]) -> None:
     name_fig_full: str = NAME_FIG
     if FILE_PRM != '':
         name_fig_full += '_' + FILE_PRM.split('.')[0]
-    #
+
 
     if not SWITCH_MS:
         name_fig_full += NAME_FIG_SUFFIX[0]
     else:
         name_fig_full += NAME_FIG_SUFFIX[1]
-    #
+
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
 
@@ -311,8 +313,8 @@ def plot_ray(prms: list[float],
                   + f' | theta: {theta_deg[i_time]:8.5f}'
                   + f' | l: {l_wavenum[i_time]:8.5f}'
                   + f' | dispersion relation = {check_dr:6.3e}')
-        #
-    #
+    
+
 
     h_kl: np.ndarray = np.zeros_like(phi_deg)
     angle: float
@@ -321,9 +323,9 @@ def plot_ray(prms: list[float],
             l_wavenum[i_time], k_const/math.sin(theta_rad[i_time]))
         if angle < 0:
             angle += 2 * math.pi
-        #
+    
         h_kl[i_time] = math.degrees(angle)
-    #
+
 
     lat_deg: np.ndarray = 90 - theta_deg
     lon_deg: np.ndarray = phi_deg - 360*np.floor((phi_deg+180)/360)
@@ -347,9 +349,9 @@ def plot_ray(prms: list[float],
                            grid_k[i_axin, j_axin])
             if grid_angle[i_axin, j_axin] < 0:
                 grid_angle[i_axin, j_axin] += 2 * math.pi
-            #
-        #
-    #
+        
+    
+
     axin[0].contourf(grid_k, grid_l, grid_angle, cmap='hsv', levels=360)
 
     axin[1].scatter(lin_time, lon_deg, s=0.2, c=h_kl, cmap='hsv',
@@ -364,7 +366,7 @@ def plot_ray(prms: list[float],
     theta_c_deg: set[float] = set()
     if cond_critical:
         theta_c_deg = critical_lat(k_const)
-    #
+
 
     fig_bundle: tuple[plt.Figure, plt.Axes, list[plt.Axes]] \
         = (fig, axis, axin)
@@ -463,7 +465,7 @@ def dispersion(k_const: float,
             = -k_const*(value_b**2) \
             * ((k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2)) \
             + LAMBDA
-    #
+
 
     return dispersion_relation
 #
@@ -523,8 +525,8 @@ def d_phi(theta_rad: float,
 
     Notes
     ----------
-    This function is based on eq. (31a) in Nakashima & Yoshida (in
-    prep.)[1]_.
+    This function is based on eq. (31a) in Nakashima & Yoshida
+    (2024)[1]_.
 
     """
 
@@ -547,7 +549,7 @@ def d_phi(theta_rad: float,
         cg_phi \
             = (value_b**2)*math.sin(theta_rad) \
             * (3*(k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2))
-    #
+
 
     dphi_dt: float = cg_phi / math.sin(theta_rad)
 
@@ -576,8 +578,8 @@ def d_theta(theta_rad: float,
 
     Notes
     ----------
-    This function is based on eq. (31b) in Nakashima & Yoshida (in
-    prep.)[1]_.
+    This function is based on eq. (31b) in Nakashima & Yoshida
+    (2024)[1]_.
 
     """
 
@@ -594,7 +596,7 @@ def d_theta(theta_rad: float,
         cg_theta = numerator / denominator
     else:
         cg_theta = 2*k_const*l_wavenum*(value_b**2)
-    #
+
 
     dtheta_dt: float = -cg_theta
 
@@ -623,8 +625,8 @@ def d_l(theta_rad: float,
 
     Notes
     ----------
-    This function is based on eq. (32c) in Nakashima & Yoshida (in
-    prep.)[1]_.
+    This function is based on eq. (32c) in Nakashima & Yoshida
+    (2024)[1]_.
 
     """
 
@@ -646,7 +648,7 @@ def d_l(theta_rad: float,
         dlambda_dtheta = k_const*(
             2*value_b*value_db + (value_b**2)/math.tan(theta_rad)
         ) * ((k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2))
-    #
+
 
     dl_dt: float = -d_phi(theta_rad, k_const, l_wavenum) \
         * k_const/math.tan(theta_rad) + dlambda_dtheta
@@ -675,7 +677,7 @@ def critical_lat(k_const: float) -> set[float]:
         critical: float = (LAMBDA**2) - (k_const**2)*(value_b**2)
 
         return critical
-    #
+
 
     set_theta_c: set = set()
 
@@ -690,8 +692,8 @@ def critical_lat(k_const: float) -> set[float]:
 
         if THETA_INIT < theta_c_deg < THETA_END:
             set_theta_c.add(f'{theta_c_deg:4.2f}')
-        #
-    #
+    
+
 
     return set_theta_c
 #
@@ -714,12 +716,12 @@ if __name__ == '__main__':
         if not os.path.exists(path_file_prm):
             logger.error('File not found')
             sys.exit()
-        #
+    
         list_prm = load_prm(FILE_PRM)
     else:
         logger.error('Too many input arguments')
         sys.exit()
-    #
+
 
     plt.rcParams['text.usetex'] = True
 

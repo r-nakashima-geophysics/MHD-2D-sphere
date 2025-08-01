@@ -15,7 +15,11 @@ Parameters other than command line arguments are described below.
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
@@ -23,7 +27,6 @@ In the below example, M_ORDER will be set to the default value.
     python3 mhd2dsphere_sincos_fmr.py
 In the below example, M_ORDER will be set to 2.
     python3 mhd2dsphere_sincos_fmr.py 2
-
 """
 
 import math
@@ -208,12 +211,11 @@ def plot_fmr(
 
         axes[0].scatter(ones_alpha, dict_eig['sr'].real, s=0.5, c='gray')
         axes[1].scatter(ones_alpha, dict_eig['vr'].real, s=0.5, c='gray')
-    #
 
     alpha_tmp: np.ndarray = np.zeros(num_alpha)
     for i_alpha in range(0, num_alpha, int(num_alpha/60)):
         alpha_tmp[i_alpha] = 10**lin_alpha[i_alpha]
-    #
+
     lin_alpha_skip: np.ndarray = alpha_tmp[np.nonzero(alpha_tmp)]
     num_alpha_skip: int = len(lin_alpha_skip)
     ones_alpha_skip: np.ndarray = np.zeros((NUM_N, num_alpha_skip))
@@ -237,7 +239,6 @@ def plot_fmr(
                 start = -10**(-10)
             elif SWITCH_EQ == 'wkb':
                 start = -(1+10**(-5))*M_ORDER*alpha
-            #
 
             sol = root(dispersion_fmr, start,
                        args=(M_ORDER, n_degree, alpha, SWITCH_EQ),
@@ -250,10 +251,6 @@ def plot_fmr(
                 elif i_n % 2 == 1:
                     sol_s[i_n, i_alpha] = math.nan
                     sol_v[i_n, i_alpha] = -1 * sol
-                #
-            #
-        #
-    #
 
     axes[0].scatter(ones_alpha_skip, sol_s, s=10, c='red',
                     label=r'$\lambda_\mathrm{approx}$')

@@ -62,14 +62,12 @@ def dispersion_fmr(eig: float,
                 ((var**2)+kappa2)
                 * np.sqrt(((var**2)+1)*((var**2)-m_eig*kappa2)))
             return func
-        #
 
         integral, _ = quad(
             integrand, 0, math.inf, args=(kappa2, m_eig))
         dispersion_relation = 2*(1+m_eig) \
             * np.sqrt(-m_eig/((eig**2)-ma2)) \
             * kappa2*integral - (uc_n+(1/2))*math.pi
-    #
 
     return dispersion_relation
 #

@@ -50,20 +50,18 @@ def choose_eigf(bundle: tuple[np.ndarray, np.ndarray,
 
         if math.isnan(eig[i_mode].real):
             continue
-        #
+
         mode_list.append(i_mode)
 
         q_value = math.inf
         if eig[i_mode].imag != 0:
             q_value = math.fabs(
                 eig[i_mode].real) / (-2*eig[i_mode].imag)
-        #
 
         print(f'({i_mode+1:04})  '
               + f'[{eig[i_mode].real:8.5f},{eig[i_mode].imag:8.5f}] '
               + f'{sym[i_mode]:>9s}  Q={q_value:4.2f}  '
               + f'MKE={mke[i_mode]:4.2f}')
-    #
 
     print('==============================')
     i_mode_min: int = min(mode_list) + 1
@@ -79,9 +77,8 @@ def choose_eigf(bundle: tuple[np.ndarray, np.ndarray,
 
         if i_chosen in mode_list:
             break
-        #
+
         logger.error('Invalid eigenmode')
-    #
 
     print(f'You chose: ({i_chosen+1:04})  '
           + f'[{eig[i_chosen].real:8.5f},{eig[i_chosen].imag:8.5f}] '
@@ -94,7 +91,6 @@ def choose_eigf(bundle: tuple[np.ndarray, np.ndarray,
            eig[i_chosen], i_chosen)
 
     return subbundle
-#
 
 
 def make_eigf(psi_vec: np.ndarray,
@@ -136,7 +132,6 @@ def make_eigf(psi_vec: np.ndarray,
 
         psi += psi_vec[i_n] * legendre_norm[n_degree, :]
         vpa += vpa_vec[i_n] * legendre_norm[n_degree, :]
-    #
 
     sign: int = adjust_sign(psi, num_theta)
 
@@ -272,7 +267,7 @@ def adjust_sign(psi: np.ndarray,
         i_equator = int((num_theta-1)/2)
     else:
         i_equator = int(num_theta/2)
-    #
+
     equator: float = np.sum(psi.real[i_equator-width:i_equator])
 
     sign: int = np.sign(equator)
