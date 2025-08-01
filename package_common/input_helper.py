@@ -48,7 +48,7 @@ def input_value(default: T,
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(name=function_name)
+    logger: DefaultLogger = DefaultLogger(function_name)
 
     if len(sys.argv) == 2:
         try:
@@ -95,17 +95,19 @@ def input_value_within(min_value: T,
     Examples
     ----------
     >>> input_value_within(0, 10, int)
-    (quit: q):  1
+    Enter a value in [0, 10] or q to quit: 1
     1
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(name=function_name)
+    logger: DefaultLogger = DefaultLogger(function_name)
 
     input_str: str
     chosen_value: T
     while True:
-        input_str = input('(quit: q):  ').strip().lower()
+        input_str = input(
+            f'Enter a value in [{min_value}, {max_value}] '
+            + 'or q to quit: ').strip().lower()
 
         if input_str == 'q':
             logger.info('Quit')

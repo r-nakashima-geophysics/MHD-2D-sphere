@@ -1,4 +1,4 @@
-"""A Python module to display the progress bar"""
+"""A Python module to display the progress bar."""
 
 from package_common.common_types import Optional
 from package_common.default_timer import DefaultTimer
@@ -29,8 +29,8 @@ def progress_bar(num_calc: int,
     ...     progress_bar(n, i, timer, "my_progress_bar")
     """
 
-    num_mark: int = 20
-    mark_blank: str = ' '
+    bar_width: int = 20
+    mark_empty: str = ' '
     mark_filled: str = '█'
 
     rap_time: Optional[float] = timer.rap()
@@ -42,20 +42,17 @@ def progress_bar(num_calc: int,
     text: str
 
     if rap_time is not None:
-        rate: int = int(((i_calc+1)/num_calc) * num_mark)
-        remaining_hours: float \
-            = (num_calc - i_calc - 1) * rap_time / 3600
-
-        p_bar = mark_filled * rate + mark_blank * (num_mark - rate)
-        text = f'Finish {remaining_hours:.1f} hrs later ' \
+        remaining_hours: float = (num_calc-i_calc-1) * rap_time / 3600
+        len_filled: int = int(((i_calc+1)/num_calc) * bar_width)
+        p_bar = mark_filled * len_filled \
+            + mark_empty * (bar_width - len_filled)
+        text = f'{i_calc+1}/{num_calc}: ' \
+            + f'Finish {remaining_hours:.1f} hrs later ' \
             + f'(rap: {rap_time:.2f} sec)'
-        print(
-            f'\r{name} [{p_bar}] {i_calc+1}/{num_calc}: {text}', end='')
+        print(f'\r{name} [{p_bar}] {text}', end='')
 
     if i_calc == num_calc - 1:
-        p_bar = mark_filled * num_mark
+        p_bar = mark_filled * bar_width
         len_text: int = len(text)
-        text = 'Finished'
-        blank_text: str = ' ' * (len_text - len(text))
-        text += blank_text
-        print(f'\r{name} [{p_bar}] {i_calc+1}/{num_calc}: {text}')
+        text = f'{i_calc+1}/{num_calc}: Finished'
+        print(f'\r{name} [{p_bar}] {text:<{len_text}}')
