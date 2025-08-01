@@ -41,7 +41,6 @@ Run the script with a specified value, e.g., M_ORDER = 2.
 
 import inspect
 import math
-import os
 import sys
 from pathlib import Path
 
@@ -50,6 +49,7 @@ import numpy as np
 
 from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
+from package_common.default_plotter import DefaultPlotter
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
 from package_common.progress_bar import progress_bar
@@ -277,67 +277,57 @@ def plot_eig(eig: ArrayFloat) -> None:
 
     """
 
-    fig: plt.Figure
-    axis: plt.Axes
-    fig, axis = plt.subplots(figsize=(5, 7))
+    plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 7))
 
     i_n: int
-
     for i_n_inv in range(NUM_N):
         i_n = NUM_N - 1 - i_n_inv
 
         if i_n not in (0, NUM_N-1):
-            axis.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
-                      color=[1, i_n/NUM_N, 0])
-            axis.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
-                      color=[0, i_n/NUM_N, 1])
+            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                              color=[1, i_n/NUM_N, 0])
+            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                              color=[0, i_n/NUM_N, 1])
         else:
-            axis.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
-                      color=[1, i_n/NUM_N, 0],
-                      label=r'$n=$'+f' {N_INIT+i_n} fast MR')
-            axis.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
-                      color=[0, i_n/NUM_N, 1],
-                      label=r'$n=$'+f' {N_INIT+i_n} slow MR')
+            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                              color=[1, i_n/NUM_N, 0],
+                              label=r'$n=$'+f' {N_INIT+i_n} fast MR')
+            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                              color=[0, i_n/NUM_N, 1],
+                              label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
-    axis.grid()
+    plotter.axes.set_xlim(ALPHA_INIT, ALPHA_END)
+    plotter.axes.set_ylim(EIG_INIT, EIG_END)
 
-    axis.set_xlim(ALPHA_INIT, ALPHA_END)
-    axis.set_ylim(EIG_INIT, EIG_END)
-
-    axis.set_xlabel(
+    plotter.axes.set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
         fontsize=16)
-    axis.set_ylabel(r'$\lambda=\omega/2\Omega_0$', fontsize=16)
-    axis.set_title(
+    plotter.axes.set_ylabel(r'$\lambda=\omega/2\Omega_0$', fontsize=16)
+    plotter.axes.set_title(
         r'Dispersion relation [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=16)
 
     leg: plt.Legend
     handle: list
     label: list
-    [handle, label] = axis.get_legend_handles_labels()
+    [handle, label] = plotter.axes.get_legend_handles_labels()
     order_leg: list[int] = [3, 1, 2, 0]
     handle = [handle[i_handle] for i_handle in order_leg]
     label = [label[i_label] for i_label in order_leg]
     if M_ORDER >= 3:
-        leg = axis.legend(
+        leg = plotter.axes.legend(
             handles=handle, labels=label, loc='center right',
             fontsize=14)
     else:
-        leg = axis.legend(
+        leg = plotter.axes.legend(
             handles=handle, labels=label, loc='lower left',
             fontsize=14)
 
     leg.get_frame().set_alpha(1)
 
-    axis.tick_params(labelsize=14)
-    axis.minorticks_on()
+    plotter.axes.tick_params(labelsize=14)
 
-    fig.tight_layout()
-
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
-    path_fig: Path = PATH_DIR_FIG / NAME_FIG_1
-    fig.savefig(path_fig, dpi=FIG_DPI)
+    plotter.save(PATH_DIR_FIG, NAME_FIG_1, FIG_DPI)
 
 
 def plot_ene(ene: ArrayFloat) -> None:
@@ -350,71 +340,61 @@ def plot_ene(ene: ArrayFloat) -> None:
 
     """
 
+    plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 5))
+
     i_n: int
-
-    fig: plt.Figure
-    axis: plt.Axes
-    fig, axis = plt.subplots(figsize=(5, 5))
-
     for i_n_inv in range(NUM_N):
         i_n = NUM_N - 1 - i_n_inv
 
         if (M_ORDER == 1) and (i_n == 0):
-            axis.semilogx(
+            plotter.axes.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1], linewidth=3)
 
         if i_n not in (0, NUM_N-1):
-            axis.semilogx(
+            plotter.axes.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
-            axis.semilogx(
+            plotter.axes.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
-            axis.semilogx(
+            plotter.axes.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
-            axis.semilogx(
+            plotter.axes.semilogx(
                 10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
-    axis.grid()
+    plotter.axes.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
+    plotter.axes.set_ylim(ENERGY_INIT, ENERGY_END)
 
-    axis.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    axis.set_ylim(ENERGY_INIT, ENERGY_END)
-
-    axis.set_xlabel(
+    plotter.axes.set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
         fontsize=16)
-    axis.set_ylabel(
+    plotter.axes.set_ylabel(
         r'$\mathrm{MKE}/(\mathrm{MKE}+\mathrm{MME})$', fontsize=16)
-    axis.set_title(
+    plotter.axes.set_title(
         r'Energy partitioning [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=16)
 
     leg: plt.Legend
     handle: list
     label: list
-    [handle, label] = axis.get_legend_handles_labels()
+    [handle, label] = plotter.axes.get_legend_handles_labels()
     order_leg: list[int] = [2, 0, 3, 1]
     handle = [handle[i_handle] for i_handle in order_leg]
     label = [label[i_label] for i_label in order_leg]
-    leg = axis.legend(
+    leg = plotter.axes.legend(
         handles=handle, labels=label,
         loc='upper right', fontsize=12, bbox_to_anchor=(1.1, 1))
     leg.get_frame().set_alpha(1)
 
-    axis.tick_params(labelsize=13)
-    axis.minorticks_on()
+    plotter.axes.tick_params(labelsize=13)
 
-    fig.tight_layout()
-
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
-    path_fig: Path = PATH_DIR_FIG / NAME_FIG_2
-    fig.savefig(path_fig, dpi=FIG_DPI)
+    plotter.save(PATH_DIR_FIG, NAME_FIG_2, FIG_DPI)
 
 
 def plot_eig_log(eig_log: ArrayFloat) -> None:
@@ -427,94 +407,84 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
 
     """
 
+    plotter: DefaultPlotter = DefaultPlotter(1, 2, figsize=(10, 5))
+
     i_n: int
-
-    fig: plt.Figure
-    axes: ArrayFloat
-    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
-
     for i_n_inv in range(NUM_N):
         i_n = NUM_N - 1 - i_n_inv
 
         if (M_ORDER == 1) and (i_n == 0):
-            axes[0].loglog(
+            plotter.axes[0].loglog(
                 10**LIN_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$ 1 fast MR')
-            axes[1].loglog(
+            plotter.axes[1].loglog(
                 10**LIN_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$ 2 slow MR')
         elif i_n not in (0, NUM_N-1):
-            axes[0].loglog(
+            plotter.axes[0].loglog(
                 10**LIN_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
-            axes[1].loglog(
+            plotter.axes[1].loglog(
                 10**LIN_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
-            axes[0].loglog(
+            plotter.axes[0].loglog(
                 10**LIN_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
-            axes[1].loglog(
+            plotter.axes[1].loglog(
                 10**LIN_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
-    axes[0].grid()
-    axes[1].grid()
+    plotter.axes[0].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
+    plotter.axes[1].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
+    plotter.axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
+    plotter.axes[0].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
 
-    axes[0].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    axes[1].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
-    axes[0].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
-
-    axes[0].set_xlabel(
+    plotter.axes[0].set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
         fontsize=16)
-    axes[1].set_xlabel(
+    plotter.axes[1].set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
         fontsize=16)
-    axes[0].set_ylabel(r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
-    axes[0].set_title(
+    plotter.axes[0].set_ylabel(r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
+    plotter.axes[0].set_title(
         r'Retrograde ($\lambda<0$)', fontsize=16)
-    axes[1].set_title(
+    plotter.axes[1].set_title(
         r'Prograde ($\lambda>0$)', fontsize=16)
 
     handle: list[list] = [[None, ], ] * 2
     label: list[list] = [[None, ], ] * 2
 
-    [handle[0], label[0]] = axes[0].get_legend_handles_labels()
-    leg1: plt.Legend = axes[0].legend(
+    [handle[0], label[0]] = plotter.axes[0].get_legend_handles_labels()
+    leg1: plt.Legend = plotter.axes[0].legend(
         handles=handle[0][::-1], labels=label[0][::-1],
         loc='lower right', fontsize=14)
     leg1.get_frame().set_alpha(1)
 
-    [handle[1], label[1]] = axes[1].get_legend_handles_labels()
-    leg2: plt.Legend = axes[1].legend(
+    [handle[1], label[1]] = plotter.axes[1].get_legend_handles_labels()
+    leg2: plt.Legend = plotter.axes[1].legend(
         handles=handle[1][::-1], labels=label[1][::-1],
         loc='lower right', fontsize=14)
     leg2.get_frame().set_alpha(1)
 
-    axes[0].tick_params(labelsize=13)
-    axes[1].tick_params(labelsize=13)
+    plotter.axes[0].tick_params(labelsize=13)
+    plotter.axes[1].tick_params(labelsize=13)
 
-    fig.suptitle(
+    plotter.fig.suptitle(
         r'Dispersion relation [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}', fontsize=16)
 
-    fig.tight_layout()
-
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
-    path_fig: Path = PATH_DIR_FIG / NAME_FIG_3
-    fig.savefig(path_fig, dpi=FIG_DPI)
+    plotter.save(PATH_DIR_FIG, NAME_FIG_3, FIG_DPI)
 
 
 if __name__ == '__main__':
@@ -528,8 +498,6 @@ if __name__ == '__main__':
     data: tuple[ArrayFloat,
                 ArrayFloat,
                 ArrayFloat] = wrapper_eigene()
-
-    plt.rcParams['text.usetex'] = True
 
     if SWITCH_PLOT[0]:
         plot_eig(data[0])
