@@ -23,7 +23,7 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.decorator_yesno.py import exe_yes_continue
+from package_common.decorator_yesno import exe_yes_continue
 from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import (amp_range, choose_eigf, make_eigf,
                                            make_eigf_grid)

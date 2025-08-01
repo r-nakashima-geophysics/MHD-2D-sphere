@@ -6,7 +6,7 @@ from pathlib import Path
 
 import numpy as np
 
-from package_common.decorator_yesno.py import yes_exe_no_exit
+from package_common.decorator_yesno.py import yes_exe_no_quit
 from package_mhd2dsphere.make_legendre import make_legendre
 
 logging.basicConfig(level=logging.INFO)
@@ -170,7 +170,7 @@ def load_legendre(m_order: int,
 
     """
 
-    @yes_exe_no_exit
+    @yes_exe_no_quit
     def wrapper_make_legendre(m_order, n_t, num_theta) -> None:
         make_legendre(m_order, n_t, num_theta)
     #

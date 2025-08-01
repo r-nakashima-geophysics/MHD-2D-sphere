@@ -4,11 +4,11 @@ a function"""
 import inspect
 import sys
 
-from package_common.common_types import Any, Callable, Final
+from package_common.common_types import Any, Callable
 from package_common.default_logger import DefaultLogger
 
 
-def yes_exe_no_exit(func: Callable[..., None]) -> Callable[..., None]:
+def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
     """Decorator to execute a function when the character 'yes' is input
     and to exit the script when the character 'no' is input.
 
@@ -34,30 +34,30 @@ def yes_exe_no_exit(func: Callable[..., None]) -> Callable[..., None]:
     >>> def test():
     ...     print('test')
     ...
-    >>> @yes_exe_no_exit
+    >>> @yes_exe_no_quit
     ... def wrapper():
     ...     test()
     ...
     >>> wrapper()
-    (yes/no) yes
+    Enter yes or no: yes
     test
     """
 
-    function_name: Final[str] = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(name=function_name)
+    function_name: str = inspect.currentframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(function_name)
 
     def new_func(*args: tuple[Any, ...],
                  **kwargs: dict[str, Any]) -> None:
 
-        yes_no: str
+        yes_or_no: str
         while True:
-            yes_no = input('(yes/no) ').strip().lower()
+            yes_or_no = input('Enter yes or no: ').strip().lower()
 
-            if yes_no in ('y', 'yes'):
+            if yes_or_no in ('y', 'yes'):
                 func(*args, **kwargs)
                 break
 
-            if yes_no in ('n', 'no'):
+            if yes_or_no in ('n', 'no'):
                 logger.info('Quit')
                 sys.exit(0)
 
@@ -98,28 +98,29 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     ...
     >>> wrapper()
     test
-    Re-execute? (yes/no) yes
+    Re-execute? Enter yes or no: yes
     test
-    Re-execute? (yes/no) no
+    Re-execute? Enter yes or no: no
     """
 
-    function_name: Final[str] = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(name=function_name)
+    function_name: str = inspect.currentframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(function_name)
 
     def new_function(*args: tuple[Any, ...],
                      **kwargs: dict[str, Any]) -> Any:
 
-        yes_no: str = 'y'
+        yes_or_no: str = 'y'
         while True:
             func(*args, **kwargs)
 
             while True:
-                yes_no = input('Re-execute? (yes/no) ').strip().lower()
+                yes_or_no = input(
+                    'Re-execute? Enter yes or no: ').strip().lower()
 
-                if yes_no in ('y', 'yes'):
+                if yes_or_no in ('y', 'yes'):
                     break
 
-                if yes_no in ('n', 'no'):
+                if yes_or_no in ('n', 'no'):
                     logger.info('Quit')
                     sys.exit(0)
 
