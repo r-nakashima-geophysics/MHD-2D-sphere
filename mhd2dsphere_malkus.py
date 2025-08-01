@@ -134,7 +134,7 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
-    progress_timer: DefaultTimer = DefaultTimer(name=function_name)
+    progress_timer: DefaultTimer = DefaultTimer(function_name)
 
     eig: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
     ene: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))

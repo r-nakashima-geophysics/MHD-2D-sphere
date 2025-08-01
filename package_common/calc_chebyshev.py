@@ -1,4 +1,4 @@
-"""A Python module to calculate the values relating to the Chebyshev
+"""A Python module to calculate values related to Chebyshev
 polynomials"""
 
 import cmath

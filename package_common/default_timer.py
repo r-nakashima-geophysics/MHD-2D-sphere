@@ -30,9 +30,10 @@ class DefaultTimer:
 
     Examples
     --------
-    >>> my_timer = DefaultTimer(name="my_timer")
-    >>> my_timer.start()
-    >>> my_timer.end()
+    >>> timer = DefaultTimer("my_timer")
+    >>> timer.start()
+    >>> timer.show()
+    >>> timer.end()
     """
 
     def __init__(self,
@@ -45,7 +46,7 @@ class DefaultTimer:
             The name of the timer.
         """
 
-        self.__logger: DefaultLogger = DefaultLogger(name=name)
+        self.__logger: DefaultLogger = DefaultLogger(name)
         self.__start_time: Optional[float] = None
         self.__elapsed_time: Optional[float] = None
         self.__split_time: Optional[float] = None
@@ -74,9 +75,18 @@ class DefaultTimer:
         self.__logger.info("End")
 
     def rap(self) -> Optional[float]:
-        """Measure the rap time."""
+        """Measure the rap time.
 
+        Returns
+        -------
+        Optional[float]
+            The rap time.
+        """
+
+        now: float = perf_counter()
         if self.__split_time is None:
-            self.__split_time = perf_counter()
+            self.__split_time = now
             return None
-        return perf_counter() - self.__split_time
+        rap_time: float = now - self.__split_time
+        self.__split_time = now
+        return rap_time

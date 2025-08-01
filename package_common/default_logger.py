@@ -13,7 +13,7 @@ class DefaultLogger:
 
     Examples
     --------
-    >>> logger = DefaultLogger(name="my_logger")
+    >>> logger = DefaultLogger("my_logger")
     >>> logger.debug("This is a debug message.")
     >>> logger.info("This is an info message.")
     >>> logger.warning("This is a warning message.")
