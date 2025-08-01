@@ -106,8 +106,7 @@ NAMES_MODE: Final[tuple[str, str]] = ('fMR', 'sMR')
 NUM_MODE: Final[int] = len(NAMES_MODE)
 
 NUM_N: Final[int] = 1 + int((N_END-N_INIT)/N_STEP)
-NUM_ALPHA: Final[int] \
-    = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
+NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
@@ -130,7 +129,6 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
         Energy partitioning
     eig_log : ArrayFloat
         Eigenvalues (log)
-
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
@@ -527,21 +525,20 @@ if __name__ == '__main__':
         DefaultLogger(__name__).warning('No plotted figures')
         sys.exit(0)
 
-    results: tuple[ArrayFloat,
-                   ArrayFloat,
-                   ArrayFloat] \
-        = wrapper_eigene()
+    data: tuple[ArrayFloat,
+                ArrayFloat,
+                ArrayFloat] = wrapper_eigene()
 
     plt.rcParams['text.usetex'] = True
 
     if SWITCH_PLOT[0]:
-        plot_eig(results[0])
+        plot_eig(data[0])
 
     if SWITCH_PLOT[1]:
-        plot_ene(results[1])
+        plot_ene(data[1])
 
     if SWITCH_PLOT[2]:
-        plot_eig_log(results[2])
+        plot_eig_log(data[2])
 
     timer.end()
 
