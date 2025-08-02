@@ -42,14 +42,18 @@ class DefaultPlotter:
         self.axes: Axes
         self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
 
-        if isinstance(self.axes, np.ndarray):
-            self.axes = self.axes.flatten()
-            for ax in self.axes:
-                ax.grid()
-                ax.minorticks_on()
-        else:
+        if nrows * ncols == 1:
             self.axes.grid()
             self.axes.minorticks_on()
+        elif (nrows == 1) or (ncols == 1):
+            for i in range(ncols):
+                self.axes[i].grid()
+                self.axes[i].minorticks_on()
+        else:
+            for i in range(nrows):
+                for j in range(ncols):
+                    self.axes[i, j].grid()
+                    self.axes[i, j].minorticks_on()
 
     def save(self,
              path_dir: Path,
