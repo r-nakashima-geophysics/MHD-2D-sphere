@@ -1,6 +1,9 @@
 """A Python module to display the progress bar."""
 
+import inspect
+
 from package_common.common_types import Optional
+from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 
 
@@ -29,30 +32,34 @@ def progress_bar(num_calc: int,
     ...     progress_bar(n, i, timer, "my_progress_bar")
     """
 
+    function_name: str = inspect.currentframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(function_name)
+
     bar_width: int = 20
     mark_empty: str = ' '
     mark_filled: str = '█'
 
-    rap_time: Optional[float] = timer.rap()
+    lap_time: Optional[float] = timer.lap()
 
     if name is None:
         name = ''
 
-    p_bar: str
-    text: str
+    if (num_calc <= 0) or (i_calc < 0) or (i_calc + 1 > num_calc):
+        lap_time = None
+        logger.warning("Invalid argument")
 
-    if rap_time is not None:
-        remaining_hours: float = (num_calc-i_calc-1) * rap_time / 3600
+    if lap_time is not None:
+        remaining_hours: float = (num_calc-i_calc-1) * lap_time / 3600
         len_filled: int = int(((i_calc+1)/num_calc) * bar_width)
-        p_bar = mark_filled * len_filled \
+        p_bar: str = mark_filled * len_filled \
             + mark_empty * (bar_width - len_filled)
-        text = f'{i_calc+1}/{num_calc}: ' \
+        text: str = f'{i_calc+1}/{num_calc}: ' \
             + f'Finish {remaining_hours:.1f} hrs later ' \
-            + f'(rap: {rap_time:.2f} sec)'
-        print(f'\r{name} [{p_bar}] {text}', end='')
+            + f'(lap: {lap_time:.2f} sec)'
 
-    if i_calc == num_calc - 1:
-        p_bar = mark_filled * bar_width
-        len_text: int = len(text)
-        text = f'{i_calc+1}/{num_calc}: Finished'
-        print(f'\r{name} [{p_bar}] {text:<{len_text}}')
+        if i_calc + 1 < num_calc:
+            print(f'\r{name} [{p_bar}] {text}', end='', flush=True)
+        elif i_calc + 1 == num_calc:
+            len_text: int = len(text)
+            text = f'{i_calc+1}/{num_calc}: Finished'
+            print(f'\r{name} [{p_bar}] {text:<{len_text}}', flush=True)
