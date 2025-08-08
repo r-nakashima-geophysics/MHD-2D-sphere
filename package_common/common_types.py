@@ -6,9 +6,11 @@ import numpy as np
 import numpy.typing as npt
 from matplotlib import axes, figure
 
-ArrayFloat: type = npt.NDArray[np.float64]
 Figure: type = figure.Figure
 Axes: type = axes.Axes
+
+ArrayFloat: type = npt.NDArray[np.float64]
+ArrayAxes: type = npt.NDArray[Axes]
 
 __all__ = [
     "Any",
@@ -16,7 +18,8 @@ __all__ = [
     "Final",
     "Optional",
     "TypeVar",
-    "ArrayFloat",
     "Figure",
     "Axes",
+    "ArrayFloat",
+    "ArrayAxes",
 ]

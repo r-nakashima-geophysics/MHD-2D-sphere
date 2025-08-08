@@ -23,7 +23,7 @@ class DefaultLogger:
 
     def __init__(self,
                  name: str,
-                 level: int = logging.DEBUG) -> None:
+                 level: int | str = logging.DEBUG) -> None:
         """Initialize the DefaultLogger instance.
 
         Parameters

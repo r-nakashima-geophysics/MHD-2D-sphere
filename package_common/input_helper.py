@@ -72,9 +72,9 @@ def input_value_within(min_value: T,
     Parameters
     ----------
     min_value : T
-        The minimum value of the specified range
+        The minimum value of the specified range.
     max_value : T
-        The maximum value of the specified range
+        The maximum value of the specified range.
     cast : Callable[[str], T]
         A function to cast the command line argument.
 
@@ -107,9 +107,9 @@ def input_value_within(min_value: T,
     while True:
         input_str = input(
             f'Enter a value in [{min_value}, {max_value}] '
-            + 'or q to quit: ').strip().lower()
+            + 'or q to quit: ').strip()
 
-        if input_str == 'q':
+        if input_str.lower() == 'q':
             logger.info('Quit')
             sys.exit(0)
 

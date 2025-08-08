@@ -1,5 +1,5 @@
 """A Python module to define a decorator for deciding whether to execute
-a function"""
+a function."""
 
 import inspect
 import sys
@@ -106,8 +106,8 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     function_name: str = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(function_name)
 
-    def new_function(*args: tuple[Any, ...],
-                     **kwargs: dict[str, Any]) -> Any:
+    def new_func(*args: tuple[Any, ...],
+                 **kwargs: dict[str, Any]) -> None:
 
         yes_or_no: str = 'y'
         while True:
@@ -126,4 +126,4 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
 
                 logger.error('Invalid input')
 
-    return new_function
+    return new_func
