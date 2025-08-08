@@ -4,9 +4,13 @@ import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import numpy as np
 
-from package_common.common_types import Any, Axes, Figure
+from package_common.common_types import Any, ArrayAxes, Axes, Figure
+
+try:
+    plt.rcParams['text.usetex'] = True
+except Exception:
+    plt.rcParams['text.usetex'] = False
 
 
 class DefaultPlotter:
@@ -36,17 +40,16 @@ class DefaultPlotter:
             Keyword variadic arguments.
         """
 
-        plt.rcParams['text.usetex'] = True
-
         self.fig: Figure
-        self.axes: Axes
+        self.axes: Axes | ArrayAxes
         self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
 
         if nrows * ncols == 1:
             self.axes.grid()
             self.axes.minorticks_on()
         elif (nrows == 1) or (ncols == 1):
-            for i in range(ncols):
+            num_axes: int = nrows if ncols == 1 else ncols
+            for i in range(num_axes):
                 self.axes[i].grid()
                 self.axes[i].minorticks_on()
         else:
