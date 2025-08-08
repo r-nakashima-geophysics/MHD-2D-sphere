@@ -74,19 +74,19 @@ class DefaultTimer:
         self.show()
         self.__logger.info("End")
 
-    def rap(self) -> Optional[float]:
-        """Measure the rap time.
+    def lap(self) -> Optional[float]:
+        """Measure the lap time.
 
         Returns
         -------
         Optional[float]
-            The rap time.
+            The lap time.
         """
 
         now: float = perf_counter()
         if self.__split_time is None:
             self.__split_time = now
             return None
-        rap_time: float = now - self.__split_time
+        lap_time: float = now - self.__split_time
         self.__split_time = now
-        return rap_time
+        return lap_time
