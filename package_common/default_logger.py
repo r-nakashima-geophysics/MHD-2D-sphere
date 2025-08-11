@@ -13,12 +13,12 @@ class DefaultLogger:
 
     Examples
     --------
-    >>> logger = DefaultLogger("my_logger")
-    >>> logger.debug("This is a debug message.")
-    >>> logger.info("This is an info message.")
-    >>> logger.warning("This is a warning message.")
-    >>> logger.error("This is an error message.")
-    >>> logger.critical("This is a critical message.")
+    >>> logger = DefaultLogger('my_logger')
+    >>> logger.debug('This is a debug message.')
+    >>> logger.info('This is an info message.')
+    >>> logger.warning('This is a warning message.')
+    >>> logger.error('This is an error message.')
+    >>> logger.critical('This is a critical message.')
     """
 
     def __init__(self,
@@ -40,11 +40,11 @@ class DefaultLogger:
 
         if not self.__logger.handlers:
             fmt: str = \
-                "/%(levelname)s/ [%(asctime)s] %(name)s: %(message)s"
+                '%(levelname)s/ [%(asctime)s] %(name)s: %(message)s'
             handler: logging.StreamHandler = logging.StreamHandler()
             handler.setLevel(level)
             formatter: logging.Formatter = logging.Formatter(
-                fmt=fmt, datefmt="%Y-%m-%d %H:%M:%S")
+                fmt=fmt, datefmt='%Y-%m-%d %H:%M:%S')
             handler.setFormatter(formatter)
             self.__logger.addHandler(handler)
 

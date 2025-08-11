@@ -26,10 +26,10 @@ def progress_bar(num_calc: int,
 
     Examples
     --------
-    >>> timer = DefaultTimer("my_timer")
+    >>> timer = DefaultTimer('my_timer')
     >>> n = 100
     >>> for i in range(n):
-    ...     progress_bar(n, i, timer, "my_progress_bar")
+    ...     progress_bar(n, i, timer, 'my_progress_bar')
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
@@ -46,7 +46,7 @@ def progress_bar(num_calc: int,
 
     if (num_calc <= 0) or (i_calc < 0) or (i_calc + 1 > num_calc):
         lap_time = None
-        logger.warning("Invalid argument")
+        logger.warning('Invalid argument')
 
     if lap_time is not None:
         remaining_hours: float = (num_calc-i_calc-1) * lap_time / 3600

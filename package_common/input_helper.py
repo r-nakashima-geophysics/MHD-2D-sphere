@@ -6,7 +6,7 @@ import sys
 from package_common.common_types import Callable, TypeVar
 from package_common.default_logger import DefaultLogger
 
-T = TypeVar("T", int, float)
+T = TypeVar('T', int, float)
 
 
 def input_value(default: T,

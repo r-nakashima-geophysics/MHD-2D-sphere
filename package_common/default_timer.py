@@ -30,7 +30,7 @@ class DefaultTimer:
 
     Examples
     --------
-    >>> timer = DefaultTimer("my_timer")
+    >>> timer = DefaultTimer('my_timer')
     >>> timer.start()
     >>> timer.show()
     >>> timer.end()
@@ -54,7 +54,7 @@ class DefaultTimer:
     def start(self) -> None:
         """Start the timer."""
 
-        self.__logger.info("Start")
+        self.__logger.info('Start')
         self.__start_time = perf_counter()
 
     def show(self) -> None:
@@ -62,17 +62,17 @@ class DefaultTimer:
 
         if self.__start_time is None:
             DefaultLogger(__class__.__name__).warning(
-                "Timer has not been started.")
+                'Timer has not been started.')
         else:
             self.__elapsed_time = perf_counter() - self.__start_time
             self.__logger.info(
-                f"Elapsed time: {self.__elapsed_time:.1f} sec.")
+                f'Elapsed time: {self.__elapsed_time:.1f} sec.')
 
     def end(self) -> None:
         """End the timer."""
 
         self.show()
-        self.__logger.info("End")
+        self.__logger.info('End')
 
     def lap(self) -> Optional[float]:
         """Measure the lap time.
