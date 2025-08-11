@@ -1,15 +1,16 @@
 """A Python module to define a class for figures."""
 
 import os
+import shutil
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 
 from package_common.common_types import Any, ArrayAxes, Axes, Figure
 
-try:
+if shutil.which('latex') is not None:
     plt.rcParams['text.usetex'] = True
-except Exception:
+else:
     plt.rcParams['text.usetex'] = False
 
 
