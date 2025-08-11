@@ -28,7 +28,7 @@ class DefaultPlotter:
     def __init__(self,
                  nrows: int = 1,
                  ncols: int = 1,
-                 **kwargs: dict[str, Any]) -> None:
+                 **kwargs) -> None:
         """Initialize the DefaultPlotter instance.
 
         Parameters
