@@ -1,8 +1,8 @@
 """A Python module to define a class for handling background fields."""
 
-import numpy as np
+import sys
 
-from package_common.common_types import Optional, ComplexFunc
+from package_common.common_types import ComplexFunc, Optional
 from package_common.default_logger import DefaultLogger
 
 
@@ -30,6 +30,8 @@ class BackgroundField:
     ----------
     Invalid input type.
         If the input is not a float or int.
+    Attribute has not been set.
+        If the attribute is not set.
     """
 
     def __init__(self,
@@ -84,7 +86,11 @@ class BackgroundField:
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
 
-        return self.value(complex(x, 0)).real
+        if self.value:
+            return self.value(complex(x, 0)).real
+
+        self.__logger.error('Attribute has not been set.')
+        sys.exit(1)
 
     def r_value_d(self,
                   x: float | int) -> float:
@@ -107,7 +113,11 @@ class BackgroundField:
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
 
-        return self.value_d(complex(x, 0)).real
+        if self.value_d:
+            return self.value_d(complex(x, 0)).real
+
+        self.__logger.error('Attribute has not been set.')
+        sys.exit(1)
 
     def r_value_d2(self,
                    x: float | int) -> float:
@@ -130,4 +140,8 @@ class BackgroundField:
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
 
-        return self.value_d2(complex(x, 0)).real
+        if self.value_d2:
+            return self.value_d2(complex(x, 0)).real
+
+        self.__logger.error('Attribute has not been set.')
+        sys.exit(1)
