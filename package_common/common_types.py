@@ -11,15 +11,17 @@ Axes: type = axes.Axes
 
 ArrayFloat: type = npt.NDArray[np.float64]
 ArrayAxes: type = npt.NDArray[Axes]
+ComplexFunc: type = Callable[[complex], complex]
 
 __all__ = [
-    "Any",
-    "Callable",
-    "Final",
-    "Optional",
-    "TypeVar",
-    "Figure",
-    "Axes",
-    "ArrayFloat",
-    "ArrayAxes",
+    'Any',
+    'Callable',
+    'Final',
+    'Optional',
+    'TypeVar',
+    'Figure',
+    'Axes',
+    'ArrayFloat',
+    'ArrayAxes',
+    'ComplexFunc',
 ]
