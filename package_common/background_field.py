@@ -15,10 +15,10 @@ class BackgroundField:
         The instance of the logger.
     value : ComplexFunc
         The value of the background field at a given point.
-    value_d : Optional[ComplexFunc]
+    __value_d : Optional[ComplexFunc]
         The value of the first derivative of the background field at the
         point.
-    value_d2 : Optional[ComplexFunc]
+    __value_d2 : Optional[ComplexFunc]
         The value of the second derivative of the background field at
         the point.
     name : str
@@ -32,6 +32,12 @@ class BackgroundField:
         If the input is not a float or int.
     Attribute has not been set.
         If the attribute is not set.
+
+    Example
+    -------
+    >>> linear = BackgroundField('linear', lambda x: x)
+    >>> linear.value(1)
+    1
     """
 
     def __init__(self,
@@ -39,22 +45,22 @@ class BackgroundField:
                  value: ComplexFunc,
                  value_d: Optional[ComplexFunc] = None,
                  value_d2: Optional[ComplexFunc] = None,
-                 tex: str = '') -> None:
+                 tex: Optional[str] = None) -> None:
         """Initialize the BackgroundField instance
 
         Parameters
         ----------
         name : str
             The name of the background field.
-        value : Callable[[complex], complex]
+        value : ComplexFunc
             The value of the background field at the point.
-        value_d : Callable[[complex], complex], optional, default None
+        __value_d : Optional[ComplexFunc], optional, default None
             The value of the first derivative of the background field at
             the point.
-        value_d2 : Callable[[complex], complex], optional, default None
+        __value_d2 : Optional[ComplexFunc], optional, default None
             The value of the second derivative of the background field
             at the point.
-        tex : str, optional, default ''
+        tex : Optional[str], optional, default None
             The LaTeX text of the background field.
         """
 
@@ -62,9 +68,14 @@ class BackgroundField:
 
         self.name: str = name
         self.value: ComplexFunc = value
-        self.value_d: Optional[ComplexFunc] = value_d
-        self.value_d2: Optional[ComplexFunc] = value_d2
-        self.tex: str = tex
+        self.__value_d: Optional[ComplexFunc] = value_d
+        self.__value_d2: Optional[ComplexFunc] = value_d2
+
+        self.tex: str
+        if tex is not None:
+            self.tex = tex
+        else:
+            self.tex = name
 
     def r_value(self,
                 x: float | int) -> float:
@@ -85,9 +96,23 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
+            return self.value(complex(x.real, 0)).real
 
-        if self.value:
-            return self.value(complex(x, 0)).real
+        return self.value(complex(x, 0)).real
+
+    @property
+    def value_d(self) -> ComplexFunc:
+        """Get the first derivative of the background field at a given
+        point.
+
+        Returns
+        -------
+        ComplexFunc
+            The first derivative of the background field.
+        """
+
+        if self.__value_d is not None:
+            return self.__value_d
 
         self.__logger.error('Attribute has not been set.')
         sys.exit(1)
@@ -112,9 +137,23 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
+            return self.value_d(complex(x.real, 0)).real
 
-        if self.value_d:
-            return self.value_d(complex(x, 0)).real
+        return self.value_d(complex(x, 0)).real
+
+    @property
+    def value_d2(self) -> ComplexFunc:
+        """Get the second derivative of the background field at a given
+        point.
+
+        Returns
+        -------
+        ComplexFunc
+            The second derivative of the background field.
+        """
+
+        if self.__value_d2 is not None:
+            return self.__value_d2
 
         self.__logger.error('Attribute has not been set.')
         sys.exit(1)
@@ -139,9 +178,6 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
+            return self.value_d2(complex(x.real, 0)).real
 
-        if self.value_d2:
-            return self.value_d2(complex(x, 0)).real
-
-        self.__logger.error('Attribute has not been set.')
-        sys.exit(1)
+        return self.value_d2(complex(x, 0)).real
