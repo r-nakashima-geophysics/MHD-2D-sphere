@@ -27,6 +27,8 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 
 ## Setup
 
+These scripts are recommended to run with Python 3.13 or later.
+
 ```sh
 pip3 install -r requirements.txt
 ```
