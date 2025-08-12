@@ -40,7 +40,7 @@ class DefaultLogger:
 
         if not self.__logger.handlers:
             fmt: str = \
-                '%(levelname)s/ [%(asctime)s] %(name)s: %(message)s'
+                '/%(levelname)s/ [%(asctime)s] %(name)s: %(message)s'
             handler: logging.StreamHandler = logging.StreamHandler()
             handler.setLevel(level)
             formatter: logging.Formatter = logging.Formatter(

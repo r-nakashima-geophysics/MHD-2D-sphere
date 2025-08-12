@@ -9,7 +9,7 @@ eigenmodes, and a log-log plot of the dispersion relation.
 Parameters
 ----------
 M_ORDER : int
-    Zonal wavenumber (order)
+    Zonal wavenumber (order).
 
 Warnings
 ----------
@@ -32,10 +32,9 @@ doi: 10.1080/03091929.2024.2384388
 
 Examples
 ----------
-Run the script with the default value of M_ORDER.
+Run the script with the default value of M_ORDER:
     $ python3 mhd2dsphere_malkus.py
-
-Run the script with a specified value, e.g., M_ORDER = 2.
+Run the script with a specified value (say M_ORDER = 2):
     $ python3 mhd2dsphere_malkus.py 2
 """
 
@@ -47,7 +46,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import ArrayFloat, Final
+from package_common.common_types import (ArrayFloat, ArrayInt, Artist, Final,
+                                         Legend)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import DefaultPlotter
 from package_common.default_timer import DefaultTimer
@@ -93,8 +93,7 @@ ENERGY_INIT: Final[float] = 0
 ENERGY_END: Final[float] = 1
 
 # The paths and filenames of outputs
-PATH_DIR_FIG: Final[Path] \
-    = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
+PATH_DIR_FIG: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
 NAME_FIG_1: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eig.png'
 NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_ene.png'
 NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eiglog.png'
@@ -110,25 +109,27 @@ NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[ArrayFloat] \
-    = np.linspace(N_INIT, N_END, NUM_N)
-LIN_ALPHA: Final[ArrayFloat] \
-    = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[ArrayFloat] \
-    = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
+LIN_N: Final[ArrayInt] = np.linspace(
+    N_INIT, N_END, NUM_N, dtype=np.int32)
+LIN_ALPHA: Final[ArrayFloat] = np.linspace(
+    ALPHA_INIT, ALPHA_END, NUM_ALPHA)
+LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
+    ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
 
 
-def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
+def wrapper_eigene() -> tuple[ArrayFloat,
+                              ArrayFloat,
+                              ArrayFloat]:
     """Calculate the dispersion relation and energy partitioning.
 
     Returns
     ----------
     eig : ArrayFloat
-        Eigenvalues (linear)
+        Eigenvalues (linear).
     ene : ArrayFloat
-        Energy partitioning
+        Energy partitioning.
     eig_log : ArrayFloat
-        Eigenvalues (log)
+        Eigenvalues (log).
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
@@ -170,21 +171,21 @@ def wrapper_eigene() -> tuple[ArrayFloat, ArrayFloat, ArrayFloat]:
 def calc_eig(n_degree: int,
              alpha: float,
              name_mode: str) -> float:
-    """Calculates the dispersion relation
+    """Calculate the dispersion relation.
 
     Parameters
     ----------
     n_degree : int
-        A degree of the associated Legendre polynomial
+        The degree of the associated Legendre polynomial.
     alpha : float
-        The Lehnert number
+        The Lehnert number.
     name_mode : str
-        'fMR' or 'sMR'
+        'fMR' or 'sMR'.
 
     Returns
     ----------
-    eig : float
-        An eigenvalue
+    float
+        An eigenvalue.
 
     Raises
     ----------
@@ -194,87 +195,71 @@ def calc_eig(n_degree: int,
     Notes
     ----------
     If n_degree = 0, eig is set to 0. This function is based on eq. (1)
-    in Nakashima & Yoshida (submitted)[1]_.
-
+    in Nakashima & Yoshida (2024)[1]_.
     """
 
-    eig: float
-
-    if name_mode not in NAMES_MODE:
-        DefaultLogger(__name__).error('Invalid ID')
-        sys.exit(1)
-
     if n_degree == 0:
-        eig = 0
-        return eig
+        return 0
 
     nn1: int = n_degree * (n_degree+1)
-    sq_rt: float = math.sqrt(1 + 4*(alpha**2)*nn1*(nn1-2))
+    sqrt: float = math.sqrt(1 + 4*(alpha**2)*nn1*(nn1-2))
 
     if name_mode == 'fMR':
-        eig = (-M_ORDER-M_ORDER*sq_rt) / (2*nn1)
-    elif name_mode == 'sMR':
-        eig = (-M_ORDER+M_ORDER*sq_rt) / (2*nn1)
+        return (-M_ORDER-M_ORDER*sqrt) / (2*nn1)
+    if name_mode == 'sMR':
+        return (-M_ORDER+M_ORDER*sqrt) / (2*nn1)
 
-    return eig
+    DefaultLogger(__name__).error('Invalid ID')
+    sys.exit(1)
 
 
 def calc_ene(n_degree: int,
              alpha: float,
              name_mode: str) -> float:
-    """Calculates energy partitioning
+    """Calculate energy partitioning.
 
     Parameters
     ----------
     n_degree : int
-        A degree of the associated Legendre polynomial
+        The degree of the associated Legendre polynomial.
     alpha : float
-        The Lehnert number
+        The Lehnert number.
     name_mode : str
-        'fMR' or 'sMR'
+        'fMR' or 'sMR'.
 
     Returns
     ----------
-    ene : float
-        Energy partitioning
+    float
+        Energy partitioning.
 
     Notes
     ----------
     If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for
     fast MR waves and 1 for slow MR waves. This function is based on the
     equation in the caption of Fig. 3 in Nakashima & Yoshida (2024)[1]_.
-
     """
 
-    ene: float
-
     if n_degree == 0:
-        ene = 0
-        return ene
+        return 0
 
     if alpha == 0:
         if name_mode == 'fMR':
-            ene = 0
-            return ene
+            return 0
         if name_mode == 'sMR':
-            ene = 1
-            return ene
+            return 1
 
     ma2: float = (M_ORDER**2) * (alpha**2)
     lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
-    ene = (lambda_mr**2) / ((lambda_mr**2)+ma2)
-
-    return ene
+    return (lambda_mr**2) / ((lambda_mr**2)+ma2)
 
 
 def plot_eig(eig: ArrayFloat) -> None:
-    """Plots a figure of the dispersion relation (linear-linear)
+    """Generate the linear-linear plot of the dispersion relation.
 
     Parameters
     ----------
-    eig : ndarray
-        Eigenvalues
-
+    eig : ArrayFloat
+        Eigenvalues.
     """
 
     plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 7))
@@ -284,17 +269,21 @@ def plot_eig(eig: ArrayFloat) -> None:
         i_n = NUM_N - 1 - i_n_inv
 
         if i_n not in (0, NUM_N-1):
-            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
-                              color=[1, i_n/NUM_N, 0])
-            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
-                              color=[0, i_n/NUM_N, 1])
+            plotter.axes.plot(
+                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0])
+            plotter.axes.plot(
+                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1])
         else:
-            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
-                              color=[1, i_n/NUM_N, 0],
-                              label=r'$n=$'+f' {N_INIT+i_n} fast MR')
-            plotter.axes.plot(LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
-                              color=[0, i_n/NUM_N, 1],
-                              label=r'$n=$'+f' {N_INIT+i_n} slow MR')
+            plotter.axes.plot(
+                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0],
+                label=r'$n=$'+f' {N_INIT+i_n} fast MR')
+            plotter.axes.plot(
+                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1],
+                label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
     plotter.axes.set_xlim(ALPHA_INIT, ALPHA_END)
     plotter.axes.set_ylim(EIG_INIT, EIG_END)
@@ -307,20 +296,20 @@ def plot_eig(eig: ArrayFloat) -> None:
         r'Dispersion relation [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=16)
 
-    leg: plt.Legend
-    handle: list
-    label: list
-    [handle, label] = plotter.axes.get_legend_handles_labels()
+    handles: list[Artist]
+    labels: list[str]
+    [handles, labels] = plotter.axes.get_legend_handles_labels()
     order_leg: list[int] = [3, 1, 2, 0]
-    handle = [handle[i_handle] for i_handle in order_leg]
-    label = [label[i_label] for i_label in order_leg]
+    handles = [handles[i_handle] for i_handle in order_leg]
+    labels = [labels[i_label] for i_label in order_leg]
+    leg: Legend
     if M_ORDER >= 3:
         leg = plotter.axes.legend(
-            handles=handle, labels=label, loc='center right',
+            handles=handles, labels=labels, loc='center right',
             fontsize=14)
     else:
         leg = plotter.axes.legend(
-            handles=handle, labels=label, loc='lower left',
+            handles=handles, labels=labels, loc='lower left',
             fontsize=14)
 
     leg.get_frame().set_alpha(1)
@@ -331,13 +320,13 @@ def plot_eig(eig: ArrayFloat) -> None:
 
 
 def plot_ene(ene: ArrayFloat) -> None:
-    """Plots a figure of energy partitioning
+    """Generate the plot showing the energy partitioning for various
+    eigenmodes.
 
     Parameters
     ----------
-    ene : ndarray
-        Energy partitioning
-
+    ene : ArrayFloat
+        Energy partitioning.
     """
 
     plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 5))
@@ -380,15 +369,14 @@ def plot_ene(ene: ArrayFloat) -> None:
         r'Energy partitioning [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=16)
 
-    leg: plt.Legend
-    handle: list
-    label: list
-    [handle, label] = plotter.axes.get_legend_handles_labels()
+    handles: list[Artist]
+    labels: list[str]
+    [handles, labels] = plotter.axes.get_legend_handles_labels()
     order_leg: list[int] = [2, 0, 3, 1]
-    handle = [handle[i_handle] for i_handle in order_leg]
-    label = [label[i_label] for i_label in order_leg]
-    leg = plotter.axes.legend(
-        handles=handle, labels=label,
+    handles = [handles[i_handle] for i_handle in order_leg]
+    labels = [labels[i_label] for i_label in order_leg]
+    leg: Legend = plotter.axes.legend(
+        handles=handles, labels=labels,
         loc='upper right', fontsize=12, bbox_to_anchor=(1.1, 1))
     leg.get_frame().set_alpha(1)
 
@@ -398,13 +386,12 @@ def plot_ene(ene: ArrayFloat) -> None:
 
 
 def plot_eig_log(eig_log: ArrayFloat) -> None:
-    """Plots a figure of the dispersion relation (log-log)
+    """Generate the log-log plot of the dispersion relation.
 
     Parameters
     ----------
-    eig_log : ndarray
-        Eigenvalues (log-log)
-
+    eig_log : ArrayFloat
+        Eigenvalues.
     """
 
     plotter: DefaultPlotter = DefaultPlotter(1, 2, figsize=(10, 5))
@@ -417,13 +404,11 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
             plotter.axes[0].loglog(
                 10**LIN_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
-                color=[1, i_n/NUM_N, 0],
-                label=r'$n=$ 1 fast MR')
+                color=[1, i_n/NUM_N, 0], label=r'$n=$ 1 fast MR')
             plotter.axes[1].loglog(
                 10**LIN_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
-                color=[0, i_n/NUM_N, 1],
-                label=r'$n=$ 2 slow MR')
+                color=[0, i_n/NUM_N, 1], label=r'$n=$ 2 slow MR')
         elif i_n not in (0, NUM_N-1):
             plotter.axes[0].loglog(
                 10**LIN_ALPHA_LOG,
@@ -447,8 +432,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
 
     plotter.axes[0].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
     plotter.axes[1].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    plotter.axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
     plotter.axes[0].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
+    plotter.axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
 
     plotter.axes[0].set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
@@ -457,23 +442,23 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
         fontsize=16)
     plotter.axes[0].set_ylabel(r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
-    plotter.axes[0].set_title(
-        r'Retrograde ($\lambda<0$)', fontsize=16)
-    plotter.axes[1].set_title(
-        r'Prograde ($\lambda>0$)', fontsize=16)
+    plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
+    plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)
 
-    handle: list[list] = [[None, ], ] * 2
-    label: list[list] = [[None, ], ] * 2
+    handles: list[list] = [[None, ], ] * 2
+    labels: list[list] = [[None, ], ] * 2
 
-    [handle[0], label[0]] = plotter.axes[0].get_legend_handles_labels()
-    leg1: plt.Legend = plotter.axes[0].legend(
-        handles=handle[0][::-1], labels=label[0][::-1],
+    [handles[0], labels[0]] \
+        = plotter.axes[0].get_legend_handles_labels()
+    leg1: Legend = plotter.axes[0].legend(
+        handles=handles[0][::-1], labels=labels[0][::-1],
         loc='lower right', fontsize=14)
     leg1.get_frame().set_alpha(1)
 
-    [handle[1], label[1]] = plotter.axes[1].get_legend_handles_labels()
-    leg2: plt.Legend = plotter.axes[1].legend(
-        handles=handle[1][::-1], labels=label[1][::-1],
+    [handles[1], labels[1]] \
+        = plotter.axes[1].get_legend_handles_labels()
+    leg2: Legend = plotter.axes[1].legend(
+        handles=handles[1][::-1], labels=labels[1][::-1],
         loc='lower right', fontsize=14)
     leg2.get_frame().set_alpha(1)
 

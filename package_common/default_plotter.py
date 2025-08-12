@@ -6,7 +6,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 
-from package_common.common_types import Any, ArrayAxes, Axes, Figure
+from package_common.common_types import ArrayAxes, Axes, Figure
 
 if shutil.which('latex') is not None:
     plt.rcParams['text.usetex'] = True
@@ -23,6 +23,14 @@ class DefaultPlotter:
         The instance of the figure.
     axes : Axes
         The instance of the axes.
+
+    Example
+    -------
+    >>> plotter = DefaultPlotter(1, 1)
+    >>> x = [1, 2]
+    >>> y = [3, 4]
+    >>> plotter.axes.plot(x, y)
+    >>> plotter.save(Path('.'), 'plot.png', dpi=300)
     """
 
     def __init__(self,
