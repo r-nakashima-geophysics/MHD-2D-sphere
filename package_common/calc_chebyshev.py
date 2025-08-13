@@ -98,7 +98,6 @@ def chebyshev_d3(n_degree: int,
     T
         The value of the third derivative of the Chebyshev polynomial at
         the point.
-
     """
 
     t: T = np.acos(s_pos)
