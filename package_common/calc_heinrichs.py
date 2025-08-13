@@ -1,7 +1,9 @@
-"""A Python module to calculate values related to Heinrichs basis.
-"""
+"""A Python module to calculate values related to the Heinrichs basis.
 
-from numba import njit
+References
+----------
+[1] John P. Boyd, Chebyshev and Fourier Spectral Methods. Courier Corporation, (2001).
+"""
 
 from package_common.calc_chebyshev import (chebyshev, chebyshev_d,
                                            chebyshev_d2, chebyshev_d3)
@@ -10,10 +12,9 @@ from package_common.common_types import TypeVar
 T = TypeVar('T', float, complex)
 
 
-@njit
 def heinrichs(n_degree: int,
               s_pos: T) -> T:
-    """Calculate the value of a Heinrichs basis at a given point.
+    """Calculate the value of the Heinrichs basis at a given point.
 
     Parameters
     ----------
@@ -31,10 +32,9 @@ def heinrichs(n_degree: int,
     return (1-(s_pos**2)) * chebyshev(n_degree, s_pos)
 
 
-@njit
 def heinrichs_d(n_degree: int,
                 s_pos: T) -> T:
-    """Calculate the value of the first derivative of a Heinrichs basis
+    """Calculate the value of the first derivative of the Heinrichs basis
     at a given point.
 
     Parameters
@@ -55,10 +55,9 @@ def heinrichs_d(n_degree: int,
            - 2 * s_pos * chebyshev(n_degree, s_pos)
 
 
-@njit
 def heinrichs_d2(n_degree: int,
                  s_pos: T) -> T:
-    """Calculate the value of the second derivative of a Heinrichs basis
+    """Calculate the value of the second derivative of the Heinrichs basis
     at a given point.
 
     Parameters
@@ -80,10 +79,9 @@ def heinrichs_d2(n_degree: int,
            - 2 * chebyshev(n_degree, s_pos)
 
 
-@njit
 def heinrichs_d3(n_degree: int,
                  s_pos: T) -> T:
-    """Calculate the value of the third derivative of a Heinrichs basis
+    """Calculate the value of the third derivative of the Heinrichs basis
     at a given point.
 
     Parameters

@@ -1,15 +1,18 @@
 """A Python module to calculate values related to Chebyshev
-polynomials."""
+polynomials.
+
+References
+----------
+[1] John P. Boyd, Chebyshev and Fourier Spectral Methods. Courier Corporation, (2001).
+"""
 
 import numpy as np
-from numba import njit
 
 from package_common.common_types import TypeVar
 
 T = TypeVar('T', float, complex)
 
 
-@njit
 def chebyshev(n_degree: int,
               s_pos: T) -> T:
     """Calculate the value of a Chebyshev polynomial at a given point.
@@ -30,7 +33,6 @@ def chebyshev(n_degree: int,
     return np.cos(n_degree * np.acos(s_pos))
 
 
-@njit
 def chebyshev_d(n_degree: int,
                 s_pos: T) -> T:
     """Calculate the value of the first derivative of a Chebyshev
@@ -54,7 +56,6 @@ def chebyshev_d(n_degree: int,
     return n_degree * np.sin(n_degree*t) / np.sin(t)
 
 
-@njit
 def chebyshev_d2(n_degree: int,
                  s_pos: T) -> T:
     """Calculate the value of the second derivative of a Chebyshev
@@ -80,7 +81,6 @@ def chebyshev_d2(n_degree: int,
             ) / (np.sin(t)**2)
 
 
-@njit
 def chebyshev_d3(n_degree: int,
                  s_pos: T) -> T:
     """Calculate the value of the third derivative of a Chebyshev
