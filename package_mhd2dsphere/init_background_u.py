@@ -3,8 +3,8 @@ for background zonal flows, U_phi = U_0 U(theta) sin(theta).
 
 Example
 -------
->>> u_rigid = init_u_rigid('mu')
->>> u_rigid = init_u_rigid('theta')
+>>> u_rigid = u_rigid('mu')
+>>> u_rigid = u_rigid('theta')
 """
 
 import inspect
@@ -14,7 +14,7 @@ from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
 
 
-def init_u_rigid(switch_theta: str = 'mu') -> BackgroundField:
+def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
     """Generate the instance of BackgroundField class for the rigid body
     rotation (U=0).
 
@@ -55,8 +55,8 @@ def init_u_rigid(switch_theta: str = 'mu') -> BackgroundField:
             _ = mu_complex
             return 0
 
-        return BackgroundField(name, 
-                               value=u_rigid_mu, 
+        return BackgroundField(name,
+                               value=u_rigid_mu,
                                value_d=u_rigid_d_mu,
                                value_d2=u_rigid_d2_mu,
                                tex=tex)
@@ -74,8 +74,8 @@ def init_u_rigid(switch_theta: str = 'mu') -> BackgroundField:
             _ = theta_complex
             return 0
 
-        return BackgroundField(name, 
-                               value=u_rigid_theta, 
+        return BackgroundField(name,
+                               value=u_rigid_theta,
                                value_d=u_rigid_d_theta,
                                value_d2=u_rigid_d2_theta,
                                tex=tex)

@@ -3,8 +3,8 @@ for toroidal background field, B_phi = B_0 B(theta) sin(theta).
 
 Examples
 --------
->>> b_hydro = init_b_hydro('mu')
->>> b_hydro = init_b_hydro('theta')
+>>> b_hydro = b_hydro('mu')
+>>> b_hydro = b_hydro('theta')
 """
 
 import cmath
@@ -15,7 +15,7 @@ from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
 
 
-def init_b_hydro(switch_theta: str = 'mu') -> BackgroundField:
+def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
     """Generate the instance of BackgroundField class for the
     hydrodynamic case (B=0).
 
@@ -55,7 +55,7 @@ def init_b_hydro(switch_theta: str = 'mu') -> BackgroundField:
         def b_hydro_d2_mu(mu_complex: complex) -> complex:
             _ = mu_complex
             return 0
-        
+
         return BackgroundField(name,
                                value=b_hydro_mu,
                                value_d=b_hydro_d_mu,
@@ -80,12 +80,12 @@ def init_b_hydro(switch_theta: str = 'mu') -> BackgroundField:
                                value_d=b_hydro_d_theta,
                                value_d2=b_hydro_d2_theta,
                                tex=tex)
-    
+
     logger.warning('Invalid argument')
     sys.exit(1)
 
 
-def init_b_malkus(switch_theta: str = 'mu') -> BackgroundField:
+def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
     """Generate the instance of BackgroundField class for the
     Malkus field (B=1).
 
@@ -155,7 +155,7 @@ def init_b_malkus(switch_theta: str = 'mu') -> BackgroundField:
     sys.exit(1)
 
 
-def init_b_sincos(switch_theta: str = 'mu') -> BackgroundField:
+def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
     """Generate the instance of BackgroundField class for B =
     cos(theta).
 
@@ -220,7 +220,7 @@ def init_b_sincos(switch_theta: str = 'mu') -> BackgroundField:
     sys.exit(1)
 
 
-def init_b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
+def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
     """Generate the instance of BackgroundField class for B = sin(theta)
     cos(theta).
 
