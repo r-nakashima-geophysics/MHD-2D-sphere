@@ -3,7 +3,8 @@ polynomials.
 
 References
 ----------
-[1] John P. Boyd, Chebyshev and Fourier Spectral Methods. Courier Corporation, (2001).
+[1] John P. Boyd, Chebyshev and Fourier Spectral Methods. Courier
+Corporation, (2001).
 """
 
 import numpy as np

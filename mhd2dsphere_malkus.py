@@ -187,7 +187,7 @@ def calc_eig(n_degree: int,
     float
         An eigenvalue.
 
-    Raises
+    Warnings
     ----------
     Invalid ID
         If name_mode is neither 'fMR' nor 'sMR'.
