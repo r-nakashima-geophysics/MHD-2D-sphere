@@ -275,9 +275,9 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
     fig2: plt.Figure
     ax1: np.ndarray
     ax2: np.ndarray
- real part
+    # real part
     fig1, ax1 = plt.subplots(2, 2, figsize=(10, 10))
- imaginary part
+    # imaginary part
     fig2, ax2 = plt.subplots(2, 2, figsize=(10, 10))
 
     plot_fig2: bool
@@ -290,7 +290,6 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
 
         if math.isnan(eig[i_mode].real):
             continue
-    
 
         psi[0] = np.abs(psi_all[i_mode, :].real)
         vpa[0] = np.abs(vpa_all[i_mode, :].real)
@@ -303,7 +302,6 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
         if (np.nanmax(psi[1]) > 0) or (np.nanmax(vpa[1]) > 0):
             plot_fig2 = True
             save_fig2 = True
-    
 
         if sym[i_mode] == 'sinuous':
             ax1[0, 0].scatter(
@@ -319,7 +317,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
                 ax2[0, 1].scatter(
                     ones_lambda, LIN_THETA, s=0.001, c=vpa[1],
                     cmap='Purples', vmin=cmap_min, vmax=cmap_max)
-        
+
         elif sym[i_mode] == 'varicose':
             ax1[1, 0].scatter(
                 ones_lambda, LIN_THETA, s=0.001, c=psi[0],
@@ -334,9 +332,6 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
                 ax2[1, 1].scatter(
                     ones_lambda, LIN_THETA, s=0.001, c=vpa[1],
                     cmap='Purples', vmin=cmap_min, vmax=cmap_max)
-        
-    
-
 
     fig_bundle: tuple[plt.Figure, plt.Figure, np.ndarray, np.ndarray] \
         = (fig1, fig2, ax1, ax2)
@@ -419,11 +414,9 @@ def make_alleigf(eig: np.ndarray,
 
         if math.isnan(eig[i_mode].real):
             continue
-    
 
         psi_all[i_mode, :], vpa_all[i_mode, :] = make_eigf(
             psi_vec[:, i_mode], vpa_vec[:, i_mode], M_ORDER, PNM_NORM)
-
 
     return psi_all, vpa_all
 #

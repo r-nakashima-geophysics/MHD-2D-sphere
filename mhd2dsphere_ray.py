@@ -199,7 +199,7 @@ def wrapper_plot_ray(prms: list[float]) -> None:
     axin[1].set_yticks([-180, -90, 0, 90, 180])
 
     axin[0].tick_params(labelsize=14)
- axin[0].tick_params(labelsize=12, axis="x", labelrotation=45)
+    axin[0].tick_params(labelsize=12, axis="x", labelrotation=45)
     axin[1].tick_params(labelsize=14)
     axin[0].minorticks_on()
     axin[1].minorticks_on()
@@ -221,7 +221,6 @@ def wrapper_plot_ray(prms: list[float]) -> None:
             + f' ({k_wavenum_init:8.5f}, {l_init})',
             fontsize=16)
 
-
     fig.suptitle(
         r'Ray trajectory [$B_{0\phi}=' + TEX_B + r'$] : '
         + r'$k\sin\theta=$' + f' {k_const:8.5f}, '
@@ -237,12 +236,10 @@ def wrapper_plot_ray(prms: list[float]) -> None:
     if FILE_PRM != '':
         name_fig_full += '_' + FILE_PRM.split('.')[0]
 
-
     if not SWITCH_MS:
         name_fig_full += NAME_FIG_SUFFIX[0]
     else:
         name_fig_full += NAME_FIG_SUFFIX[1]
-
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
 
@@ -313,8 +310,6 @@ def plot_ray(prms: list[float],
                   + f' | theta: {theta_deg[i_time]:8.5f}'
                   + f' | l: {l_wavenum[i_time]:8.5f}'
                   + f' | dispersion relation = {check_dr:6.3e}')
-    
-
 
     h_kl: np.ndarray = np.zeros_like(phi_deg)
     angle: float
@@ -323,9 +318,8 @@ def plot_ray(prms: list[float],
             l_wavenum[i_time], k_const/math.sin(theta_rad[i_time]))
         if angle < 0:
             angle += 2 * math.pi
-    
-        h_kl[i_time] = math.degrees(angle)
 
+        h_kl[i_time] = math.degrees(angle)
 
     lat_deg: np.ndarray = 90 - theta_deg
     lon_deg: np.ndarray = phi_deg - 360*np.floor((phi_deg+180)/360)
@@ -349,8 +343,6 @@ def plot_ray(prms: list[float],
                            grid_k[i_axin, j_axin])
             if grid_angle[i_axin, j_axin] < 0:
                 grid_angle[i_axin, j_axin] += 2 * math.pi
-        
-    
 
     axin[0].contourf(grid_k, grid_l, grid_angle, cmap='hsv', levels=360)
 
@@ -366,7 +358,6 @@ def plot_ray(prms: list[float],
     theta_c_deg: set[float] = set()
     if cond_critical:
         theta_c_deg = critical_lat(k_const)
-
 
     fig_bundle: tuple[plt.Figure, plt.Axes, list[plt.Axes]] \
         = (fig, axis, axin)
@@ -466,7 +457,6 @@ def dispersion(k_const: float,
             * ((k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2)) \
             + LAMBDA
 
-
     return dispersion_relation
 #
 
@@ -550,7 +540,6 @@ def d_phi(theta_rad: float,
             = (value_b**2)*math.sin(theta_rad) \
             * (3*(k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2))
 
-
     dphi_dt: float = cg_phi / math.sin(theta_rad)
 
     return dphi_dt
@@ -596,7 +585,6 @@ def d_theta(theta_rad: float,
         cg_theta = numerator / denominator
     else:
         cg_theta = 2*k_const*l_wavenum*(value_b**2)
-
 
     dtheta_dt: float = -cg_theta
 
@@ -649,7 +637,6 @@ def d_l(theta_rad: float,
             2*value_b*value_db + (value_b**2)/math.tan(theta_rad)
         ) * ((k_const**2)/(math.sin(theta_rad)**2)+(l_wavenum**2))
 
-
     dl_dt: float = -d_phi(theta_rad, k_const, l_wavenum) \
         * k_const/math.tan(theta_rad) + dlambda_dtheta
 
@@ -678,7 +665,6 @@ def critical_lat(k_const: float) -> set[float]:
 
         return critical
 
-
     set_theta_c: set = set()
 
     init_rad: float
@@ -692,8 +678,6 @@ def critical_lat(k_const: float) -> set[float]:
 
         if THETA_INIT < theta_c_deg < THETA_END:
             set_theta_c.add(f'{theta_c_deg:4.2f}')
-    
-
 
     return set_theta_c
 #
@@ -716,12 +700,11 @@ if __name__ == '__main__':
         if not os.path.exists(path_file_prm):
             logger.error('File not found')
             sys.exit()
-    
+
         list_prm = load_prm(FILE_PRM)
     else:
         logger.error('Too many input arguments')
         sys.exit()
-
 
     plt.rcParams['text.usetex'] = True
 
