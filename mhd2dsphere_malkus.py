@@ -109,12 +109,12 @@ NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[ArrayInt] = np.linspace(
-    N_INIT, N_END, NUM_N, dtype=np.int32)
-LIN_ALPHA: Final[ArrayFloat] = np.linspace(
-    ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
-    ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
+LIN_N: Final[ArrayInt] \
+    = np.linspace(N_INIT, N_END, NUM_N, dtype=np.int32)
+LIN_ALPHA: Final[ArrayFloat] \
+    = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
+LIN_ALPHA_LOG: Final[ArrayFloat] \
+    = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
 
 
 def wrapper_eigene() -> tuple[ArrayFloat,
@@ -125,11 +125,11 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     Returns
     ----------
     eig : ArrayFloat
-        Eigenvalues (linear).
+        Eigenvalues (linear-linear).
     ene : ArrayFloat
         Energy partitioning.
     eig_log : ArrayFloat
-        Eigenvalues (log).
+        Eigenvalues (log-log).
     """
 
     function_name: str = inspect.currentframe().f_code.co_name

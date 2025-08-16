@@ -10,7 +10,7 @@ import math
 
 import numpy as np
 
-from package_mhd2dsphere.make_mat import make_mat, make_submat
+from package_mhd2dsphere.make_mat import make_mat, make_submat_sincos
 
 
 def wrapper_solve_eig(m_order: int,
@@ -46,19 +46,19 @@ def wrapper_solve_eig(m_order: int,
     size_mat: int = 2 * size_submat
 
     submatrices: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] \
-        = make_submat(m_order, size_submat)
+        = make_submat_sincos(m_order, size_submat)
 
     mat: np.ndarray = make_mat(m_order, e_eta, submatrices, alpha)
 
-    eig_vecval: np.ndarray
+    eig_valvec: np.ndarray
     phys_qtys: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
-    eig_vecval, phys_qtys \
+    eig_valvec, phys_qtys \
         = solve_eig(m_order, e_eta, criterion_c, alpha, mat)
 
-    psi_vec: np.ndarray = eig_vecval[:size_submat, :]
-    vpa_vec: np.ndarray = eig_vecval[size_submat:size_mat, :]
+    psi_vec: np.ndarray = eig_valvec[:size_submat, :]
+    vpa_vec: np.ndarray = eig_valvec[size_submat:size_mat, :]
 
-    eig: np.ndarray = eig_vecval[size_mat, :]
+    eig: np.ndarray = eig_valvec[size_mat, :]
 
     bundle_with_vec: tuple[np.ndarray, np.ndarray,
                            np.ndarray, np.ndarray, np.ndarray,
@@ -94,7 +94,7 @@ def solve_eig(m_order: int,
 
     Returns
     ----------
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray
         mke, mme, ohm, sym
@@ -105,15 +105,15 @@ def solve_eig(m_order: int,
     eig_vec: np.ndarray
     eig_val, eig_vec = np.linalg.eig(mat)
 
-    eig_vecval: np.ndarray = arrange_eig(m_order, eig_val, eig_vec)
+    eig_valvec: np.ndarray = arrange_eig(m_order, eig_val, eig_vec)
     phys_qtys: tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray] \
-        = calc_qty(m_order, e_eta, eig_vecval)
+        = calc_qty(m_order, e_eta, eig_valvec)
     check: np.ndarray \
-        = check_eig(m_order, criterion_c, alpha, eig_vecval)
-    eig_vecval, phys_qtys \
-        = screening_eig(eig_vecval, phys_qtys, check)
+        = check_eig(m_order, criterion_c, alpha, eig_valvec)
+    eig_valvec, phys_qtys \
+        = screening_eig(eig_valvec, phys_qtys, check)
 
-    return eig_vecval, phys_qtys
+    return eig_valvec, phys_qtys
 #
 
 
@@ -133,7 +133,7 @@ def arrange_eig(m_order: int,
 
     Returns
     ----------
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
 
     """
@@ -149,32 +149,32 @@ def arrange_eig(m_order: int,
         = sorted(eig_tmp.T, key=lambda x: x[2*size_mat])
     eig_tmp = np.array(eig_sorted).T
 
-    eig_vecval: np.ndarray = np.zeros(
+    eig_valvec: np.ndarray = np.zeros(
         (size_mat+1, size_mat), dtype=np.complex128)
-    eig_vecval[0*size_mat:1*size_mat, :] \
+    eig_valvec[0*size_mat:1*size_mat, :] \
         = eig_tmp[0*size_mat:1*size_mat, :] \
         + 1j*eig_tmp[1*size_mat:2*size_mat, :]
-    eig_vecval[size_mat, :] \
+    eig_valvec[size_mat, :] \
         = eig_tmp[2*size_mat, :] + 1j*eig_tmp[2*size_mat+1, :]
 
     mke: np.ndarray
     mme: np.ndarray
-    mke, mme = calc_ene(m_order, eig_vecval)
-    eig_vecval[0*size_mat:1*size_mat, :] /= np.sqrt(mke+mme)
+    mke, mme = calc_ene(m_order, eig_valvec)
+    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(mke+mme)
 
-    return eig_vecval
+    return eig_valvec
 #
 
 
 def calc_ene(m_order: int,
-             eig_vecval: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+             eig_valvec: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Calculates the mean kinetic and magnetic energies
 
     Parameters
     ----------
     m_order : int
         The zonal wavenumber (order)
-    eig_vecval: ndarray
+    eig_valvec: ndarray
         Eigenvalues and eigenvectors
 
     Returns
@@ -191,7 +191,7 @@ def calc_ene(m_order: int,
 
     """
 
-    size_mat: int = eig_vecval.shape[1]
+    size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
     mke: np.ndarray = np.zeros(size_mat)
@@ -203,8 +203,8 @@ def calc_ene(m_order: int,
         n_degree = m_order + i_n
         nn1 = n_degree * (n_degree+1)
 
-        mke += nn1 * (np.abs(eig_vecval[i_n, :])**2)
-        mme += nn1 * (np.abs(eig_vecval[size_submat+i_n, :])**2)
+        mke += nn1 * (np.abs(eig_valvec[i_n, :])**2)
+        mme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
 
     return mke, mme
 #
@@ -212,7 +212,7 @@ def calc_ene(m_order: int,
 
 def calc_qty(m_order: int,
              e_eta: float,
-             eig_vecval: np.ndarray) \
+             eig_valvec: np.ndarray) \
         -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Calculate various physical quantities from eigenvectors
 
@@ -222,7 +222,7 @@ def calc_qty(m_order: int,
         The zonal wavenumber (order)
     e_eta : float
         The magnetic Ekman number
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
 
     Returns
@@ -242,12 +242,12 @@ def calc_qty(m_order: int,
 
     """
 
-    size_mat: int = eig_vecval.shape[1]
+    size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
     mke: np.ndarray
     mme: np.ndarray
-    mke, mme = calc_ene(m_order, eig_vecval)
+    mke, mme = calc_ene(m_order, eig_valvec)
 
     ohm: np.ndarray = np.zeros(size_mat)
     if e_eta != 0:
@@ -258,7 +258,7 @@ def calc_qty(m_order: int,
             nn1 = n_degree * (n_degree+1)
 
             ohm += (nn1**2) * (
-                np.abs(eig_vecval[size_submat+i_n, :])**2)
+                np.abs(eig_valvec[size_submat+i_n, :])**2)
 
         ohm *= e_eta
 
@@ -266,8 +266,8 @@ def calc_qty(m_order: int,
     odd: np.ndarray = np.zeros(size_mat)
     sym: np.ndarray = np.full(size_mat, str(), dtype=object)
     for i_n in range(int(size_submat/2)):
-        even += np.abs(eig_vecval[2*i_n, :])
-        odd += np.abs(eig_vecval[2*i_n+1, :])
+        even += np.abs(eig_valvec[2*i_n, :])
+        odd += np.abs(eig_valvec[2*i_n+1, :])
 
     for i_mode in range(size_mat):
         if even[i_mode] > odd[i_mode]:
@@ -282,7 +282,7 @@ def calc_qty(m_order: int,
 def check_eig(m_order: int,
               criterion_c: tuple[int, float],
               alpha: float,
-              eig_vecval: np.ndarray) -> np.ndarray:
+              eig_valvec: np.ndarray) -> np.ndarray:
     """Checks the validity of eigenmodes
 
     Parameters
@@ -293,7 +293,7 @@ def check_eig(m_order: int,
         A criterion for convergence (degree, ratio)
     alpha : float
         The Lehnert number
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
 
     Returns
@@ -312,7 +312,7 @@ def check_eig(m_order: int,
     r_c: float
     n_c, r_c = criterion_c
 
-    size_mat: int = eig_vecval.shape[1]
+    size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
     n_degree: int
@@ -325,11 +325,11 @@ def check_eig(m_order: int,
         n_degree = m_order + i_n
 
         if n_degree <= n_c:
-            low_psi += (np.abs(eig_vecval[i_n, :])**2)
-            low_a += (np.abs(eig_vecval[size_submat+i_n, :])**2)
+            low_psi += (np.abs(eig_valvec[i_n, :])**2)
+            low_a += (np.abs(eig_valvec[size_submat+i_n, :])**2)
         else:
-            high_psi += (np.abs(eig_vecval[i_n, :])**2)
-            high_a += (np.abs(eig_vecval[size_submat+i_n, :])**2)
+            high_psi += (np.abs(eig_valvec[i_n, :])**2)
+            high_a += (np.abs(eig_valvec[size_submat+i_n, :])**2)
 
     check: np.ndarray
     if alpha != 0:
@@ -341,7 +341,7 @@ def check_eig(m_order: int,
 #
 
 
-def screening_eig(eig_vecval: np.ndarray,
+def screening_eig(eig_valvec: np.ndarray,
                   phys_qtys: tuple[
                       np.ndarray, np.ndarray, np.ndarray, np.ndarray],
                   check: np.ndarray) \
@@ -351,7 +351,7 @@ def screening_eig(eig_vecval: np.ndarray,
 
     Parameters
     ----------
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray
         mke, mme, ohm, sym
@@ -360,7 +360,7 @@ def screening_eig(eig_vecval: np.ndarray,
 
     Returns
     ----------
-    eig_vecval : ndarray
+    eig_valvec : ndarray
         Eigenvalues and normalized eigenvectors
     phys_qtys : tuple of ndarray
         mke, mme, ohm, sym
@@ -373,11 +373,11 @@ def screening_eig(eig_vecval: np.ndarray,
     sym: np.ndarray
     mke, mme, ohm, sym = phys_qtys
 
-    size_mat: int = eig_vecval.shape[1]
+    size_mat: int = eig_valvec.shape[1]
 
     for i_mode in range(size_mat):
         if not check[i_mode]:
-            eig_vecval[:, i_mode] = math.nan
+            eig_valvec[:, i_mode] = math.nan
             mke[i_mode] = math.nan
             mme[i_mode] = math.nan
             ohm[i_mode] = math.nan
@@ -385,5 +385,5 @@ def screening_eig(eig_vecval: np.ndarray,
 
     phys_qtys = (mke, mme, ohm, sym)
 
-    return eig_vecval, phys_qtys
+    return eig_valvec, phys_qtys
 #

@@ -106,8 +106,8 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     function_name: str = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(function_name)
 
-    def new_func(*args: tuple[Any, ...],
-                 **kwargs: dict[str, Any]) -> None:
+    def new_func(*args,
+                 **kwargs) -> None:
 
         yes_or_no: str
         while True:

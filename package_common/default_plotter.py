@@ -69,7 +69,7 @@ class DefaultPlotter:
 
     def save(self,
              path_dir: Path,
-             path_fig: str,
+             filename: str,
              dpi: int) -> None:
         """Save the figure.
 
@@ -77,7 +77,7 @@ class DefaultPlotter:
         ----------
         path_dir : Path
             The path of the directory.
-        path_fig : str
+        filename : str
             The filename of the figure.
         dpi : int
             The resolution of the figure.
@@ -86,5 +86,5 @@ class DefaultPlotter:
         self.fig.tight_layout()
 
         os.makedirs(path_dir, exist_ok=True)
-        path: Path = path_dir / path_fig
-        self.fig.savefig(path, dpi=dpi)
+        path_fig: Path = path_dir / filename
+        self.fig.savefig(path_fig, dpi=dpi)

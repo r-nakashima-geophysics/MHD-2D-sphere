@@ -1,5 +1,5 @@
 """A Python module to generate the instances of BackgroundField class
-for toroidal background field, B_phi = B_0 B(theta) sin(theta).
+for toroidal background fields, B_phi = B_0 B(theta) sin(theta).
 
 Examples
 --------
