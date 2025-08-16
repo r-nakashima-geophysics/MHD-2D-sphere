@@ -163,7 +163,6 @@ def arrange_eig(m_order: int,
     eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(mke+mme)
 
     return eig_valvec
-#
 
 
 def calc_ene(m_order: int,
@@ -207,7 +206,6 @@ def calc_ene(m_order: int,
         mme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
 
     return mke, mme
-#
 
 
 def calc_qty(m_order: int,
@@ -276,7 +274,6 @@ def calc_qty(m_order: int,
             sym[i_mode] = 'varicose'
 
     return mke, mme, ohm, sym
-#
 
 
 def check_eig(m_order: int,
@@ -308,9 +305,8 @@ def check_eig(m_order: int,
 
     """
 
-    n_c: int
-    r_c: float
-    n_c, r_c = criterion_c
+    n_c: int = criterion_c['degree']
+    r_c: float = criterion_c['ratio']
 
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
@@ -338,7 +334,6 @@ def check_eig(m_order: int,
         check = low_psi > high_psi*r_c
 
     return check
-#
 
 
 def screening_eig(eig_valvec: np.ndarray,
@@ -386,4 +381,3 @@ def screening_eig(eig_valvec: np.ndarray,
     phys_qtys = (mke, mme, ohm, sym)
 
     return eig_valvec, phys_qtys
-#

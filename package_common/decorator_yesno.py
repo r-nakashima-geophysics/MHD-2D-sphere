@@ -4,7 +4,7 @@ a function."""
 import inspect
 import sys
 
-from package_common.common_types import Any, Callable
+from package_common.common_types import Callable
 from package_common.default_logger import DefaultLogger
 
 
