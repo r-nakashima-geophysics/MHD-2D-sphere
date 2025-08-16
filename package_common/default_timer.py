@@ -4,6 +4,8 @@ time of a Python script.
 
 from time import perf_counter
 
+import caffeine
+
 from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 
@@ -50,6 +52,8 @@ class DefaultTimer:
         self.__start_time: Optional[float] = None
         self.__elapsed_time: Optional[float] = None
         self.__split_time: Optional[float] = None
+
+        caffeine.on(display=False)
 
     def start(self) -> None:
         """Start the timer."""
