@@ -52,7 +52,7 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import DefaultPlotter
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
-from package_common.progress_bar import progress_bar
+from package_common.progress_bar import ProgressBar
 
 # ========== Parameters ========== #
 
@@ -133,7 +133,6 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
-    progress_timer: DefaultTimer = DefaultTimer(function_name)
 
     eig: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
     ene: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
@@ -142,6 +141,8 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     n_degree: int
     alpha: float
 
+    progress_bar: ProgressBar = ProgressBar(NUM_N, function_name)
+    progress_bar.start()
     for i_n in range(NUM_N):
         n_degree = LIN_N[i_n]
 
@@ -163,7 +164,7 @@ def wrapper_eigene() -> tuple[ArrayFloat,
                     eig_log[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
                         = calc_eig(n_degree, alpha, name_mode)
 
-        progress_bar(NUM_N, i_n, progress_timer, function_name)
+        progress_bar.update(i_n)
 
     return eig, ene, eig_log
 
