@@ -40,6 +40,7 @@ Run the script with a specified value (say M_ORDER = 2):
 """
 
 import inspect
+import multiprocessing
 import os
 import sys
 from pathlib import Path
@@ -92,6 +93,9 @@ PATH_DIR: Final[Path] \
 NAME_FILE: Final[str] \
     = f'MHD2Dsphere_sincos_m{M_ORDER}E{E_ETA}N{N_T}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
+
+# The number of processes for multiprocessing
+NUM_PROCESS = os.cpu_count() - 1
 
 # ================================
 
@@ -178,21 +182,18 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         ohm = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
         sym = np.full((NUM_ALPHA, SIZE_MAT), str(), dtype=np.str_)
 
+        args_list = [(LIN_ALPHA[i_alpha], submatrices, logger)
+                     for i_alpha in range(NUM_ALPHA)]
+
+        with multiprocessing.Pool(processes=NUM_PROCESS) as pool:
+            results_list = pool.map(task_multiprocess, args_list)
+
         for i_alpha in range(NUM_ALPHA):
-            alpha = LIN_ALPHA[i_alpha]
-
-            logger.info(f'{i_alpha}')
-
-            mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
-
-            eig_valvec, phys_qtys \
-                = solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat)
-
-            eig[i_alpha, :] = eig_valvec[SIZE_MAT, :]
-            mke[i_alpha, :] = phys_qtys[0]
-            mme[i_alpha, :] = phys_qtys[1]
-            ohm[i_alpha, :] = phys_qtys[2]
-            sym[i_alpha, :] = phys_qtys[3]
+            eig[i_alpha, :] = results_list[i_alpha][0][SIZE_MAT, :]
+            mke[i_alpha, :] = results_list[i_alpha][1][0]
+            mme[i_alpha, :] = results_list[i_alpha][1][1]
+            ohm[i_alpha, :] = results_list[i_alpha][1][2]
+            sym[i_alpha, :] = results_list[i_alpha][1][3]
 
         results = (eig, mke, mme, ohm, sym)
 
@@ -204,25 +205,62 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         ohm = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
         sym = np.full((NUM_ALPHA_LOG, SIZE_MAT), str(), dtype=np.str_)
 
-        for i_alpha in range(NUM_ALPHA_LOG):
-            alpha = 10**LIN_ALPHA_LOG[i_alpha]
+        args_list = [(10**LIN_ALPHA_LOG[i_alpha], submatrices, logger)
+                     for i_alpha in range(NUM_ALPHA)]
 
-            logger.info(f'{i_alpha}')
+        with multiprocessing.Pool(processes=NUM_PROCESS) as pool:
+            results_list = pool.map(task_multiprocess, args_list)
 
-            mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
-
-            eig_valvec, phys_qtys \
-                = solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat)
-
-            eig[i_alpha, :] = eig_valvec[SIZE_MAT, :]
-            mke[i_alpha, :] = phys_qtys[0]
-            mme[i_alpha, :] = phys_qtys[1]
-            ohm[i_alpha, :] = phys_qtys[2]
-            sym[i_alpha, :] = phys_qtys[3]
+        for i_alpha in range(NUM_ALPHA):
+            eig[i_alpha, :] = results_list[i_alpha][0][SIZE_MAT, :]
+            mke[i_alpha, :] = results_list[i_alpha][1][0]
+            mme[i_alpha, :] = results_list[i_alpha][1][1]
+            ohm[i_alpha, :] = results_list[i_alpha][1][2]
+            sym[i_alpha, :] = results_list[i_alpha][1][3]
 
         results_log = (eig, mke, mme, ohm, sym)
 
     return results, results_log
+
+
+def task_multiprocess(
+        args: tuple[float,
+                    tuple[ArrayFloat,
+                          ArrayFloat,
+                          ArrayFloat,
+                          ArrayFloat],
+                    DefaultLogger]) -> tuple[ArrayComplex,
+                                             tuple[ArrayFloat,
+                                                   ArrayFloat,
+                                                   ArrayFloat,
+                                                   ArrayStr]]:
+    """Set the task for multiprocessing.
+
+    Parameters
+    ----------
+    args : tuple[float, tuple[ArrayFloat, ArrayFloat, ArrayFloat,
+    ArrayFloat], DefaultLogger]
+        The arguments for the task.
+
+    Returns
+    -------
+    tuple[ArrayComplex, tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayStr]]
+        The results of the task.
+    """
+
+    alpha: float
+    submatrices: tuple[ArrayFloat,
+                       ArrayFloat,
+                       ArrayFloat,
+                       ArrayFloat]
+    logger: DefaultLogger
+    alpha, submatrices, logger = args
+
+    logger.info(f'alpha = {alpha}')
+
+    mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
+
+    return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat)
 
 
 def save_results(results: tuple[ArrayComplex,

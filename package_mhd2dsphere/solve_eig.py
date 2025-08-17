@@ -10,6 +10,7 @@ import math
 
 import numpy as np
 
+from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
 from package_mhd2dsphere.make_mat import make_mat, make_submat_sincos
 
 
@@ -72,11 +73,14 @@ def wrapper_solve_eig(m_order: int,
 
 def solve_eig(m_order: int,
               e_eta: float,
-              criterion_c: tuple[int, float],
+              criterion_c: dict[str, int | float],
               alpha: float,
-              mat: np.ndarray) \
-        -> tuple[np.ndarray,
-                 tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+              mat: ArrayComplex) \
+        -> tuple[ArrayComplex,
+                 tuple[ArrayFloat,
+                       ArrayFloat,
+                       ArrayFloat,
+                       ArrayStr]]:
     """Solves the eigenvalue problem
 
     Parameters
