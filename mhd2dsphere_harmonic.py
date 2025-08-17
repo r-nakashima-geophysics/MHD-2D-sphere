@@ -161,7 +161,8 @@ def plot_l2() -> None:
 
     fig.suptitle(
         r'[$B_{0\phi}=' + TEX_B + r'$] : '
-        + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}', fontsize=16)
+        + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}',
+        fontsize=16)
 
     fig.tight_layout()
 
@@ -183,7 +184,6 @@ def plot_l2() -> None:
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 def calc_l2() -> np.ndarray:

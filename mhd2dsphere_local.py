@@ -148,7 +148,8 @@ def plot_kl() -> None:
         axis.set_ylabel(r'$l$', fontsize=18)
 
         axis.set_title(
-            r'$\theta=$' + f' {theta_deg:2.0f} ' + r'$\mathrm{[deg]}$', fontsize=18)
+            r'$\theta=$' + f' {theta_deg:2.0f} ' + r'$\mathrm{[deg]}$',
+            fontsize=18)
 
         axis.tick_params(labelsize=16)
         axis.minorticks_on()
