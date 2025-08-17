@@ -54,10 +54,10 @@ class BackgroundField:
             The name of the background field.
         value : ComplexFunc
             The value of the background field at the point.
-        __value_d : Optional[ComplexFunc], optional, default None
+        value_d : Optional[ComplexFunc], optional, default None
             The value of the first derivative of the background field at
             the point.
-        __value_d2 : Optional[ComplexFunc], optional, default None
+        value_d2 : Optional[ComplexFunc], optional, default None
             The value of the second derivative of the background field
             at the point.
         tex : Optional[str], optional, default None
@@ -71,11 +71,7 @@ class BackgroundField:
         self.__value_d: Optional[ComplexFunc] = value_d
         self.__value_d2: Optional[ComplexFunc] = value_d2
 
-        self.tex: str
-        if tex is not None:
-            self.tex = tex
-        else:
-            self.tex = name
+        self.tex: str = tex if tex is not None else name
 
     def r_value(self,
                 x: float | int) -> float:
@@ -96,7 +92,7 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
-            return self.value(complex(x.real, 0)).real
+            sys.exit(1)
 
         return self.value(complex(x, 0)).real
 
@@ -137,7 +133,7 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
-            return self.value_d(complex(x.real, 0)).real
+            sys.exit(1)
 
         return self.value_d(complex(x, 0)).real
 
@@ -178,6 +174,6 @@ class BackgroundField:
 
         if not isinstance(x, (float, int)):
             self.__logger.warning('Invalid input type.')
-            return self.value_d2(complex(x.real, 0)).real
+            sys.exit(1)
 
         return self.value_d2(complex(x, 0)).real
