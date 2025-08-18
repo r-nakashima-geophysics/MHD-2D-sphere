@@ -52,6 +52,7 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
+from package_common.parallel_utils import set_num_threads
 from package_common.progress_bar import ProgressBar
 from package_mhd2dsphere.make_mat import make_mat, make_submat_sincos
 from package_mhd2dsphere.solve_eig import solve_eig
@@ -96,7 +97,9 @@ NAME_FILE: Final[str] \
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
-NUM_PROCESS = 2  # max(multiprocessing.cpu_count() - 1, 1)
+NUM_PROCESS = max(multiprocessing.cpu_count() - 1, 1)
+# The number of threads for each process
+NUM_THREADS = 1
 
 # ================================
 
@@ -180,7 +183,9 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         progress_bar: ProgressBar \
             = ProgressBar(NUM_ALPHA, function_name + '(linear)')
         progress_bar.start()
-        with multiprocessing.Pool(processes=NUM_PROCESS) as pool:
+        with multiprocessing.Pool(processes=NUM_PROCESS,
+                                  initializer=set_num_threads,
+                                  initargs=(NUM_THREADS,)) as pool:
             for i_alpha, result in enumerate(
                     pool.imap(worker, args_list)):
 
@@ -208,7 +213,9 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         progress_bar: ProgressBar \
             = ProgressBar(NUM_ALPHA_LOG, function_name + '(log)')
         progress_bar.start()
-        with multiprocessing.Pool(processes=NUM_PROCESS) as pool:
+        with multiprocessing.Pool(processes=NUM_PROCESS,
+                                  initializer=set_num_threads,
+                                  initargs=(NUM_THREADS,)) as pool:
             for i_alpha, result in enumerate(
                     pool.imap(worker, args_list)):
 
