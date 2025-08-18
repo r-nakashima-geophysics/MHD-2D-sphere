@@ -13,7 +13,7 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 | Figure                 |  mhd2dsphere\_\*.py |
 | :--------------------- | ------------------: |
 | 2, 3                   |              malkus |
-| 4, 6                   |  sincos, sincos_fig |
+| 4, 6                   |     eig, sincos_fig |
 | 5                      |       sincos_degree |
 | 7, 8, A4               |         sincos_eigf |
 | 9, 10, 11              |      sincos_alleigf |
