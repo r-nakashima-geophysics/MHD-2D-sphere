@@ -108,7 +108,7 @@ NUM_PROCESS: Final[int] = multiprocessing.cpu_count() - 1 \
 # The number of threads for each process
 NUM_THREADS: Final[int] = 1
 # The boolean value to switch whether to use shared memory or not
-SWITCH_SHM: Final[bool] = False
+SWITCH_SHM: Final[bool] = True
 
 # ================================
 
@@ -161,7 +161,12 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         = make_submat_sincos(M_ORDER, SIZE_SUBMAT)
 
     if SWITCH_SHM:
-        shared_info: list[tuple[str, tuple[int, ...], np.dtype]] \
+        shared_memories: tuple[SharedMemory,
+                               SharedMemory,
+                               SharedMemory,
+                               SharedMemory]
+        shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
+        shared_memories, shared_info \
             = create_shared_arrays(*submatrices, name_prefix='submat')
 
     results: tuple[ArrayComplex,
@@ -221,7 +226,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         mke = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
         mme = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
         ohm = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        sym = np.full((NUM_ALPHA_LOG, SIZE_MAT), str(), dtype=np.str_)
+        sym = np.full((NUM_ALPHA_LOG, SIZE_MAT), '', dtype=np.str_)
 
         if SWITCH_SHM:
             args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
@@ -250,7 +255,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         results_log = (eig, mke, mme, ohm, sym)
 
     if SWITCH_SHM:
-        detach_shared_arrays(shared_info, unlink=True)
+        detach_shared_arrays(shared_memories, unlink=True)
 
     return results, results_log
 
@@ -288,12 +293,17 @@ def worker(args: tuple[float,
                                 np.dtype]]
         alpha, shared_info = args
 
+        shared_memories: tuple[SharedMemory,
+                               SharedMemory,
+                               SharedMemory,
+                               SharedMemory]
         submatrices: tuple[ArrayFloat,
                            ArrayFloat,
                            ArrayFloat,
-                           ArrayFloat] = attach_shared_arrays(shared_info)
+                           ArrayFloat]
+        shared_memories, submatrices \
+            = attach_shared_arrays(shared_info)
 
-        detach_shared_arrays(shared_info)
     else:
         submatrices: tuple[ArrayFloat,
                            ArrayFloat,
@@ -302,6 +312,9 @@ def worker(args: tuple[float,
         alpha, submatrices = args
 
     mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
+
+    if SWITCH_SHM:
+        detach_shared_arrays(shared_memories)
 
     return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat)
 

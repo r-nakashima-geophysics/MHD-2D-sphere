@@ -42,23 +42,25 @@ def set_num_threads(num_threads: int) -> None:
 
 def create_shared_arrays(*arrays,
                          name_prefix: Optional[str] = 'array') \
-        -> list[tuple[str,
+        -> tuple[tuple[SharedMemory, ...],
+                 list[tuple[str,
                       tuple[int, ...],
-                      np.dtype]]:
+                      np.dtype]]]:
     """Create some shared memory arrays.
 
     Parameters
     ----------
     *arrays
         The tuple of arrays to be shared.
-
     name_prefix : str, optional, default 'array'
-        The name prefix for the shared memory.
+        The name prefix for the shared memory arrays.
 
     Returns
     -------
+    tuple_shm : tuple[SharedMemory, ...]
+        The tuple of shared memories.
     shared_info : list[tuple[str, tuple[int, ...], np.dtype]]
-        The list of the information of the shared memory.
+        The list of the information of the shared memory arrays.
 
     Warnings
     --------
@@ -69,6 +71,7 @@ def create_shared_arrays(*arrays,
     function_name: str = inspect.currentframe().f_code.co_name
     logger: DefaultLogger = DefaultLogger(function_name)
 
+    shms: list[SharedMemory] = []
     shared_info: list[tuple[str, tuple[int, ...], np.dtype]] = []
 
     shm: SharedMemory
@@ -85,29 +88,36 @@ def create_shared_arrays(*arrays,
                                   buffer=shm.buf)
         shared_array[:] = array[:]
 
+        shms.append(shm)
         shared_info.append(
             (shm.name, shared_array.shape, shared_array.dtype))
 
-    return shared_info
+    tuple_shm: tuple[SharedMemory, ...] = tuple(shms)
+
+    return tuple_shm, shared_info
 
 
-def attach_shared_arrays(
-        shared_info: list[tuple[str,
-                                tuple[int, ...],
-                                np.dtype]]) -> tuple[ArrayAny, ...]:
-    """Attach the shared memory arrays.
+def attach_shared_arrays(shared_info: list[tuple[str,
+                                                 tuple[int, ...],
+                                                 np.dtype]]) \
+        -> tuple[tuple[SharedMemory, ...],
+                 tuple[ArrayAny, ...]]:
+    """Attach the shared memories in a subprocess.
 
     Parameters
     ----------
     shared_info : list[tuple[str, tuple[int, ...], np.dtype]]
-        The list of the information of the shared memory.
+        The list of the information of the shared memory arrays.
 
     Returns
     -------
-    tuple[ArrayAny, ...]
-        The tuple of attached shared memory arrays.
+    tuple_shm : tuple[SharedMemory, ...]
+        The tuple of shared memories.
+    tuple_shared_arrays : tuple[ArrayAny, ...]
+        The tuple of shared memory arrays.
     """
 
+    shms: list[SharedMemory] = []
     shared_arrays: list[ArrayAny] = []
 
     for name, shape, dtype in shared_info:
@@ -115,28 +125,29 @@ def attach_shared_arrays(
         shared_array \
             = np.ndarray(shape=shape, dtype=dtype, buffer=shm.buf)
 
+        shms.append(shm)
         shared_arrays.append(shared_array)
 
-    return tuple(shared_arrays)
+    tuple_shm: tuple[SharedMemory, ...] = tuple(shms)
+    tuple_shared_arrays: tuple[ArrayAny, ...] = tuple(shared_arrays)
+
+    return tuple_shm, tuple_shared_arrays
 
 
-def detach_shared_arrays(shared_info: list[tuple[str,
-                                                 tuple[int, ...],
-                                                 np.dtype]],
+def detach_shared_arrays(shms: tuple[SharedMemory, ...],
                          unlink: bool = False) -> None:
-    """Detach the shared memory arrays.
+    """Detach the shared memories.
 
     Parameters
     ----------
-    shared_info : list[tuple[str, tuple[int, ...], np.dtype]]
-        The list of the information of the shared memory.
+    shms : tuple[SharedMemory, ...]
+        The tuple of the shared memories.
     unlink : bool
-        The boolean value to switch whether to unlink the shared memory
-        or not.
+        The boolean value to switch whether to unlink the shared
+        memories or not.
     """
 
-    for name, _, _ in shared_info:
-        shm = shared_memory.SharedMemory(name=name)
+    for shm in shms:
         shm.close()
 
         if unlink:
