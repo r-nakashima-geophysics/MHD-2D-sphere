@@ -145,10 +145,22 @@ def detach_shared_arrays(shms: tuple[SharedMemory, ...],
     unlink : bool
         The boolean value to switch whether to unlink the shared
         memories or not.
+
+    Warnings
+    --------
+    Shared memory has already been unlinked
+        If the shared memory has already been unlinked.
     """
+
+    function_name: str = inspect.currentframe().f_code.co_name
+    logger: DefaultLogger = DefaultLogger(function_name)
 
     for shm in shms:
         shm.close()
 
         if unlink:
-            shm.unlink()
+            try:
+                shm.unlink()
+            except FileNotFoundError:
+                logger.warning(
+                    'Shared memory has already been unlinked')
