@@ -1,7 +1,7 @@
 """A Python script to calculate the dispersion relation of
 two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
-sphere under the non-Malkus toroidal background field, B_phi = B_0
-sin(theta) cos(theta).
+sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta).
 
 This script outputs npz files of results (alpha, eigenvalue, mean
 kinetic energy, mean magnetic energy, ohmic dissipation, and the
@@ -10,7 +10,7 @@ symmetry of eigenmodes).
 Parameters
 ----------
 M_ORDER : int
-    Zonal wavenumber (order).
+    The zonal wavenumber (order).
 
 Warnings
 ----------
@@ -30,6 +30,7 @@ magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
 I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
+[2] Ryosuke Nakashima (in prep.)
 
 Examples
 ----------
@@ -48,6 +49,7 @@ from pathlib import Path
 import numpy as np
 import psutil
 
+from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
                                          Final, SharedMemory)
 from package_common.default_logger import DefaultLogger
@@ -58,7 +60,8 @@ from package_common.parallel_utils import (attach_shared_arrays,
                                            detach_shared_arrays,
                                            set_num_threads)
 from package_common.progress_bar import ProgressBar
-from package_mhd2dsphere.make_mat import make_mat, make_submat_sincos
+from package_mhd2dsphere import init_background_b, init_background_u
+from package_mhd2dsphere.make_mat import make_mat, make_submat
 from package_mhd2dsphere.solve_eig import solve_eig
 
 # ========== Parameters ========== #
@@ -68,7 +71,17 @@ from package_mhd2dsphere.solve_eig import solve_eig
 # SWITCH_CALC[1]: The dispersion relation for the log-log plot
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
-# Zonal wavenumber (order)
+# Background field
+BACKGROUND_B: Final[BackgroundField] \
+    = init_background_b.b_hydro('mu')
+BACKGROUND_U: Final[BackgroundField] \
+    = init_background_u.u_rigid('mu')
+# The boolean value to switch whether to follow Nakashima & Yoshida
+# (2024)[1]_ or not
+# If SWITCH_NY24 is True, BACKGROUND_B and BACKGROUND_U are ignored.
+SWITCH_NY24: Final[bool] = True
+
+# The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
 
 # The magnetic Ekman number
@@ -95,9 +108,12 @@ ALPHA_LOG_END: Final[float] = 2
 
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] \
-    = Path('.') / 'output' / 'MHD2Dsphere_sincos'
+    = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_sincos_m{M_ORDER}E{E_ETA}N{N_T}'
+    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    if SWITCH_NY24 \
+    else f'MHD2Dsphere_eig_B{BACKGROUND_B.name}U{BACKGROUND_U.name}' \
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
@@ -107,8 +123,6 @@ NUM_PROCESS: Final[int] = multiprocessing.cpu_count() - 1 \
     else int(multiprocessing.cpu_count()/2)
 # The number of threads for each process
 NUM_THREADS: Final[int] = 1
-# The boolean value to switch whether to use shared memory or not
-SWITCH_SHM: Final[bool] = True
 
 # ================================
 
@@ -140,7 +154,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                                                  ArrayFloat,
                                                  ArrayFloat,
                                                  ArrayStr]]:
-    """Solve the eigenvalue problem for a given alpha.
+    """Solve the eigenvalue problem for given lists of alpha.
 
     Returns
     ----------
@@ -153,32 +167,32 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
     """
 
     function_name: str = inspect.currentframe().f_code.co_name
+    progress_bar: ProgressBar
 
     submatrices: tuple[ArrayFloat,
                        ArrayFloat,
                        ArrayFloat,
                        ArrayFloat] \
-        = make_submat_sincos(M_ORDER, SIZE_SUBMAT)
+        = make_submat(M_ORDER, SIZE_SUBMAT, switch_ny24=SWITCH_NY24)
 
-    if SWITCH_SHM:
-        shared_memories: tuple[SharedMemory,
-                               SharedMemory,
-                               SharedMemory,
-                               SharedMemory]
-        shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
-        shared_memories, shared_info \
-            = create_shared_arrays(*submatrices, name_prefix='submat')
+    shared_memories: tuple[SharedMemory,
+                           SharedMemory,
+                           SharedMemory,
+                           SharedMemory]
+    shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
+    shared_memories, shared_info \
+        = create_shared_arrays(*submatrices, name_prefix='submat')
 
     results: tuple[ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayFloat,
-                   ArrayStr]
+                   ArrayStr] = (None, None, None, None, None)
     results_log: tuple[ArrayComplex,
                        ArrayFloat,
                        ArrayFloat,
                        ArrayFloat,
-                       ArrayStr]
+                       ArrayStr] = (None, None, None, None, None)
 
     eig: ArrayComplex
     mke: ArrayFloat
@@ -188,21 +202,16 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 
     if SWITCH_CALC[0]:
 
-        eig = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.complex128)
-        mke = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        mme = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        ohm = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        sym = np.full((NUM_ALPHA, SIZE_MAT), '', dtype=np.str_)
+        eig = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.complex128)
+        mke = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
+        mme = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
+        ohm = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
+        sym = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.str_)
 
-        if SWITCH_SHM:
-            args_list = [(LIN_ALPHA[i_alpha], shared_info)
-                         for i_alpha in range(NUM_ALPHA)]
-        else:
-            args_list = [(LIN_ALPHA[i_alpha], submatrices)
-                         for i_alpha in range(NUM_ALPHA)]
+        args_list = [(LIN_ALPHA[i_alpha], shared_info)
+                     for i_alpha in range(NUM_ALPHA)]
 
-        progress_bar: ProgressBar \
-            = ProgressBar(NUM_ALPHA, function_name + '(linear)')
+        progress_bar = ProgressBar(NUM_ALPHA, function_name)
         progress_bar.start()
         with multiprocessing.Pool(processes=NUM_PROCESS,
                                   initializer=set_num_threads,
@@ -222,21 +231,16 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 
     if SWITCH_CALC[1]:
 
-        eig = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.complex128)
-        mke = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        mme = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        ohm = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        sym = np.full((NUM_ALPHA_LOG, SIZE_MAT), '', dtype=np.str_)
+        eig = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.complex128)
+        mke = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
+        mme = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
+        ohm = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
+        sym = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.str_)
 
-        if SWITCH_SHM:
-            args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
-                         for i_alpha in range(NUM_ALPHA_LOG)]
-        else:
-            args_list = [(10**LIN_ALPHA_LOG[i_alpha], submatrices)
-                         for i_alpha in range(NUM_ALPHA_LOG)]
+        args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
+                     for i_alpha in range(NUM_ALPHA_LOG)]
 
-        progress_bar: ProgressBar \
-            = ProgressBar(NUM_ALPHA_LOG, function_name + '(log)')
+        progress_bar = ProgressBar(NUM_ALPHA_LOG, function_name)
         progress_bar.start()
         with multiprocessing.Pool(processes=NUM_PROCESS,
                                   initializer=set_num_threads,
@@ -254,8 +258,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 
         results_log = (eig, mke, mme, ohm, sym)
 
-    if SWITCH_SHM:
-        detach_shared_arrays(shared_memories, unlink=True)
+    detach_shared_arrays(shared_memories, unlink=True)
 
     return results, results_log
 
@@ -263,10 +266,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 def worker(args: tuple[float,
                        list[tuple[str,
                                   tuple[int, ...],
-                                  np.dtype]] | tuple[ArrayFloat,
-                                                     ArrayFloat,
-                                                     ArrayFloat,
-                                                     ArrayStr]]) \
+                                  np.dtype]]]) \
     -> tuple[ArrayComplex,
              tuple[ArrayFloat,
                    ArrayFloat,
@@ -286,37 +286,28 @@ def worker(args: tuple[float,
     """
 
     alpha: float
+    shared_info: list[tuple[str,
+                            tuple[int, ...],
+                            np.dtype]]
+    alpha, shared_info = args
 
-    if SWITCH_SHM:
-        shared_info: list[tuple[str,
-                                tuple[int, ...],
-                                np.dtype]]
-        alpha, shared_info = args
+    shared_memories: tuple[SharedMemory,
+                           SharedMemory,
+                           SharedMemory,
+                           SharedMemory]
+    submatrices: tuple[ArrayFloat,
+                       ArrayFloat,
+                       ArrayFloat,
+                       ArrayFloat]
+    shared_memories, submatrices = attach_shared_arrays(shared_info)
 
-        shared_memories: tuple[SharedMemory,
-                               SharedMemory,
-                               SharedMemory,
-                               SharedMemory]
-        submatrices: tuple[ArrayFloat,
-                           ArrayFloat,
-                           ArrayFloat,
-                           ArrayFloat]
-        shared_memories, submatrices \
-            = attach_shared_arrays(shared_info)
+    mat = make_mat(M_ORDER, E_ETA, submatrices, alpha,
+                   switch_ny24=SWITCH_NY24)
 
-    else:
-        submatrices: tuple[ArrayFloat,
-                           ArrayFloat,
-                           ArrayFloat,
-                           ArrayFloat]
-        alpha, submatrices = args
+    detach_shared_arrays(shared_memories)
 
-    mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
-
-    if SWITCH_SHM:
-        detach_shared_arrays(shared_memories)
-
-    return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat)
+    return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat,
+                     switch_ny24=SWITCH_NY24)
 
 
 def save_results(results: tuple[ArrayComplex,
