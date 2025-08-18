@@ -67,7 +67,7 @@ NAME_B: str
 # ========== Parameters ==========
 
 # The boolean value to switch whether to use the magnetostrophic
-# approximation
+# approximation or not
 SWITCH_MS: Final[bool] = False
 
 # The function B
@@ -268,6 +268,7 @@ def plot_ray(prms: list[float],
         The x limits of a graph
     cond_critical : bool
         The boolean value to show whether to exist critical colatitudes
+        or not
     theta_c_deg : set of float
         The set of critical colatitudes
 

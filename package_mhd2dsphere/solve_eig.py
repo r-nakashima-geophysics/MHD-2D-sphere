@@ -1,9 +1,15 @@
-"""Solves the eigenvalue problem
+"""A Python module to solve the eigenvalue problem of
+two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
+sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta).
 
 References
 ----------
-[1] Nakashima & Yoshida (submitted)
-
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
+I. Continuous spectrum and its ray-theoretical interpretation.
+Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
+doi: 10.1080/03091929.2024.2384388
 """
 
 import math

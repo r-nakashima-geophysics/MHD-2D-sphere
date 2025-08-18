@@ -48,7 +48,7 @@ from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 # ========== Parameters ==========
 
 # The boolean value to switch whether to display the value of the
-# magnetic Ekman number when E_ETA = 0
+# magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
 
 # The zonal wavenumber (order)
@@ -251,7 +251,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
     fig_bundle : tuple
         A tuple of figures
     save_fig2 : bool
-        The boolean value to determine whether to save a figure
+        The boolean value to determine whether to save a figure or not
 
     """
 

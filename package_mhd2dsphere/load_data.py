@@ -26,7 +26,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
     Parameters
     ----------
     switch_plot : tuple of bool
-        Boolean values to switch whether to plot figures
+        The boolean values to switch whether to plot figures or not
         0: dispersion relation (linear-linear)
         1: dispersion relation (log-log)
     m_order : int

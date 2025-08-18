@@ -3,8 +3,8 @@ field B_phi = B_0 sin(theta) cos(theta)
 
 Plots 1-4 figures (linear-linear and log-log / black, energy
 partitioning, and ohmic dissipation) concerning the dispersion relation
-for 2D MHD waves on a rotating sphere under the non-Malkus field
-B_phi = B_0 sin(theta) cos(theta).
+for 2D MHD waves on a rotating sphere under the non-Malkus field B_phi =
+B_0 sin(theta) cos(theta).
 
 Parameters
 ----------
@@ -14,8 +14,8 @@ M_ORDER : int
 Raises
 ----------
 No plotted figures
-    If all of the boolean values to switch whether to plot figures are
-    False.
+    If all of the boolean values to switch whether to plot figures or
+    not are False.
 Invalid value for 'SWITCH_COLOR'
     If 'SWITCH_COLOR' is not either 'blk', 'ene', or 'ohm'.
 Meaningless figures are plotted
@@ -25,8 +25,8 @@ Meaningless figures are plotted
 Notes
 ----------
 Parameters other than command line arguments are described below. You
-must run mhd2dsphere_sincos.py with the same parameters before
-executing this code.
+must run mhd2dsphere_sincos.py with the same parameters before executing
+this code.
 
 References
 ----------
@@ -62,7 +62,7 @@ from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
 
 # ========== Parameters ==========
 
-# Boolean values to switch whether to plot figures
+# The boolean values to switch whether to plot figures or not
 # 0: dispersion relation (linear-linear)
 # 1: dispersion relation (log-log)
 SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
@@ -74,7 +74,7 @@ SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
 SWITCH_COLOR: Final[str] = 'ene'
 
 # The boolean value to switch whether to display the value of the
-# magnetic Ekman number when E_ETA = 0
+# magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
 
 # The zonal wavenumber (order)
@@ -309,7 +309,7 @@ def plot_eig(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     fig_bundle : tuple
         A tuple of figures
     save_fig : set of int
-        The set of integers to determine whether to save a figure
+        The set of integers to determine whether to save a figure or not
 
     """
 
@@ -722,7 +722,7 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
     fig_bundle : tuple
         A tuple of figures
     save_fig : set of int
-        The set of integers to determine whether to save a figure
+        The set of integers to determine whether to save a figure or not
 
     """
 

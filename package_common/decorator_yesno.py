@@ -1,5 +1,5 @@
 """A Python module to define a decorator for deciding whether to execute
-a function."""
+a function or not."""
 
 import inspect
 import sys

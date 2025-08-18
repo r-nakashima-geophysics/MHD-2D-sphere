@@ -30,7 +30,7 @@ from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 # ========== Parameters ==========
 
 # The boolean value to switch whether to display the value of the
-# magnetic Ekman number when E_ETA = 0
+# magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
 
 # The zonal wavenumber (order)

@@ -34,7 +34,7 @@ NAME_B: str
 # ========== Parameters ==========
 
 # The boolean value to switch whether to use the magnetostrophic
-# approximation
+# approximation or not
 SWITCH_MS: Final[bool] = False
 
 # The function B

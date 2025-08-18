@@ -14,8 +14,8 @@ M_ORDER : int
 Warnings
 ----------
 No plotted figures
-    If all of the boolean values to switch whether to plot figures are
-    False.
+    If all of the boolean values to switch whether to plot figures or
+    not are False.
 
 Notes
 ----------
@@ -56,7 +56,7 @@ from package_common.progress_bar import ProgressBar
 
 # ========== Parameters ========== #
 
-# The boolean values to switch whether to plot figures
+# The boolean values to switch whether to plot figures or not
 # SWITCH_PLOT[0]: The linear-linear plot of the dispersion relation
 # SWITCH_PLOT[1]: The plot showing energy partitioning
 # SWITCH_PLOT[2]: The log-log plot of the dispersion relation
