@@ -9,7 +9,7 @@ eigenmodes, and a log-log plot of the dispersion relation.
 Parameters
 ----------
 M_ORDER : int
-    Zonal wavenumber (order).
+    The zonal wavenumber (order).
 
 Warnings
 ----------
@@ -62,7 +62,7 @@ from package_common.progress_bar import ProgressBar
 # SWITCH_PLOT[2]: The log-log plot of the dispersion relation
 SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
 
-# Zonal wavenumber (order)
+# The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
 
 # Degrees
@@ -134,9 +134,12 @@ def wrapper_eigene() -> tuple[ArrayFloat,
 
     function_name: str = inspect.currentframe().f_code.co_name
 
-    eig: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA, NUM_MODE))
-    ene: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
-    eig_log: ArrayFloat = np.zeros((NUM_N, NUM_ALPHA_LOG, NUM_MODE))
+    eig: ArrayFloat \
+        = np.empty((NUM_N, NUM_ALPHA, NUM_MODE), dtype=np.float64)
+    ene: ArrayFloat \
+        = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
+    eig_log: ArrayFloat \
+        = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
 
     n_degree: int
     alpha: float
