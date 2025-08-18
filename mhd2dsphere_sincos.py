@@ -15,8 +15,8 @@ M_ORDER : int
 Warnings
 ----------
 No saved file
-    If all of the boolean values to switch whether to calculate are
-    False.
+    If all of the boolean values to switch whether to calculate or not
+    are False.
 
 Notes
 ----------
@@ -46,20 +46,24 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import psutil
 
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
-                                         Final)
+                                         Final, SharedMemory)
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
-from package_common.parallel_utils import set_num_threads
+from package_common.parallel_utils import (attach_shared_arrays,
+                                           create_shared_arrays,
+                                           detach_shared_arrays,
+                                           set_num_threads)
 from package_common.progress_bar import ProgressBar
 from package_mhd2dsphere.make_mat import make_mat, make_submat_sincos
 from package_mhd2dsphere.solve_eig import solve_eig
 
 # ========== Parameters ========== #
 
-# The boolean values to switch whether to calculate
+# The boolean values to switch whether to calculate or not
 # SWITCH_CALC[0]: The dispersion relation for the linear-linear plot
 # SWITCH_CALC[1]: The dispersion relation for the log-log plot
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
@@ -97,9 +101,14 @@ NAME_FILE: Final[str] \
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
-NUM_PROCESS = max(multiprocessing.cpu_count() - 1, 1)
+NUM_PROCESS: Final[int] = multiprocessing.cpu_count() - 1 \
+    if (psutil.cpu_count(logical=False)
+        == psutil.cpu_count(logical=True)) \
+    else int(multiprocessing.cpu_count()/2)
 # The number of threads for each process
-NUM_THREADS = 1
+NUM_THREADS: Final[int] = 1
+# The boolean value to switch whether to use shared memory or not
+SWITCH_SHM: Final[bool] = False
 
 # ================================
 
@@ -108,8 +117,7 @@ CRITERION_C: dict[str, int | float] = {
     'ratio': R_C
 }
 
-NUM_ALPHA: Final[int] \
-    = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
+NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
@@ -152,6 +160,10 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                        ArrayFloat] \
         = make_submat_sincos(M_ORDER, SIZE_SUBMAT)
 
+    if SWITCH_SHM:
+        shared_info: list[tuple[str, tuple[int, ...], np.dtype]] \
+            = create_shared_arrays(*submatrices, name_prefix='submat')
+
     results: tuple[ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
@@ -177,8 +189,12 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         ohm = np.zeros((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
         sym = np.full((NUM_ALPHA, SIZE_MAT), '', dtype=np.str_)
 
-        args_list = [(LIN_ALPHA[i_alpha], submatrices)
-                     for i_alpha in range(NUM_ALPHA)]
+        if SWITCH_SHM:
+            args_list = [(LIN_ALPHA[i_alpha], shared_info)
+                         for i_alpha in range(NUM_ALPHA)]
+        else:
+            args_list = [(LIN_ALPHA[i_alpha], submatrices)
+                         for i_alpha in range(NUM_ALPHA)]
 
         progress_bar: ProgressBar \
             = ProgressBar(NUM_ALPHA, function_name + '(linear)')
@@ -207,8 +223,12 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         ohm = np.zeros((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
         sym = np.full((NUM_ALPHA_LOG, SIZE_MAT), str(), dtype=np.str_)
 
-        args_list = [(10**LIN_ALPHA_LOG[i_alpha], submatrices)
-                     for i_alpha in range(NUM_ALPHA_LOG)]
+        if SWITCH_SHM:
+            args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
+                         for i_alpha in range(NUM_ALPHA_LOG)]
+        else:
+            args_list = [(10**LIN_ALPHA_LOG[i_alpha], submatrices)
+                         for i_alpha in range(NUM_ALPHA_LOG)]
 
         progress_bar: ProgressBar \
             = ProgressBar(NUM_ALPHA_LOG, function_name + '(log)')
@@ -229,24 +249,29 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 
         results_log = (eig, mke, mme, ohm, sym)
 
+    if SWITCH_SHM:
+        detach_shared_arrays(shared_info, unlink=True)
+
     return results, results_log
 
 
 def worker(args: tuple[float,
-                       tuple[ArrayFloat,
-                             ArrayFloat,
-                             ArrayFloat,
-                             ArrayFloat]]) -> tuple[ArrayComplex,
-                                                    tuple[ArrayFloat,
-                                                          ArrayFloat,
-                                                          ArrayFloat,
-                                                          ArrayStr]]:
+                       list[tuple[str,
+                                  tuple[int, ...],
+                                  np.dtype]] | tuple[ArrayFloat,
+                                                     ArrayFloat,
+                                                     ArrayFloat,
+                                                     ArrayStr]]) \
+    -> tuple[ArrayComplex,
+             tuple[ArrayFloat,
+                   ArrayFloat,
+                   ArrayFloat,
+                   ArrayStr]]:
     """Set the task for multiprocessing.
 
     Parameters
     ----------
-    args : tuple[float, tuple[ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayFloat]]
+    args : tuple[float, list[tuple[str, tuple[int, ...], np.dtype]]]
         The arguments for the task.
 
     Returns
@@ -256,11 +281,25 @@ def worker(args: tuple[float,
     """
 
     alpha: float
-    submatrices: tuple[ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat]
-    alpha, submatrices = args
+
+    if SWITCH_SHM:
+        shared_info: list[tuple[str,
+                                tuple[int, ...],
+                                np.dtype]]
+        alpha, shared_info = args
+
+        submatrices: tuple[ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat] = attach_shared_arrays(shared_info)
+
+        detach_shared_arrays(shared_info)
+    else:
+        submatrices: tuple[ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat]
+        alpha, submatrices = args
 
     mat = make_mat(M_ORDER, E_ETA, submatrices, alpha)
 
