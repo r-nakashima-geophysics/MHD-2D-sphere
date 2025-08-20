@@ -1,7 +1,6 @@
 """A Python module to define type aliases."""
 
 from multiprocessing import shared_memory
-from types import FrameType
 from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
 
 import numpy as np
