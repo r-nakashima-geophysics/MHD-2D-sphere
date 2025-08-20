@@ -14,11 +14,6 @@ class DefaultLogger:
     level : int, optional, default logging.DEBUG
         The logging level.
 
-    Attributes
-    ----------
-    __logger : logging.Logger
-        The logger.
-
     Warnings
     --------
     Invalid input

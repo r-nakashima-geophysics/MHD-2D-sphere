@@ -13,19 +13,13 @@ from package_common.default_logger import DefaultLogger
 class DefaultTimer:
     """Class to measure the computational time of a Python script.
 
-    Attributes
+    Parameters
     ----------
-    __logger : DefaultLogger
-        The instance of the logger.
-    __start_time : Optional[float]
-        The starting time of the timer.
-    __elapsed_time : Optional[float]
-        The elapsed time.
-    __split_time : Optional[float]
-        The split time.
+    name : str
+        The name of the timer.
 
     Warnings
-    ----------
+    --------
     Timer has not been started.
         If `start()` has not been called before `show()` or `end()` are
         called.
@@ -40,18 +34,13 @@ class DefaultTimer:
 
     def __init__(self,
                  name: str) -> None:
-        """Initialize the DefaultTimer instance.
+        """Initialize an instance of the DefaultTimer class."""
 
-        Parameters
-        ----------
-        name : str
-            The name of the timer.
-        """
-
-        self.__logger: DefaultLogger = DefaultLogger(name)
         self.__start_time: Optional[float] = None
         self.__elapsed_time: Optional[float] = None
         self.__split_time: Optional[float] = None
+
+        self.__logger: DefaultLogger = DefaultLogger(name)
 
         caffeine.on(display=False)
 
@@ -65,7 +54,7 @@ class DefaultTimer:
         """Show the elapsed time."""
 
         if self.__start_time is None:
-            DefaultLogger(__class__.__name__).warning(
+            DefaultLogger(self.__class__.__name__).warning(
                 'Timer has not been started.')
         else:
             self.__elapsed_time = perf_counter() - self.__start_time
