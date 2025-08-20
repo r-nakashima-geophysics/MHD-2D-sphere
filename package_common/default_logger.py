@@ -1,15 +1,29 @@
 """A Python module to define a class for handling log messages."""
 
 import logging
+import sys
 
 
 class DefaultLogger:
     """Class to handle log messages.
 
+    Parameters
+    ----------
+    name : str
+        The name of the logger.
+    level : int, optional, default logging.DEBUG
+        The logging level.
+
     Attributes
     ----------
     __logger : logging.Logger
-        The instance of the logger.
+        The logger.
+
+    Warnings
+    --------
+    Invalid input
+        If the input string in the (optional) second argument is not
+        either 'DEBUG', 'INFO', 'WARNING', 'ERROR', or 'CRITICAL'.
 
     Examples
     --------
@@ -24,15 +38,15 @@ class DefaultLogger:
     def __init__(self,
                  name: str,
                  level: int | str = logging.DEBUG) -> None:
-        """Initialize the DefaultLogger instance.
+        """Initialize an instance of the DefaultLogger class."""
 
-        Parameters
-        ----------
-        name : str
-            The name of the logger.
-        level : int, optional, default logging.DEBUG
-            The logging level.
-        """
+        if isinstance(level, str):
+            try:
+                level = getattr(logging, level.upper())
+            except AttributeError:
+                print(f'/WARNING/ {self.__class__.__name__}'
+                      + ': Invalid input')
+                sys.exit(1)
 
         self.__logger: logging.Logger = logging.getLogger(name)
         self.__logger.setLevel(level)
