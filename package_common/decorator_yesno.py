@@ -1,11 +1,11 @@
 """A Python module to define a decorator for deciding whether to execute
 a function or not."""
 
-import inspect
 import sys
 
 from package_common.common_types import Callable
-from package_common.default_logger import DefaultLogger
+from package_common.default_logger import (DefaultLogger,
+                                           create_function_name_logger)
 
 
 def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
@@ -18,19 +18,19 @@ def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
         The function executed when the character 'yes' is input.
 
     Returns
-    ----------
+    -------
     new_func : Callable[..., None]
         The wrapped function.
 
     Warnings
-    ----------
+    --------
     Quit
         If the character 'n' or 'no' is input.
     Invalid input
         If characters other than 'y', 'yes', 'n', or 'no' are input.
 
     Examples
-    ----------
+    --------
     >>> def test():
     ...     print('test')
     ...
@@ -43,8 +43,7 @@ def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
     test
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     def new_func(*args,
                  **kwargs) -> None:
@@ -76,19 +75,19 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
         The function executed when the character 'yes' is input.
 
     Returns
-    ----------
+    -------
     new_func : Callable[..., None]
         The wrapped function.
 
     Warnings
-    ----------
+    --------
     Quit
         If the character 'n' or 'no' is input.
     Invalid input
         If characters other than 'y', 'yes', 'n', or 'no' are input.
 
     Examples
-    ----------
+    --------
     >>> def test():
     ...     print('test')
     ...
@@ -103,8 +102,7 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
     Re-execute? Enter yes or no: no
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     def new_func(*args,
                  **kwargs) -> None:

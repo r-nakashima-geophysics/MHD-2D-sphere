@@ -1,4 +1,5 @@
-"""A Python module to calculate values related to the Heinrichs basis.
+"""A Python module to calculate values related to the Heinrichs basis,
+(1-x**2)T_n(x), where T_n(x) is the Chebyshev polynomial of degree n.
 
 References
 ----------
@@ -25,9 +26,14 @@ def heinrichs(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the Heinrichs basis at the point.
+
+    Examples
+    --------
+    >>> print(heinrichs(3, 0.5))
+    -0.75
     """
 
     return (1-(s_pos**2)) * chebyshev(n_degree, s_pos)
@@ -35,8 +41,8 @@ def heinrichs(n_degree: int,
 
 def heinrichs_d(n_degree: int,
                 s_pos: T) -> T:
-    """Calculate the value of the first derivative of the Heinrichs basis
-    at a given point.
+    """Calculate the value of the first derivative of the Heinrichs
+    basis at a given point.
 
     Parameters
     ----------
@@ -46,10 +52,15 @@ def heinrichs_d(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the first derivative of the Heinrichs basis at the
         point.
+
+    Examples
+    --------
+    >>> print(heinrichs_d(3, 0.5))
+    1.0000000000000002
     """
 
     return (1-(s_pos**2)) * chebyshev_d(n_degree, s_pos) \
@@ -58,8 +69,8 @@ def heinrichs_d(n_degree: int,
 
 def heinrichs_d2(n_degree: int,
                  s_pos: T) -> T:
-    """Calculate the value of the second derivative of the Heinrichs basis
-    at a given point.
+    """Calculate the value of the second derivative of the Heinrichs
+    basis at a given point.
 
     Parameters
     ----------
@@ -69,10 +80,15 @@ def heinrichs_d2(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the second derivative of the Heinrichs basis at the
         point.
+
+    Examples
+    --------
+    >>> print(heinrichs_d2(3, 0.5))
+    11.000000000000002
     """
 
     return (1-(s_pos**2)) * chebyshev_d2(n_degree, s_pos) \
@@ -82,8 +98,8 @@ def heinrichs_d2(n_degree: int,
 
 def heinrichs_d3(n_degree: int,
                  s_pos: T) -> T:
-    """Calculate the value of the third derivative of the Heinrichs basis
-    at a given point.
+    """Calculate the value of the third derivative of the Heinrichs
+    basis at a given point.
 
     Parameters
     ----------
@@ -93,10 +109,15 @@ def heinrichs_d3(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the third derivative of the Heinrichs basis at the
         point.
+
+    Examples
+    --------
+    >>> print(heinrichs_d3(3, 0.5))
+    -18.000000000000004
     """
 
     return (1-(s_pos**2)) * chebyshev_d3(n_degree, s_pos) \

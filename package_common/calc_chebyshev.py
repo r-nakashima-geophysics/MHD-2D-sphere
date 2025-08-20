@@ -26,9 +26,14 @@ def chebyshev(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the Chebyshev polynomial at the point.
+
+    Examples
+    --------
+    >>> print(chebyshev(3, 0.5))
+    -1.0
     """
 
     return np.cos(n_degree * np.acos(s_pos))
@@ -47,10 +52,15 @@ def chebyshev_d(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the first derivative of the Chebyshev polynomial at
         the point.
+
+    Examples
+    --------
+    >>> print(chebyshev_d(3, 0.5))
+    4.2423009548996277e-16
     """
 
     t: T = np.acos(s_pos)
@@ -70,10 +80,15 @@ def chebyshev_d2(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the second derivative of the Chebyshev polynomial
         at the point.
+
+    Examples
+    --------
+    >>> print(chebyshev_d2(3, 0.5))
+    12.000000000000002
     """
 
     t: T = np.acos(s_pos)
@@ -95,13 +110,18 @@ def chebyshev_d3(n_degree: int,
         The position of the point.
 
     Returns
-    ----------
+    -------
     T
         The value of the third derivative of the Chebyshev polynomial at
         the point.
+
+    Examples
+    ----------
+    >>> print(chebyshev_d3(3, 0.5))
+    24.000000000000007
     """
 
     t: T = np.acos(s_pos)
     return ((1-n_degree**2) * chebyshev_d(n_degree, s_pos)
-            + chebyshev_d2(n_degree, s_pos) * 3 * np.cos(t)
+            + 3 * chebyshev_d2(n_degree, s_pos) * np.cos(t)
             ) / (np.sin(t)**2)
