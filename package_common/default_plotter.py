@@ -114,26 +114,22 @@ class DefaultGridPlotter(DefaultPlotter):
 
         if (nrows == 1) and (ncols == 1):
             super().__init__(**kwargs)
+            return
+
+        self.fig: Figure
+        self.axes: ArrayAxes
+        self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
+
+        if (nrows == 1) or (ncols == 1):
+            num_axes: int = max(nrows, ncols)
+            for i in range(num_axes):
+                self.axes[i].grid()
+                self.axes[i].minorticks_on()
         else:
-            self.fig: Figure
-            self.axes: ArrayAxes
-            self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
-
-            if (nrows == 1) or (ncols == 1):
-                num_axes: int
-                if ncols == 1:
-                    num_axes = nrows
-                else:
-                    num_axes = ncols
-
-                for i in range(num_axes):
-                    self.axes[i].grid()
-                    self.axes[i].minorticks_on()
-            else:
-                for i in range(nrows):
-                    for j in range(ncols):
-                        self.axes[i, j].grid()
-                        self.axes[i, j].minorticks_on()
+            for i in range(nrows):
+                for j in range(ncols):
+                    self.axes[i, j].grid()
+                    self.axes[i, j].minorticks_on()
 
 
 @overload

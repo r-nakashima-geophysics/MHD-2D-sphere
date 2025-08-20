@@ -12,13 +12,13 @@ M_ORDER : int
     The zonal wavenumber (order).
 
 Warnings
-----------
+--------
 No plotted figures
     If all of the boolean values to switch whether to plot figures or
     not are False.
 
 Notes
-----------
+-----
 All other parameters aside from command line arguments are described
 within the script.
 
@@ -31,7 +31,7 @@ Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
 Examples
-----------
+--------
 Run the script with the default value of M_ORDER:
     $ python3 mhd2dsphere_malkus.py
 Run the script with a specified value (say M_ORDER = 2):
@@ -48,7 +48,8 @@ import numpy as np
 from package_common.common_types import (ArrayFloat, ArrayInt, Artist, Final,
                                          Legend)
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import DefaultPlotter
+from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
+                                            create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
 from package_common.name_utils import create_function_name_progress_bar
@@ -109,12 +110,12 @@ NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[ArrayInt] \
-    = np.linspace(N_INIT, N_END, NUM_N, dtype=np.int32)
-LIN_ALPHA: Final[ArrayFloat] \
-    = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[ArrayFloat] \
-    = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
+LIN_N: Final[ArrayInt] = np.linspace(
+    N_INIT, N_END, NUM_N, dtype=np.int_)
+LIN_ALPHA: Final[ArrayFloat] = np.linspace(
+    ALPHA_INIT, ALPHA_END, NUM_ALPHA, dtype=np.float64)
+LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
+    ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
 
 def wrapper_eigene() -> tuple[ArrayFloat,
@@ -123,7 +124,7 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     """Calculate the dispersion relation and energy partitioning.
 
     Returns
-    ----------
+    -------
     eig : ArrayFloat
         Eigenvalues (linear-linear).
     ene : ArrayFloat
@@ -185,17 +186,17 @@ def calc_eig(n_degree: int,
         'fMR' or 'sMR'.
 
     Returns
-    ----------
+    -------
     float
         An eigenvalue.
 
     Warnings
-    ----------
+    --------
     Invalid ID
         If name_mode is neither 'fMR' nor 'sMR'.
 
     Notes
-    ----------
+    -----
     If n_degree = 0, eig is set to 0. This function is based on eq. (1)
     in Nakashima & Yoshida (2024)[1]_.
     """
@@ -204,12 +205,12 @@ def calc_eig(n_degree: int,
         return 0
 
     nn1: int = n_degree * (n_degree+1)
-    sqrt: float = math.sqrt(1 + 4*(alpha**2)*nn1*(nn1-2))
+    sqrt_part: float = math.sqrt(1 + 4*(alpha**2)*nn1*(nn1-2))
 
     if name_mode == 'fMR':
-        return (-M_ORDER-M_ORDER*sqrt) / (2*nn1)
+        return (-M_ORDER-M_ORDER*sqrt_part) / (2*nn1)
     if name_mode == 'sMR':
-        return (-M_ORDER+M_ORDER*sqrt) / (2*nn1)
+        return (-M_ORDER+M_ORDER*sqrt_part) / (2*nn1)
 
     DefaultLogger(__name__).error('Invalid ID')
     sys.exit(1)
@@ -230,12 +231,12 @@ def calc_ene(n_degree: int,
         'fMR' or 'sMR'.
 
     Returns
-    ----------
+    -------
     float
         Energy partitioning.
 
     Notes
-    ----------
+    -----
     If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for
     fast MR waves and 1 for slow MR waves. This function is based on the
     equation in the caption of Fig. 3 in Nakashima & Yoshida (2024)[1]_.
@@ -264,7 +265,7 @@ def plot_eig(eig: ArrayFloat) -> None:
         Eigenvalues.
     """
 
-    plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 7))
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 7))
 
     i_n: int
     for i_n_inv in range(NUM_N):
@@ -331,7 +332,7 @@ def plot_ene(ene: ArrayFloat) -> None:
         Energy partitioning.
     """
 
-    plotter: DefaultPlotter = DefaultPlotter(1, 1, figsize=(5, 5))
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
 
     i_n: int
     for i_n_inv in range(NUM_N):
@@ -374,7 +375,12 @@ def plot_ene(ene: ArrayFloat) -> None:
     handles: list[Artist]
     labels: list[str]
     [handles, labels] = plotter.axes.get_legend_handles_labels()
-    order_leg: list[int] = [2, 0, 3, 1]
+    num_labels = len(labels)
+    # Default order: [2, 0, 3, 1], but adjust if fewer labels
+    if num_labels >= 4:
+        order_leg: list[int] = [2, 0, 3, 1]
+    else:
+        order_leg: list[int] = list(range(num_labels))
     handles = [handles[i_handle] for i_handle in order_leg]
     labels = [labels[i_label] for i_label in order_leg]
     leg: Legend = plotter.axes.legend(
@@ -396,7 +402,7 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
         Eigenvalues.
     """
 
-    plotter: DefaultPlotter = DefaultPlotter(1, 2, figsize=(10, 5))
+    plotter: DefaultGridPlotter = create_plotter(1, 2, figsize=(10, 5))
 
     i_n: int
     for i_n_inv in range(NUM_N):
@@ -447,8 +453,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
     plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)
 
-    handles: list[list] = [[None, ], ] * 2
-    labels: list[list] = [[None, ], ] * 2
+    handles: list[list] = [[], []]
+    labels: list[list] = [[], []]
 
     [handles[0], labels[0]] \
         = plotter.axes[0].get_legend_handles_labels()
@@ -478,7 +484,7 @@ if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
 
-    if True not in SWITCH_PLOT:
+    if not any(SWITCH_PLOT):
         DefaultLogger(__name__).warning('No plotted figures')
         sys.exit(0)
 
