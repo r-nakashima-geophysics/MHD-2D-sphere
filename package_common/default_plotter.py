@@ -17,15 +17,24 @@ else:
 class DefaultPlotter:
     """Class to handle figures.
 
+    Parameters
+    ----------
+    nrows : int, optional, default 1
+        The number of rows in the figure.
+    ncols : int, optional, default 1
+        The number of columns in the figure.
+    **kwargs
+        Keyword variadic arguments.
+
     Attributes
     ----------
     fig : Figure
-        The instance of the figure.
-    axes : Axes
-        The instance of the axes.
+        The instance of the Figure class.
+    axes : Axes | ArrayAxes
+        The instance of the Axes class or the array of them.
 
-    Example
-    -------
+    Examples
+    --------
     >>> plotter = DefaultPlotter(1, 1)
     >>> x = [1, 2]
     >>> y = [3, 4]
@@ -37,35 +46,40 @@ class DefaultPlotter:
                  nrows: int = 1,
                  ncols: int = 1,
                  **kwargs) -> None:
-        """Initialize the DefaultPlotter instance.
-
-        Parameters
-        ----------
-        nrows : int, optional, default 1
-            The number of rows in the figure.
-        ncols : int, optional, default 1
-            The number of columns in the figure.
-        **kwargs : dict[str, Any], optional
-            Keyword variadic arguments.
-        """
+        """Initialize an instance of the DefaultPlotter class."""
 
         self.fig: Figure
         self.axes: Axes | ArrayAxes
-        self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
 
         if nrows * ncols == 1:
-            self.axes.grid()
-            self.axes.minorticks_on()
-        elif (nrows == 1) or (ncols == 1):
-            num_axes: int = nrows if ncols == 1 else ncols
-            for i in range(num_axes):
-                self.axes[i].grid()
-                self.axes[i].minorticks_on()
+            axis: Axes
+            self.fig, axis = plt.subplots(1, 1, **kwargs)
+
+            axis.grid()
+            axis.minorticks_on()
+
+            self.axes = axis
         else:
-            for i in range(nrows):
-                for j in range(ncols):
-                    self.axes[i, j].grid()
-                    self.axes[i, j].minorticks_on()
+            axes: ArrayAxes
+            self.fig, axes = plt.subplots(nrows, ncols, **kwargs)
+
+            if (nrows == 1) or (ncols == 1):
+                num_axes: int
+                if ncols == 1:
+                    num_axes = nrows
+                else:
+                    num_axes = ncols
+
+                for i in range(num_axes):
+                    axes[i].grid()
+                    axes[i].minorticks_on()
+            else:
+                for i in range(nrows):
+                    for j in range(ncols):
+                        axes[i, j].grid()
+                        axes[i, j].minorticks_on()
+
+            self.axes = axes
 
     def save(self,
              path_dir: Path,
