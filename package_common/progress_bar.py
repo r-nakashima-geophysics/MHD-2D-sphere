@@ -1,5 +1,7 @@
 """A Python module to define a class for displaying the progress bar."""
 
+import sys
+
 from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
@@ -8,15 +10,11 @@ from package_common.default_timer import DefaultTimer
 class ProgressBar:
     """Class to display the progress bar.
 
-    Attributes
+    Parameters
     ----------
-    __name : str
+    name : str
         The name of the progress bar.
-    __logger : DefaultLogger
-        The instance of the logger.
-    __timer : DefaultTimer
-        The instance of the timer.
-    __num_calc : int
+    num_calc : int
         The total iteration number.
 
     Warnings
@@ -29,7 +27,7 @@ class ProgressBar:
     Examples
     --------
     >>> n = 100
-    >>> progress_bar = ProgressBar(n, 'my_progress_bar')
+    >>> progress_bar = ProgressBar('my_progress_bar', n)
     >>> for i in range(n):
     ...     if i == 0:
     ...         progress_bar.start()
@@ -37,40 +35,34 @@ class ProgressBar:
     ...         progress_bar.update(i)
     """
 
-    bar_width: int = 20
-    mark_empty: str = ' '
-    mark_filled: str = '█'
+    __bar_width: int = 20
+    __mark_empty: str = ' '
+    __mark_filled: str = '█'
 
     def __init__(self,
-                 num_calc: int,
-                 name: str) -> None:
-        """Initialize the ProgressBar instance.
-
-        Parameters
-        ----------
-        num_calc : int
-            The total iteration number.
-        name : str
-            The name of the progress bar.
-        """
+                 name: str,
+                 num_calc: int) -> None:
+        """Initialize an instance of the ProgressBar class."""
 
         self.__name: str = name
-        self.__logger: DefaultLogger = DefaultLogger(name)
-        self.__timer: DefaultTimer = DefaultTimer(name)
-        self.__num_calc = num_calc
+        self.__num_calc: int = num_calc
+
+        self.__logger: DefaultLogger = DefaultLogger(self.__name)
+        self.__timer: DefaultTimer = DefaultTimer(self.__name)
+
+        if self.__num_calc <= 0:
+            self.__logger.warning('Invalid argument')
+            sys.exit(1)
 
     def start(self) -> None:
         """Start the progress bar."""
 
-        if self.__num_calc <= 0:
-            self.__logger.warning('Invalid argument')
-        else:
-            _ = self.__timer.lap()
-            self.__logger.info('Start')
+        _ = self.__timer.lap()
+        self.__logger.info('Start')
 
-            text: str = f'0/{self.__num_calc}'
-            p_bar: str = ProgressBar.mark_empty * ProgressBar.bar_width
-            print(f'{self.__name} [{p_bar}] {text}', end='', flush=True)
+        text: str = f'0/{self.__num_calc}'
+        p_bar: str = ProgressBar.__mark_empty * ProgressBar.__bar_width
+        print(f'{self.__name} [{p_bar}] {text}', end='', flush=True)
 
     def update(self,
                i_calc: int,
@@ -88,7 +80,9 @@ class ProgressBar:
         if (self.__num_calc <= 0) or (i_calc < 0) or (
                 i_calc + 1 > self.__num_calc):
             self.__logger.warning('Invalid argument')
-        elif (i_calc+1) % num_process == 0:
+            sys.exit(1)
+
+        if (i_calc+1) % num_process == 0:
             lap_time: Optional[float] = self.__timer.lap()
             if lap_time is None:
                 self.__logger.warning(
@@ -99,10 +93,10 @@ class ProgressBar:
                     = (self.__num_calc-i_calc-1) * lap_time / 3600 \
                     / num_process
                 len_filled: int = int(((i_calc+1)/self.__num_calc)
-                                      * ProgressBar.bar_width)
-                p_bar = ProgressBar.mark_filled * len_filled \
-                    + ProgressBar.mark_empty \
-                    * (ProgressBar.bar_width - len_filled)
+                                      * ProgressBar.__bar_width)
+                p_bar = ProgressBar.__mark_filled * len_filled \
+                    + ProgressBar.__mark_empty \
+                    * (ProgressBar.__bar_width - len_filled)
                 text: str = f'{i_calc+1}/{self.__num_calc}' \
                     + f': Finish {remaining_hours:.1f} hrs later ' \
                     + f'(lap: {lap_time / num_process:.2f} sec)'
