@@ -13,17 +13,6 @@ from package_common.default_logger import DefaultLogger
 class DefaultTimer:
     """Class to measure the computational time of a Python script.
 
-    Parameters
-    ----------
-    name : str
-        The name of the timer.
-
-    Warnings
-    --------
-    Timer has not been started.
-        If `start()` has not been called before `show()` or `end()` are
-        called.
-
     Examples
     --------
     >>> timer = DefaultTimer('my_timer')
@@ -36,7 +25,13 @@ class DefaultTimer:
 
     def __init__(self,
                  name: str) -> None:
-        """Initialize an instance of the DefaultTimer class."""
+        """Initialize an instance of the DefaultTimer class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the timer.
+        """
 
         self.__start_time: Optional[float] = None
         self.__elapsed_time: Optional[float] = None
@@ -53,11 +48,17 @@ class DefaultTimer:
         self.__start_time = perf_counter()
 
     def show(self) -> None:
-        """Show the elapsed time."""
+        """Show the elapsed time.
+
+        Warnings
+        --------
+        Timer has not been started.
+            If `start()` has not been called before `show()` or `end()`
+            are called.
+        """
 
         if self.__start_time is None:
-            DefaultLogger(self.__class__.__name__).warning(
-                'Timer has not been started.')
+            self.__logger.warning('Timer has not been started.')
         else:
             self.__elapsed_time = perf_counter() - self.__start_time
             self.__logger.info(

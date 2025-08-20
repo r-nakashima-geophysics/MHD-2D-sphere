@@ -10,20 +10,6 @@ from package_common.default_timer import DefaultTimer
 class ProgressBar:
     """Class to display the progress bar.
 
-    Parameters
-    ----------
-    name : str
-        The name of the progress bar.
-    num_calc : int
-        The total iteration number.
-
-    Warnings
-    --------
-    Invalid argument
-        If the arguments are invalid.
-    Progress bar has not been started.
-        If `start()` has not been called before `update()` is called.
-
     Examples
     --------
     >>> n = 100
@@ -42,7 +28,20 @@ class ProgressBar:
     def __init__(self,
                  name: str,
                  num_calc: int) -> None:
-        """Initialize an instance of the ProgressBar class."""
+        """Initialize an instance of the ProgressBar class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the progress bar.
+        num_calc : int
+            The total iteration number.
+
+        Warnings
+        --------
+        Invalid argument
+            If the arguments are invalid.
+        """
 
         self.__name: str = name
         self.__num_calc: int = num_calc
@@ -75,6 +74,13 @@ class ProgressBar:
             The current iteration number.
         num_process : int, optional, default 1
             The number of processes.
+
+        Warnings
+        --------
+        Invalid argument
+            If the arguments are invalid.
+        Progress bar has not been started.
+            If `start()` has not been called before `update()` is called.
         """
 
         if (self.__num_calc <= 0) or (i_calc < 0) or (

@@ -7,19 +7,6 @@ import sys
 class DefaultLogger:
     """Class to handle log messages.
 
-    Parameters
-    ----------
-    name : str
-        The name of the logger.
-    level : int, optional, default logging.DEBUG
-        The logging level.
-
-    Warnings
-    --------
-    Invalid input
-        If the input string in the (optional) second argument is not
-        either 'DEBUG', 'INFO', 'WARNING', 'ERROR', or 'CRITICAL'.
-
     Examples
     --------
     >>> logger = DefaultLogger('my_logger')
@@ -33,7 +20,21 @@ class DefaultLogger:
     def __init__(self,
                  name: str,
                  level: int | str = logging.DEBUG) -> None:
-        """Initialize an instance of the DefaultLogger class."""
+        """Initialize an instance of the DefaultLogger class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the logger.
+        level : int, optional, default logging.DEBUG
+            The logging level.
+
+        Warnings
+        --------
+        Invalid input
+            If the input string in the (optional) second argument is not
+            either 'DEBUG', 'INFO', 'WARNING', 'ERROR', or 'CRITICAL'.
+        """
 
         if isinstance(level, str):
             try:

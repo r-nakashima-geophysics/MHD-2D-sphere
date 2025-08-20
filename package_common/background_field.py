@@ -9,40 +9,18 @@ from package_common.default_logger import DefaultLogger
 class BackgroundField:
     """Class to define the profiles of background fields.
 
-    Parameters
-    ----------
-    name : str
-        The name of the background field.
-    value : ComplexFunc
-        The profile of the background field.
-    value_d : Optional[ComplexFunc], optional, default None
-        The first derivative of the profile of the background field.
-    value_d2 : Optional[ComplexFunc], optional, default None
-        The second derivative of the profile of the background field.
-    tex : Optional[str], optional, default None
-        The LaTeX text of the background field.
-
     Attributes
     ----------
     name : str
         The name of the background field.
     value : ComplexFunc
          The profile of the background field.
-    __value_d : Optional[ComplexFunc]
+    value_d : Optional[ComplexFunc]
         The first derivative of the profile of the background field.
-    __value_d2 : Optional[ComplexFunc]
+    value_d2 : Optional[ComplexFunc]
         The second derivative of the profile of the background field.
     tex : str
         The LaTeX text of the background field.
-    __logger : DefaultLogger
-        The instance of the DefaultLogger class.
-
-    Warnings
-    --------
-    Invalid input type.
-        If the input is not a float or int.
-    This attribute has not been set.
-        If the attribute is not set.
 
     Examples
     --------
@@ -66,7 +44,21 @@ class BackgroundField:
                  value_d: Optional[ComplexFunc] = None,
                  value_d2: Optional[ComplexFunc] = None,
                  tex: Optional[str] = None) -> None:
-        """Initialize an instance of the BackgroundField class."""
+        """Initialize an instance of the BackgroundField class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the background field.
+        value : ComplexFunc
+            The profile of the background field.
+        value_d : Optional[ComplexFunc], optional, default None
+            The first derivative of the profile of the background field.
+        value_d2 : Optional[ComplexFunc], optional, default None
+            The second derivative of the profile of the background field.
+        tex : Optional[str], optional, default None
+            The LaTeX text of the background field.
+        """
 
         self.name: str = name
         self.value: ComplexFunc = value
@@ -91,6 +83,11 @@ class BackgroundField:
         -------
         float
             The value of the background field at the point.
+
+        Warnings
+        --------
+        Invalid input type.
+            If the input is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
@@ -108,6 +105,11 @@ class BackgroundField:
         -------
         ComplexFunc
             The first derivative of the profile of the background field.
+
+        Warnings
+        --------
+        This attribute has not been set.
+            If the attribute is not set.
         """
 
         if self.__value_d is not None:
@@ -132,6 +134,11 @@ class BackgroundField:
         float
             The value of the first derivative of the profile of the
             background field at the point.
+
+        Warnings
+        --------
+        Invalid input type.
+            If the input is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
@@ -150,6 +157,11 @@ class BackgroundField:
         ComplexFunc
             The second derivative of the profile of the background
             field.
+
+        Warnings
+        --------
+        This attribute has not been set.
+            If the attribute is not set.
         """
 
         if self.__value_d2 is not None:
@@ -174,6 +186,11 @@ class BackgroundField:
         float
             The value of the second derivative of the profile of the
             background field at the point.
+
+        Warnings
+        --------
+        Invalid input type.
+            If the input is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
