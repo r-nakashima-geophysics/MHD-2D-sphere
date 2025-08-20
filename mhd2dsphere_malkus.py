@@ -2,7 +2,7 @@
 two-dimensional (2D) ideal magnetohydrodynamic (MHD) waves on a rotating
 sphere under the Malkus background field, B_phi = B_0 sin(theta).
 
-This script can generate up to three figures: a linear-linear plot of
+This script can create up to three figures: a linear-linear plot of
 the dispersion relation, a plot showing energy partitioning for various
 eigenmodes, and a log-log plot of the dispersion relation.
 
@@ -38,7 +38,6 @@ Run the script with a specified value (say M_ORDER = 2):
     $ python3 mhd2dsphere_malkus.py 2
 """
 
-import inspect
 import math
 import sys
 from pathlib import Path
@@ -52,6 +51,7 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import DefaultPlotter
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
+from package_common.name_utils import create_function_name_progress_bar
 from package_common.progress_bar import ProgressBar
 
 # ========== Parameters ========== #
@@ -132,8 +132,6 @@ def wrapper_eigene() -> tuple[ArrayFloat,
         Eigenvalues (log-log).
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-
     eig: ArrayFloat \
         = np.empty((NUM_N, NUM_ALPHA, NUM_MODE), dtype=np.float64)
     ene: ArrayFloat \
@@ -144,7 +142,7 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     n_degree: int
     alpha: float
 
-    progress_bar: ProgressBar = ProgressBar(NUM_N, function_name)
+    progress_bar: ProgressBar = create_function_name_progress_bar(NUM_N)
     progress_bar.start()
     for i_n in range(NUM_N):
         n_degree = LIN_N[i_n]
@@ -258,7 +256,7 @@ def calc_ene(n_degree: int,
 
 
 def plot_eig(eig: ArrayFloat) -> None:
-    """Generate the linear-linear plot of the dispersion relation.
+    """Create the linear-linear plot of the dispersion relation.
 
     Parameters
     ----------
@@ -324,7 +322,7 @@ def plot_eig(eig: ArrayFloat) -> None:
 
 
 def plot_ene(ene: ArrayFloat) -> None:
-    """Generate the plot showing the energy partitioning for various
+    """Create the plot showing the energy partitioning for various
     eigenmodes.
 
     Parameters
@@ -390,7 +388,7 @@ def plot_ene(ene: ArrayFloat) -> None:
 
 
 def plot_eig_log(eig_log: ArrayFloat) -> None:
-    """Generate the log-log plot of the dispersion relation.
+    """Create the log-log plot of the dispersion relation.
 
     Parameters
     ----------
