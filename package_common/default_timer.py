@@ -29,6 +29,8 @@ class DefaultTimer:
     >>> timer = DefaultTimer('my_timer')
     >>> timer.start()
     >>> timer.show()
+    >>> _ = timer.lap()  # None
+    >>> lap_time = timer.lap()
     >>> timer.end()
     """
 
