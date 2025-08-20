@@ -1,22 +1,16 @@
-"""A Python module to generate the instances of BackgroundField class
-for background zonal flows, U_phi = U_0 U(theta) sin(theta).
+"""A Python module to construct the instances of BackgroundField class
+for background zonal flows, U_phi = U_0 U(theta) sin(theta)."""
 
-Example
--------
->>> u_rigid = u_rigid('mu')
->>> u_rigid = u_rigid('theta')
-"""
-
-import inspect
 import sys
 
 from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
+from package_common.name_utils import create_function_name_logger
 
 
 def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
-    """Generate the instance of BackgroundField class for the rigid body
-    rotation (U=0).
+    """Construct an instance of the BackgroundField class for the rigid
+    body rotation (U=0).
 
     Parameters
     ----------
@@ -27,17 +21,21 @@ def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
     Returns
     ----------
     BackgroundField
-        The instance of BackgroundField class for the rigid body
+        The instance of the BackgroundField class for the rigid body
         rotation (U=0).
 
     Warnings
     ----------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    ----------
+    >>> u_rigid = u_rigid('mu')
+    >>> u_rigid = u_rigid('theta')
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'rigid'
     tex: str = r'0'

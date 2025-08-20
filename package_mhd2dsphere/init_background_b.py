@@ -1,22 +1,16 @@
-"""A Python module to generate the instances of BackgroundField class
-for toroidal background fields, B_phi = B_0 B(theta) sin(theta).
-
-Examples
---------
->>> b_hydro = b_hydro('mu')
->>> b_hydro = b_hydro('theta')
-"""
+"""A Python module to construct the instances of BackgroundField class
+for toroidal background fields, B_phi = B_0 B(theta) sin(theta)."""
 
 import cmath
-import inspect
 import sys
 
 from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
+from package_common.name_utils import create_function_name_logger
 
 
 def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
-    """Generate the instance of BackgroundField class for the
+    """Construct an instance of the BackgroundField class for the
     hydrodynamic case (B=0).
 
     Parameters
@@ -26,19 +20,23 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
         is used.
 
     Returns
-    ----------
+    -------
     BackgroundField
-        The instance of BackgroundField class for the hydrodynamic
+        The instance of the BackgroundField class for the hydrodynamic
         case (B=0).
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    --------
+    >>> b_hydro = b_hydro('mu')
+    >>> b_hydro = b_hydro('theta')
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'hydro'
     tex: str = r'0'
@@ -86,7 +84,7 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
 
 
 def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
-    """Generate the instance of BackgroundField class for the
+    """Construct an instance of the BackgroundField class for the
     Malkus field (B=1).
 
     Parameters
@@ -96,19 +94,23 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
         is used.
 
     Returns
-    ----------
+    -------
     BackgroundField
-        The instance of BackgroundField class for the Malkus field
+        The instance of the BackgroundField class for the Malkus field
         (B=1).
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    --------
+    >>> b_malkus = b_malkus('mu')
+    >>> b_malkus = b_malkus('theta')
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'malkus'
     tex: str = r'B_0\sin\theta'
@@ -156,7 +158,7 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
 
 
 def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
-    """Generate the instance of BackgroundField class for B =
+    """Construct an instance of the BackgroundField class for B =
     cos(theta).
 
     Parameters
@@ -166,18 +168,22 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
         is used.
 
     Returns
-    ----------
+    -------
     BackgroundField
-        The instance of BackgroundField class for B = cos(theta).
+        The instance of the BackgroundField class for B = cos(theta).
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    --------
+    >>> b_sincos = b_sincos('mu')
+    >>> b_sincos = b_sincos('theta')
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'sincos'
     tex: str = r'B_0\sin\theta\cos\theta'
@@ -221,8 +227,8 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
 
 
 def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
-    """Generate the instance of BackgroundField class for B = sin(theta)
-    cos(theta).
+    """Construct an instance of the BackgroundField class for B =
+    sin(theta) cos(theta).
 
     Parameters
     ----------
@@ -231,19 +237,23 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
         is used.
 
     Returns
-    ----------
+    -------
     BackgroundField
-        The instance of BackgroundField class for B = sin(theta)
+        The instance of the BackgroundField class for B = sin(theta)
         cos(theta).
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    --------
+    >>> b_sin2cos = b_sin2cos('mu')
+    >>> b_sin2cos = b_sin2cos('theta')
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'sin2cos'
     tex: str = r'B_0\sin^2\theta\cos\theta'

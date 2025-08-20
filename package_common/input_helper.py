@@ -1,10 +1,10 @@
 """A Python module to assist the input of parameters."""
 
-import inspect
 import sys
 
 from package_common.common_types import Callable, TypeVar
 from package_common.default_logger import DefaultLogger
+from package_common.name_utils import create_function_name_logger
 
 T = TypeVar('T', int, float)
 
@@ -24,19 +24,19 @@ def input_value(default: T,
         A function to cast the command line argument.
 
     Returns
-    ----------
+    -------
     T
         The command line argument or the default value.
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the command line argument is invalid.
     Too many input arguments
         If the command line arguments are too many.
 
     Examples
-    ----------
+    --------
     Run a script without a command line argument:
         >>> input_value(1, int)
         1
@@ -47,13 +47,12 @@ def input_value(default: T,
         2
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     if len(sys.argv) == 2:
         try:
             return cast(sys.argv[1])
-        except ValueError:
+        except (ValueError, TypeError):
             logger.error('Invalid argument')
             sys.exit(1)
 
@@ -79,28 +78,27 @@ def input_value_within(min_value: T,
         A function to cast the command line argument.
 
     Returns
-    ----------
+    -------
     chosen_value : T
         A chosen value within the specified range.
 
     Warnings
-    ----------
+    --------
     Quit
         If the character 'q' is input.
     Out of range
         If the input value is not within the specified range.
     Invalid input
-        If the input character is not an integer.
+        If the input string is not an integer.
 
     Examples
-    ----------
+    --------
     >>> input_value_within(0, 10, int)
     Enter a value in [0, 10] or q to quit: 1
     1
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     input_str: str
     chosen_value: T
