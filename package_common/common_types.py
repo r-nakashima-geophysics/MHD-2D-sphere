@@ -18,7 +18,7 @@ ArrayInt: TypeAlias = npt.NDArray[np.int_]
 ArrayFloat: TypeAlias = npt.NDArray[np.float64]
 ArrayComplex: TypeAlias = npt.NDArray[np.complex128]
 ArrayStr: TypeAlias = npt.NDArray[np.str_]
-ArrayAny: TypeAlias = npt.NDArray[Any]
+ArrayAny: TypeAlias = npt.NDArray[np.object_]
 
 ArrayAxes: TypeAlias = npt.NDArray[np.object_]
 
