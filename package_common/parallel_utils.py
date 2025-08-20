@@ -1,14 +1,15 @@
 """A Python module to provide the utilities for parallel processing."""
 
-import inspect
 import os
 import sys
+import uuid
 from multiprocessing import shared_memory
 
 import numpy as np
 
-from package_common.common_types import ArrayAny, Optional, SharedMemory
+from package_common.common_types import ArrayAny, SharedMemory
 from package_common.default_logger import DefaultLogger
+from package_common.name_utils import create_function_name_logger
 
 
 def set_num_threads(num_threads: int) -> None:
@@ -23,10 +24,14 @@ def set_num_threads(num_threads: int) -> None:
     --------
     Invalid argument
         If the arguments are invalid.
+
+    Examples
+    --------
+    Run a script with 4 threads:
+        >>> set_num_threads(4)
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     if num_threads <= 0:
         logger.error('Invalid argument')
@@ -40,8 +45,7 @@ def set_num_threads(num_threads: int) -> None:
     os.environ['BLIS_NUM_THREADS'] = str(num_threads)
 
 
-def create_shared_arrays(*arrays,
-                         name_prefix: Optional[str] = 'array') \
+def create_shared_arrays(*arrays) \
         -> tuple[tuple[SharedMemory, ...],
                  list[tuple[str,
                       tuple[int, ...],
@@ -52,8 +56,6 @@ def create_shared_arrays(*arrays,
     ----------
     *arrays
         The tuple of arrays to be shared.
-    name_prefix : str, optional, default 'array'
-        The name prefix for the shared memory arrays.
 
     Returns
     -------
@@ -66,24 +68,28 @@ def create_shared_arrays(*arrays,
     --------
     Invalid argument
         If the arguments are invalid.
+
+    Examples
+    --------
+    In the main process:
+        >>> shm, info = create_shared_arrays(np.array([1, 2, 3]))
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     shms: list[SharedMemory] = []
     shared_info: list[tuple[str, tuple[int, ...], np.dtype]] = []
 
     shm: SharedMemory
     shared_array: ArrayAny
-    for i, array in enumerate(arrays):
+    for array in arrays:
 
         if not isinstance(array, np.ndarray):
             logger.error('Invalid argument')
             sys.exit(1)
 
         shm = shared_memory.SharedMemory(
-            name=f'{name_prefix}_{i}', create=True, size=array.nbytes)
+            name=f'{uuid.uuid4().hex}', create=True, size=array.nbytes)
         shared_array = np.ndarray(shape=array.shape, dtype=array.dtype,
                                   buffer=shm.buf)
         shared_array[:] = array[:]
@@ -115,11 +121,18 @@ def attach_shared_arrays(shared_info: list[tuple[str,
         The tuple of shared memories.
     tuple_shared_arrays : tuple[ArrayAny, ...]
         The tuple of shared memory arrays.
+
+    Examples
+    --------
+    In a subprocess:
+        >>> shm, array = attach_shared_arrays(info)
     """
 
     shms: list[SharedMemory] = []
     shared_arrays: list[ArrayAny] = []
 
+    shm: SharedMemory
+    shared_array: ArrayAny
     for name, shape, dtype in shared_info:
         shm = shared_memory.SharedMemory(name=name)
         shared_array \
@@ -134,15 +147,15 @@ def attach_shared_arrays(shared_info: list[tuple[str,
     return tuple_shm, tuple_shared_arrays
 
 
-def detach_shared_arrays(shms: tuple[SharedMemory, ...],
+def detach_shared_arrays(*shms,
                          unlink: bool = False) -> None:
     """Detach the shared memories.
 
     Parameters
     ----------
-    shms : tuple[SharedMemory, ...]
+    *shms
         The tuple of the shared memories.
-    unlink : bool
+    unlink : bool, optional, default False
         The boolean value to switch whether to unlink the shared
         memories or not.
 
@@ -150,10 +163,16 @@ def detach_shared_arrays(shms: tuple[SharedMemory, ...],
     --------
     Shared memory has already been unlinked
         If the shared memory has already been unlinked.
+
+    Examples
+    --------
+    In a subprocess:
+        >>> detach_shared_arrays(shm)
+    In the main process:
+        >>> detach_shared_arrays(shm, unlink=True)
     """
 
-    function_name: str = inspect.currentframe().f_code.co_name
-    logger: DefaultLogger = DefaultLogger(function_name)
+    logger: DefaultLogger = create_function_name_logger()
 
     for shm in shms:
         shm.close()
