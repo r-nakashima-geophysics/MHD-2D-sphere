@@ -16,17 +16,18 @@ doi: 10.1080/03091929.2024.2384388
 
 import numpy as np
 
+from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat
-from package_common.debug_utils import under_construction_log
+from package_common.utils_debug import under_construction_log
 
 
 def create_submat(m_order: int,
                   size_submat: int,
-                  /,
-                  switch_ny24: bool = False) -> tuple[ArrayFloat,
-                                                      ArrayFloat,
-                                                      ArrayFloat,
-                                                      ArrayFloat]:
+                  background_field: dict[str, BackgroundField | bool]) \
+    -> tuple[ArrayFloat,
+             ArrayFloat,
+             ArrayFloat,
+             ArrayFloat]:
     """Create the submatrices.
 
     Parameters
@@ -35,9 +36,8 @@ def create_submat(m_order: int,
         The zonal wavenumber (order).
     size_submat : int
         The size of submatrices.
-    switch_ny24 : bool, optional, default False
-        The boolean value to switch whether to follow Nakashima &
-        Yoshida (2024)[1]_ or not.
+    background_field : dict[str, BackgroundField | bool]
+        The background field.
 
     Returns
     -------
@@ -61,7 +61,7 @@ def create_submat(m_order: int,
     submat_21: ArrayFloat
     submat_22: ArrayFloat
 
-    if switch_ny24:
+    if background_field['NY24']:
         n_t: int = size_submat + m_order - 1
         lin_n: ArrayFloat = np.linspace(
             m_order, n_t, size_submat, dtype=np.float64)
@@ -99,35 +99,37 @@ def create_submat(m_order: int,
             submat_22[i_submat, i_submat] \
                 = (m_order+i_submat) * (m_order+1+i_submat)
     else:
+        # bg_field_b = background_field['B']
+        # bg_field_u = background_field['U']
+
         under_construction_log()
 
     return submat_11, submat_12, submat_21, submat_22
 
 
 def create_mat(m_order: int,
+               alpha: float,
                e_eta: float,
                submatrices: tuple[ArrayFloat,
                                   ArrayFloat,
                                   ArrayFloat,
                                   ArrayFloat],
-               alpha: float,
-               /,
-               switch_ny24: bool = False) -> ArrayFloat | ArrayComplex:
+               background_field: dict[str, BackgroundField | bool]) \
+        -> ArrayFloat | ArrayComplex:
     """Make the total matrix.
 
     Parameters
     ----------
     m_order : int
         The zonal wavenumber (order).
+    alpha : float
+        The Lehnert number.
     e_eta : float
         The magnetic Ekman number.
     submatrices : tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayFloat]
         The (1,1)th, (1,2)th, (2,1)th, and (2,2)th block matrices.
-    alpha : float
-        The Lehnert number.
-    switch_ny24 : bool, optional, default False
-        The boolean value to switch whether to follow Nakashima &
-        Yoshida (2024)[1]_ or not.
+    background_field : dict[str, BackgroundField | bool]
+        The background field.
 
     Returns
     -------
@@ -146,7 +148,7 @@ def create_mat(m_order: int,
     submat_22: ArrayFloat
     mat: ArrayFloat | ArrayComplex
 
-    if switch_ny24:
+    if background_field['NY24']:
         submat_11, submat_12, submat_21, submat_22 = submatrices
 
         size_submat: int = submat_11.shape[0]
@@ -168,6 +170,9 @@ def create_mat(m_order: int,
             mat[1*size_submat:2*size_submat,
                 1*size_submat:2*size_submat] = -1j * e_eta * submat_22
     else:
+        # bg_field_b = background_field['B']
+        # bg_field_u = background_field['U']
+
         under_construction_log()
 
     return mat

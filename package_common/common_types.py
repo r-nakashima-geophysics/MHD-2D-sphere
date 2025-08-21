@@ -18,6 +18,7 @@ Artist: TypeAlias = artist.Artist
 ArrayInt: TypeAlias = npt.NDArray[np.int_]
 ArrayFloat: TypeAlias = npt.NDArray[np.float64]
 ArrayComplex: TypeAlias = npt.NDArray[np.complex128]
+ArrayBool: TypeAlias = npt.NDArray[np.bool_]
 ArrayStr: TypeAlias = npt.NDArray[np.str_]
 ArrayAny: TypeAlias = npt.NDArray[np.object_]
 

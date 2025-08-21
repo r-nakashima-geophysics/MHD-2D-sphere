@@ -5,7 +5,7 @@ import sys
 
 from package_common.common_types import Callable
 from package_common.default_logger import DefaultLogger
-from package_common.name_utils import create_function_name_logger
+from package_common.utils_name import create_function_name_logger
 
 
 def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
