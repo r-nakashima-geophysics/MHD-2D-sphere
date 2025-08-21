@@ -3,9 +3,10 @@ two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
 sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
 
-This script outputs npz files of results (alpha, eigenvalue, mean
-kinetic energy, mean magnetic energy, ohmic dissipation, and the
-symmetry of eigenmodes).
+This script outputs up to two npz files of results, which include alpha,
+eigenvalue, mean kinetic energy, mean magnetic energy, ohmic
+dissipation, and the symmetry of eigenmodes. In addition, the script
+uses multiprocessing to speed up the calculations.
 
 Parameters
 ----------
@@ -13,13 +14,13 @@ M_ORDER : int
     The zonal wavenumber (order).
 
 Warnings
-----------
+--------
 No saved file
     If all of the boolean values to switch whether to calculate or not
     are False.
 
 Notes
-----------
+-----
 All other parameters aside from command line arguments are described
 within the script.
 
@@ -29,25 +30,24 @@ References
 magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
 I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+doi: 10.1080/03091929.2024.2384388 
+
 [2] Ryosuke Nakashima (in prep.)
 
 Examples
-----------
+--------
 Run the script with the default value of M_ORDER:
-    $ python3 mhd2dsphere_sincos.py
+    $ python3 mhd2dsphere_eig.py
 Run the script with a specified value (say M_ORDER = 2):
-    $ python3 mhd2dsphere_sincos.py 2
+    $ python3 mhd2dsphere_eig.py 2
 """
 
-import inspect
 import multiprocessing
 import os
 import sys
 from pathlib import Path
 
 import numpy as np
-import psutil
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
@@ -55,13 +55,14 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.input_helper import input_value
+from package_common.name_utils import create_function_name_progress_bar
 from package_common.parallel_utils import (attach_shared_arrays,
                                            create_shared_arrays,
                                            detach_shared_arrays,
-                                           set_num_threads)
+                                           set_num_process, set_num_threads)
 from package_common.progress_bar import ProgressBar
 from package_mhd2dsphere import init_background_b, init_background_u
-from package_mhd2dsphere.make_mat import make_mat, make_submat
+from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.solve_eig import solve_eig
 
 # ========== Parameters ========== #
@@ -72,13 +73,11 @@ from package_mhd2dsphere.solve_eig import solve_eig
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # Background field
-BACKGROUND_B: Final[BackgroundField] \
-    = init_background_b.b_hydro('mu')
-BACKGROUND_U: Final[BackgroundField] \
-    = init_background_u.u_rigid('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
+BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
-# If SWITCH_NY24 is True, BACKGROUND_B and BACKGROUND_U are ignored.
+# If SWITCH_NY24 is True, BG_FIELD_B and BG_FIELD_U are ignored.
 SWITCH_NY24: Final[bool] = True
 
 # The zonal wavenumber (order)
@@ -107,20 +106,16 @@ ALPHA_LOG_STEP: Final[float] = 0.01
 ALPHA_LOG_END: Final[float] = 2
 
 # The paths and filenames of outputs
-PATH_DIR: Final[Path] \
-    = Path('.') / 'output' / 'MHD2Dsphere_eig'
+PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
     = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
-    else f'MHD2Dsphere_eig_B{BACKGROUND_B.name}U{BACKGROUND_U.name}' \
+    else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}N{N_T}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
-NUM_PROCESS: Final[int] = multiprocessing.cpu_count() - 1 \
-    if (psutil.cpu_count(logical=False)
-        == psutil.cpu_count(logical=True)) \
-    else int(multiprocessing.cpu_count()/2)
+NUM_PROCESS: Final[int] = set_num_process()
 # The number of threads for each process
 NUM_THREADS: Final[int] = 1
 
@@ -135,10 +130,10 @@ NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_ALPHA: Final[ArrayFloat] \
-    = np.linspace(ALPHA_INIT, ALPHA_END, NUM_ALPHA)
-LIN_ALPHA_LOG: Final[ArrayFloat] \
-    = np.linspace(ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG)
+LIN_ALPHA: Final[ArrayFloat] = np.linspace(
+    ALPHA_INIT, ALPHA_END, NUM_ALPHA, dtype=np.float64)
+LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
+    ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
 SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
@@ -148,57 +143,55 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                                                  ArrayFloat,
                                                  ArrayFloat,
                                                  ArrayFloat,
-                                                 ArrayStr],
+                                                 ArrayStr] | None,
                                            tuple[ArrayComplex,
                                                  ArrayFloat,
                                                  ArrayFloat,
                                                  ArrayFloat,
-                                                 ArrayStr]]:
+                                                 ArrayStr] | None]:
     """Solve the eigenvalue problem for given lists of alpha.
 
     Returns
-    ----------
+    -------
     results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayStr]
+    ArrayStr] | None
         The tuple of results (linear-linear).
     results_log : tuple[ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
+    ArrayFloat, ArrayStr] | None
         The tuple of results (log-log).
     """
-
-    function_name: str = inspect.currentframe().f_code.co_name
-    progress_bar: ProgressBar
 
     submatrices: tuple[ArrayFloat,
                        ArrayFloat,
                        ArrayFloat,
                        ArrayFloat] \
-        = make_submat(M_ORDER, SIZE_SUBMAT, switch_ny24=SWITCH_NY24)
+        = create_submat(M_ORDER, SIZE_SUBMAT, switch_ny24=SWITCH_NY24)
 
     shared_memories: tuple[SharedMemory,
                            SharedMemory,
                            SharedMemory,
                            SharedMemory]
     shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
-    shared_memories, shared_info \
-        = create_shared_arrays(*submatrices, name_prefix='submat')
+    shared_memories, shared_info = create_shared_arrays(*submatrices)
 
     results: tuple[ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayFloat,
-                   ArrayStr] = (None, None, None, None, None)
+                   ArrayStr] | None = None
     results_log: tuple[ArrayComplex,
                        ArrayFloat,
                        ArrayFloat,
                        ArrayFloat,
-                       ArrayStr] = (None, None, None, None, None)
+                       ArrayStr] | None = None
 
     eig: ArrayComplex
     mke: ArrayFloat
     mme: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
+
+    progress_bar: ProgressBar
 
     if SWITCH_CALC[0]:
 
@@ -211,7 +204,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         args_list = [(LIN_ALPHA[i_alpha], shared_info)
                      for i_alpha in range(NUM_ALPHA)]
 
-        progress_bar = ProgressBar(NUM_ALPHA, function_name)
+        progress_bar = create_function_name_progress_bar(NUM_ALPHA)
         progress_bar.start()
         with multiprocessing.Pool(processes=NUM_PROCESS,
                                   initializer=set_num_threads,
@@ -240,7 +233,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
         args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
                      for i_alpha in range(NUM_ALPHA_LOG)]
 
-        progress_bar = ProgressBar(NUM_ALPHA_LOG, function_name)
+        progress_bar = create_function_name_progress_bar(NUM_ALPHA_LOG)
         progress_bar.start()
         with multiprocessing.Pool(processes=NUM_PROCESS,
                                   initializer=set_num_threads,
@@ -258,7 +251,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
 
         results_log = (eig, mke, mme, ohm, sym)
 
-    detach_shared_arrays(shared_memories, unlink=True)
+    detach_shared_arrays(*shared_memories, unlink=True)
 
     return results, results_log
 
@@ -281,7 +274,8 @@ def worker(args: tuple[float,
 
     Returns
     -------
-    tuple[ArrayComplex, tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayStr]]
+    tuple[ArrayComplex, tuple[ArrayFloat, ArrayFloat, ArrayFloat,
+    ArrayStr]]
         The results of the task.
     """
 
@@ -301,10 +295,10 @@ def worker(args: tuple[float,
                        ArrayFloat]
     shared_memories, submatrices = attach_shared_arrays(shared_info)
 
-    mat = make_mat(M_ORDER, E_ETA, submatrices, alpha,
-                   switch_ny24=SWITCH_NY24)
+    mat = create_mat(M_ORDER, E_ETA, submatrices, alpha,
+                     switch_ny24=SWITCH_NY24)
 
-    detach_shared_arrays(shared_memories)
+    detach_shared_arrays(*shared_memories)
 
     return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat,
                      switch_ny24=SWITCH_NY24)
@@ -314,21 +308,21 @@ def save_results(results: tuple[ArrayComplex,
                                 ArrayFloat,
                                 ArrayFloat,
                                 ArrayFloat,
-                                ArrayStr],
+                                ArrayStr] | None,
                  results_log: tuple[ArrayComplex,
                                     ArrayFloat,
                                     ArrayFloat,
                                     ArrayFloat,
-                                    ArrayStr]) -> None:
+                                    ArrayStr] | None) -> None:
     """Save npz files of results.
 
     Parameters
     ----------
     results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayStr]
+    ArrayStr] | None
         The tuple of results (linear-linear).
     results_log : tuple[ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
+    ArrayFloat, ArrayStr] | None
         The tuple of results (log-log).
     """
 
@@ -342,7 +336,7 @@ def save_results(results: tuple[ArrayComplex,
 
     os.makedirs(PATH_DIR, exist_ok=True)
 
-    if SWITCH_CALC[0]:
+    if results is not None:
 
         eig, mke, mme, ohm, sym = results
 
@@ -353,7 +347,7 @@ def save_results(results: tuple[ArrayComplex,
                  lin_alpha=LIN_ALPHA, eig=eig,
                  mke=mke, mme=mme, ohm=ohm, sym=sym)
 
-    if SWITCH_CALC[1]:
+    if results_log is not None:
 
         eig, mke, mme, ohm, sym = results_log
 
@@ -377,12 +371,12 @@ if __name__ == '__main__':
                 ArrayFloat,
                 ArrayFloat,
                 ArrayFloat,
-                ArrayStr]
+                ArrayStr] | None
     data_log: tuple[ArrayComplex,
                     ArrayFloat,
                     ArrayFloat,
                     ArrayFloat,
-                    ArrayStr]
+                    ArrayStr] | None
     data, data_log = wrapper_solve_eig_for_alpha()
 
     save_results(data, data_log)

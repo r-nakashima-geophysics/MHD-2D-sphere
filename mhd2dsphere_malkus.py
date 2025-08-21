@@ -45,8 +45,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import (ArrayFloat, ArrayInt, Artist, Final,
-                                         Legend)
+from package_common.common_types import (Any, ArrayFloat, ArrayInt, Artist,
+                                         Final, Legend)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
                                             create_plotter)
@@ -94,7 +94,7 @@ ENERGY_INIT: Final[float] = 0
 ENERGY_END: Final[float] = 1
 
 # The paths and filenames of outputs
-PATH_DIR_FIG: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
+PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
 NAME_FIG_1: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eig.png'
 NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_ene.png'
 NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eiglog.png'
@@ -319,7 +319,7 @@ def plot_eig(eig: ArrayFloat) -> None:
 
     plotter.axes.tick_params(labelsize=14)
 
-    plotter.save(PATH_DIR_FIG, NAME_FIG_1, FIG_DPI)
+    plotter.save(PATH_DIR, NAME_FIG_1, FIG_DPI)
 
 
 def plot_ene(ene: ArrayFloat) -> None:
@@ -390,7 +390,7 @@ def plot_ene(ene: ArrayFloat) -> None:
 
     plotter.axes.tick_params(labelsize=13)
 
-    plotter.save(PATH_DIR_FIG, NAME_FIG_2, FIG_DPI)
+    plotter.save(PATH_DIR, NAME_FIG_2, FIG_DPI)
 
 
 def plot_eig_log(eig_log: ArrayFloat) -> None:
@@ -453,8 +453,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
     plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)
 
-    handles: list[list] = [[], []]
-    labels: list[list] = [[], []]
+    handles: list[list[Any]] = [[], []]
+    labels: list[list[Any]] = [[], []]
 
     [handles[0], labels[0]] \
         = plotter.axes[0].get_legend_handles_labels()
@@ -477,7 +477,7 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
         r'Dispersion relation [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}', fontsize=16)
 
-    plotter.save(PATH_DIR_FIG, NAME_FIG_3, FIG_DPI)
+    plotter.save(PATH_DIR, NAME_FIG_3, FIG_DPI)
 
 
 if __name__ == '__main__':
