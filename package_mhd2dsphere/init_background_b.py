@@ -6,7 +6,7 @@ import sys
 
 from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
-from package_common.name_utils import create_function_name_logger
+from package_common.utils_name import create_function_name_logger
 
 
 def b_hydro(switch_theta: str = 'mu') -> BackgroundField:

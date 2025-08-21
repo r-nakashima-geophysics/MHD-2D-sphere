@@ -5,7 +5,7 @@ import sys
 
 from package_common.common_types import FrameType, Optional
 from package_common.default_logger import DefaultLogger
-from package_common.name_utils import get_current_function_name
+from package_common.utils_name import get_current_function_name
 
 
 def under_construction_log() -> None:

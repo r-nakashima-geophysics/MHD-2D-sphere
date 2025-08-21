@@ -10,7 +10,7 @@ import psutil
 
 from package_common.common_types import ArrayAny, SharedMemory
 from package_common.default_logger import DefaultLogger
-from package_common.name_utils import create_function_name_logger
+from package_common.utils_name import create_function_name_logger
 
 
 def set_num_threads(num_threads: int) -> None:

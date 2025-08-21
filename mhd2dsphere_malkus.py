@@ -51,8 +51,8 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
                                             create_plotter)
 from package_common.default_timer import DefaultTimer
-from package_common.input_helper import input_value
-from package_common.name_utils import create_function_name_progress_bar
+from package_common.utils_input import input_value
+from package_common.utils_name import create_function_name_progress_bar
 from package_common.progress_bar import ProgressBar
 
 # ========== Parameters ========== #

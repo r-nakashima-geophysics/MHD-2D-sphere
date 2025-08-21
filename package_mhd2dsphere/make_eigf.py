@@ -5,7 +5,7 @@ import math
 
 import numpy as np
 
-from package_common.input_helper import input_value_within
+from package_common.utils_input import input_value_within
 
 logging.basicConfig(level=logging.INFO)
 logger: logging.Logger = logging.getLogger(__name__)
