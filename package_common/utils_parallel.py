@@ -91,8 +91,8 @@ def create_shared_arrays(*arrays) \
 
     Warnings
     --------
-    Invalid argument
-        If the arguments are invalid.
+    Invalid type of the argument
+        If the argument is not a np.ndarray.
 
     Examples
     --------
@@ -110,7 +110,7 @@ def create_shared_arrays(*arrays) \
     for array in arrays:
 
         if not isinstance(array, np.ndarray):
-            logger.error('Invalid argument')
+            logger.error('Invalid type of the argument')
             sys.exit(1)
 
         shm = shared_memory.SharedMemory(create=True, size=array.nbytes)

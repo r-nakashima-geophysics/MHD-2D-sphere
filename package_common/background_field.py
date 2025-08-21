@@ -86,12 +86,12 @@ class BackgroundField:
 
         Warnings
         --------
-        Invalid input type.
-            If the input is not a float or int.
+        Invalid type of the argument.
+            If the argument is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
-            self.__logger.error('Invalid input type.')
+            self.__logger.error('Invalid type of the argument.')
             sys.exit(1)
 
         return self.value(complex(x, 0)).real
@@ -137,12 +137,12 @@ class BackgroundField:
 
         Warnings
         --------
-        Invalid input type.
-            If the input is not a float or int.
+        Invalid type of the argument.
+            If the argument is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
-            self.__logger.error('Invalid input type.')
+            self.__logger.error('Invalid type of the argument.')
             sys.exit(1)
 
         return self.value_d(complex(x, 0)).real
@@ -189,12 +189,12 @@ class BackgroundField:
 
         Warnings
         --------
-        Invalid input type.
-            If the input is not a float or int.
+        Invalid type of the argument.
+            If the argument is not a float or int.
         """
 
         if not isinstance(x, (float, int)):
-            self.__logger.error('Invalid input type.')
+            self.__logger.error('Invalid type of the argument.')
             sys.exit(1)
 
         return self.value_d2(complex(x, 0)).real

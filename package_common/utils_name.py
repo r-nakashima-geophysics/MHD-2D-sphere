@@ -24,8 +24,8 @@ def get_current_function_name(frame: Optional[FrameType] = None) -> str:
 
     Warning
     -------
-    Invalid input type.
-        If the input is not a FrameType.
+    Invalid type of the argument.
+        If the argument is not a FrameType.
 
     Notes
     -----
@@ -53,7 +53,7 @@ def get_current_function_name(frame: Optional[FrameType] = None) -> str:
     del this_frame
     logger: DefaultLogger = DefaultLogger(this_name)
     if not isinstance(frame, FrameType):
-        logger.warning('Invalid input type')
+        logger.warning('Invalid type of the argument')
         sys.exit(1)
 
     function_name: str = 'Unknown'
