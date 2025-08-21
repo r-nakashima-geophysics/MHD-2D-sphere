@@ -88,7 +88,9 @@ class ProgressBar:
             self.__logger.warning('Invalid argument')
             sys.exit(1)
 
-        if (i_calc+1) % num_process == 0:
+        if ((i_calc+1) % num_process == 0) \
+                or (i_calc + 1 == self.__num_calc):
+
             lap_time: Optional[float] = self.__timer.lap()
             if lap_time is None:
                 self.__logger.warning(
