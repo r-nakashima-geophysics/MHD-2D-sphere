@@ -30,7 +30,7 @@ References
 magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
 I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388 
+doi: 10.1080/03091929.2024.2384388
 
 [2] Ryosuke Nakashima (in prep.)
 
@@ -54,13 +54,13 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
                                          Final, SharedMemory)
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
-from package_common.input_helper import input_value
-from package_common.name_utils import create_function_name_progress_bar
-from package_common.parallel_utils import (attach_shared_arrays,
+from package_common.progress_bar import ProgressBar
+from package_common.utils_input import input_value
+from package_common.utils_name import create_function_name_progress_bar
+from package_common.utils_parallel import (attach_shared_arrays,
                                            create_shared_arrays,
                                            detach_shared_arrays,
                                            set_num_process, set_num_threads)
-from package_common.progress_bar import ProgressBar
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.solve_eig import solve_eig
@@ -121,6 +121,12 @@ NUM_THREADS: Final[int] = 1
 
 # ================================
 
+BG_FIELD: dict[str, BackgroundField | bool] = {
+    'B': BG_FIELD_B,
+    'U': BG_FIELD_U,
+    'NY24': SWITCH_NY24
+}
+
 CRITERION_C: dict[str, int | float] = {
     'degree': N_C,
     'ratio': R_C
@@ -165,12 +171,10 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                        ArrayFloat,
                        ArrayFloat,
                        ArrayFloat] \
-        = create_submat(M_ORDER, SIZE_SUBMAT, switch_ny24=SWITCH_NY24)
+        = create_submat(M_ORDER, SIZE_SUBMAT,
+                        background_field=BG_FIELD)
 
-    shared_memories: tuple[SharedMemory,
-                           SharedMemory,
-                           SharedMemory,
-                           SharedMemory]
+    shared_memories: tuple[SharedMemory, ...]
     shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
     shared_memories, shared_info = create_shared_arrays(*submatrices)
 
@@ -295,13 +299,14 @@ def worker(args: tuple[float,
                        ArrayFloat]
     shared_memories, submatrices = attach_shared_arrays(shared_info)
 
-    mat = create_mat(M_ORDER, E_ETA, submatrices, alpha,
-                     switch_ny24=SWITCH_NY24)
+    mat = create_mat(M_ORDER, alpha, E_ETA, submatrices,
+                     background_field=BG_FIELD)
 
     detach_shared_arrays(*shared_memories)
 
-    return solve_eig(M_ORDER, E_ETA, CRITERION_C, alpha, mat,
-                     switch_ny24=SWITCH_NY24)
+    return solve_eig(M_ORDER, alpha, E_ETA, mat,
+                     criterion_c=CRITERION_C,
+                     background_field=BG_FIELD)
 
 
 def save_results(results: tuple[ArrayComplex,

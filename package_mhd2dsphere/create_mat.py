@@ -23,6 +23,7 @@ from package_common.utils_debug import under_construction_log
 
 def create_submat(m_order: int,
                   size_submat: int,
+                  *,
                   background_field: dict[str, BackgroundField | bool]) \
     -> tuple[ArrayFloat,
              ArrayFloat,
@@ -114,6 +115,7 @@ def create_mat(m_order: int,
                                   ArrayFloat,
                                   ArrayFloat,
                                   ArrayFloat],
+               *,
                background_field: dict[str, BackgroundField | bool]) \
         -> ArrayFloat | ArrayComplex:
     """Make the total matrix.
