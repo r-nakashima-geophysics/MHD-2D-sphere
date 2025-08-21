@@ -3,9 +3,8 @@
 import inspect
 import logging
 import sys
-from types import FrameType
 
-from package_common.common_types import Optional
+from package_common.common_types import FrameType, Optional
 from package_common.default_logger import DefaultLogger
 from package_common.progress_bar import ProgressBar
 
@@ -85,8 +84,8 @@ def create_function_name_logger(level: int | str = logging.DEBUG) \
     """
 
     frame: Optional[FrameType] = inspect.currentframe()
-
     function_name: str = get_current_function_name(frame)
+    del frame
 
     return DefaultLogger(function_name, level=level)
 
@@ -111,7 +110,7 @@ def create_function_name_progress_bar(num_calc: int) \
     """
 
     frame: Optional[FrameType] = inspect.currentframe()
-
     function_name: str = get_current_function_name(frame)
+    del frame
 
     return ProgressBar(function_name, num_calc)
