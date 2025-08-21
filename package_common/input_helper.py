@@ -2,15 +2,14 @@
 
 import sys
 
-from package_common.common_types import Callable, TypeVar
+from package_common.common_types import Callable, TypeVarIntFloat
 from package_common.default_logger import DefaultLogger
 from package_common.name_utils import create_function_name_logger
 
-T = TypeVar('T', int, float)
 
-
-def input_value(default: T,
-                cast: Callable[[str], T]) -> T:
+def input_value(default: TypeVarIntFloat,
+                cast: Callable[[str], TypeVarIntFloat]) \
+        -> TypeVarIntFloat:
     """Input a value from the command line or use a default value.
 
     When there is a command line argument, it overrides the default
@@ -18,14 +17,14 @@ def input_value(default: T,
 
     Parameters
     ----------
-    default : T
+    default : TypeVarIntFloat
         The default value.
-    cast : Callable[[str], T]
+    cast : Callable[[str], TypeVarIntFloat]
         A function to cast the command line argument.
 
     Returns
     -------
-    T
+    TypeVarIntFloat
         The command line argument or the default value.
 
     Warnings
@@ -63,23 +62,24 @@ def input_value(default: T,
     return default
 
 
-def input_value_within(min_value: T,
-                       max_value: T,
-                       cast: Callable[[str], T]) -> T:
+def input_value_within(min_value: TypeVarIntFloat,
+                       max_value: TypeVarIntFloat,
+                       cast: Callable[[str], TypeVarIntFloat]) \
+        -> TypeVarIntFloat:
     """Input a value within a specified range from the command line.
 
     Parameters
     ----------
-    min_value : T
+    min_value : TypeVarIntFloat
         The minimum value of the specified range.
-    max_value : T
+    max_value : TypeVarIntFloat
         The maximum value of the specified range.
-    cast : Callable[[str], T]
+    cast : Callable[[str], TypeVarIntFloat]
         A function to cast the command line argument.
 
     Returns
     -------
-    chosen_value : T
+    chosen_value : TypeVarIntFloat
         A chosen value within the specified range.
 
     Warnings
@@ -101,7 +101,7 @@ def input_value_within(min_value: T,
     logger: DefaultLogger = create_function_name_logger()
 
     input_str: str
-    chosen_value: T
+    chosen_value: TypeVarIntFloat
     while True:
         input_str = input(
             f'Enter a value in [{min_value}, {max_value}] '

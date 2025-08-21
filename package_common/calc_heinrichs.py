@@ -9,25 +9,23 @@ Corporation, (2001).
 
 from package_common.calc_chebyshev import (chebyshev, chebyshev_d,
                                            chebyshev_d2, chebyshev_d3)
-from package_common.common_types import TypeVar
-
-T = TypeVar('T', float, complex)
+from package_common.common_types import TypeVarFloatComplex
 
 
 def heinrichs(n_degree: int,
-              s_pos: T) -> T:
+              s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the Heinrichs basis at a given point.
 
     Parameters
     ----------
     n_degree : int
         The degree of the Heinrichs basis.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the Heinrichs basis at the point.
 
     Examples
@@ -40,7 +38,7 @@ def heinrichs(n_degree: int,
 
 
 def heinrichs_d(n_degree: int,
-                s_pos: T) -> T:
+                s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the first derivative of the Heinrichs
     basis at a given point.
 
@@ -48,12 +46,12 @@ def heinrichs_d(n_degree: int,
     ----------
     n_degree : int
         The degree of the Heinrichs basis.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the first derivative of the Heinrichs basis at the
         point.
 
@@ -68,7 +66,7 @@ def heinrichs_d(n_degree: int,
 
 
 def heinrichs_d2(n_degree: int,
-                 s_pos: T) -> T:
+                 s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the second derivative of the Heinrichs
     basis at a given point.
 
@@ -76,12 +74,12 @@ def heinrichs_d2(n_degree: int,
     ----------
     n_degree : int
         The degree of the Heinrichs basis.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the second derivative of the Heinrichs basis at the
         point.
 
@@ -97,7 +95,7 @@ def heinrichs_d2(n_degree: int,
 
 
 def heinrichs_d3(n_degree: int,
-                 s_pos: T) -> T:
+                 s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the third derivative of the Heinrichs
     basis at a given point.
 
@@ -105,12 +103,12 @@ def heinrichs_d3(n_degree: int,
     ----------
     n_degree : int
         The degree of the Heinrichs basis.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the third derivative of the Heinrichs basis at the
         point.
 

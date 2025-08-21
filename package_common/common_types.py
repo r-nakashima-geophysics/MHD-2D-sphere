@@ -2,7 +2,7 @@
 
 from multiprocessing import shared_memory
 from types import FrameType
-from typing import Any, Callable, Final, Optional, TypeAlias, TypeVar
+from typing import Callable, Final, Optional, TypeAlias, TypeVar
 
 import numpy as np
 import numpy.typing as npt
@@ -24,3 +24,6 @@ ArrayAny: TypeAlias = npt.NDArray[np.object_]
 ArrayAxes: TypeAlias = npt.NDArray[np.object_]
 
 ComplexFunc: TypeAlias = Callable[[complex], complex]
+
+TypeVarIntFloat = TypeVar('TypeVarIntFloat', int, float)
+TypeVarFloatComplex = TypeVar('TypeVarFloatComplex', float, complex)

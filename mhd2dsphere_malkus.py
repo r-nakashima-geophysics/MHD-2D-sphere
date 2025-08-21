@@ -45,8 +45,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import (Any, ArrayFloat, ArrayInt, Artist,
-                                         Final, Legend)
+from package_common.common_types import (ArrayFloat, ArrayInt, Artist, Final,
+                                         Legend)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
                                             create_plotter)
@@ -375,12 +375,7 @@ def plot_ene(ene: ArrayFloat) -> None:
     handles: list[Artist]
     labels: list[str]
     [handles, labels] = plotter.axes.get_legend_handles_labels()
-    num_labels = len(labels)
-    # Default order: [2, 0, 3, 1], but adjust if fewer labels
-    if num_labels >= 4:
-        order_leg: list[int] = [2, 0, 3, 1]
-    else:
-        order_leg: list[int] = list(range(num_labels))
+    order_leg: list[int] = [2, 0, 3, 1]
     handles = [handles[i_handle] for i_handle in order_leg]
     labels = [labels[i_label] for i_label in order_leg]
     leg: Legend = plotter.axes.legend(
@@ -453,8 +448,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
     plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)
 
-    handles: list[list[Any]] = [[], []]
-    labels: list[list[Any]] = [[], []]
+    handles: list[list[object]] = [[], []]
+    labels: list[list[object]] = [[], []]
 
     [handles[0], labels[0]] \
         = plotter.axes[0].get_legend_handles_labels()

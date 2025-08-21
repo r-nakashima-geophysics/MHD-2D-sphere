@@ -9,25 +9,23 @@ Corporation, (2001).
 
 import numpy as np
 
-from package_common.common_types import TypeVar
-
-T = TypeVar('T', float, complex)
+from package_common.common_types import TypeVarFloatComplex
 
 
 def chebyshev(n_degree: int,
-              s_pos: T) -> T:
+              s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of a Chebyshev polynomial at a given point.
 
     Parameters
     ----------
     n_degree : int
         The degree of the Chebyshev polynomial.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the Chebyshev polynomial at the point.
 
     Examples
@@ -40,7 +38,7 @@ def chebyshev(n_degree: int,
 
 
 def chebyshev_d(n_degree: int,
-                s_pos: T) -> T:
+                s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the first derivative of a Chebyshev
     polynomial at a given point.
 
@@ -48,12 +46,12 @@ def chebyshev_d(n_degree: int,
     ----------
     n_degree : int
         The degree of the Chebyshev polynomial.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the first derivative of the Chebyshev polynomial at
         the point.
 
@@ -63,12 +61,12 @@ def chebyshev_d(n_degree: int,
     4.2423009548996277e-16
     """
 
-    t: T = np.acos(s_pos)
+    t: TypeVarFloatComplex = np.acos(s_pos)
     return n_degree * np.sin(n_degree*t) / np.sin(t)
 
 
 def chebyshev_d2(n_degree: int,
-                 s_pos: T) -> T:
+                 s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the second derivative of a Chebyshev
     polynomial at a given point.
 
@@ -76,12 +74,12 @@ def chebyshev_d2(n_degree: int,
     ----------
     n_degree : int
         The degree of the Chebyshev polynomial.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the second derivative of the Chebyshev polynomial
         at the point.
 
@@ -91,14 +89,14 @@ def chebyshev_d2(n_degree: int,
     12.000000000000002
     """
 
-    t: T = np.acos(s_pos)
+    t: TypeVarFloatComplex = np.acos(s_pos)
     return (-n_degree**2 * np.cos(n_degree*t)
             + chebyshev_d(n_degree, s_pos) * np.cos(t)
             ) / (np.sin(t)**2)
 
 
 def chebyshev_d3(n_degree: int,
-                 s_pos: T) -> T:
+                 s_pos: TypeVarFloatComplex) -> TypeVarFloatComplex:
     """Calculate the value of the third derivative of a Chebyshev
     polynomial at a given point.
 
@@ -106,12 +104,12 @@ def chebyshev_d3(n_degree: int,
     ----------
     n_degree : int
         The degree of the Chebyshev polynomial.
-    s_pos : T
+    s_pos : TypeVarFloatComplex
         The position of the point.
 
     Returns
     -------
-    T
+    TypeVarFloatComplex
         The value of the third derivative of the Chebyshev polynomial at
         the point.
 
@@ -121,7 +119,7 @@ def chebyshev_d3(n_degree: int,
     24.000000000000007
     """
 
-    t: T = np.acos(s_pos)
+    t: TypeVarFloatComplex = np.acos(s_pos)
     return ((1-n_degree**2) * chebyshev_d(n_degree, s_pos)
             + 3 * chebyshev_d2(n_degree, s_pos) * np.cos(t)
             ) / (np.sin(t)**2)
