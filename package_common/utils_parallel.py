@@ -113,8 +113,7 @@ def create_shared_arrays(*arrays) \
             logger.error('Invalid argument')
             sys.exit(1)
 
-        shm = shared_memory.SharedMemory(
-            name=f'{uuid.uuid4().hex}', create=True, size=array.nbytes)
+        shm = shared_memory.SharedMemory(create=True, size=array.nbytes)
         shared_array = np.ndarray(shape=array.shape, dtype=array.dtype,
                                   buffer=shm.buf)
         shared_array[:] = array[:]
