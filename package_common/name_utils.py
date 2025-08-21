@@ -11,7 +11,7 @@ from package_common.progress_bar import ProgressBar
 
 
 def get_current_function_name(frame: Optional[FrameType] = None) -> str:
-    """Get the name of the current function.
+    """Return the name of the current function.
 
     Parameters
     ----------

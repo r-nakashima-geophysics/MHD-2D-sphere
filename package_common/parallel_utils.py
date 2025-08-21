@@ -6,6 +6,7 @@ import uuid
 from multiprocessing import shared_memory
 
 import numpy as np
+import psutil
 
 from package_common.common_types import ArrayAny, SharedMemory
 from package_common.default_logger import DefaultLogger
@@ -43,6 +44,30 @@ def set_num_threads(num_threads: int) -> None:
     os.environ['VECLIB_MAXIMUM_THREADS'] = str(num_threads)
     os.environ['ACCELERATE_NTHREADS'] = str(num_threads)
     os.environ['BLIS_NUM_THREADS'] = str(num_threads)
+
+
+def set_num_process() -> int:
+    """Set the number of processes for multiprocessing.
+
+    Returns
+    -------
+    int
+        The number of processes for multiprocessing.
+    """
+
+    num_process_physical: int | None = psutil.cpu_count(logical=False)
+    num_process_logical: int | None = psutil.cpu_count(logical=True)
+
+    if (num_process_physical is None) or (num_process_logical is None):
+        return 1
+
+    if num_process_physical == 1:
+        return 1
+
+    if num_process_physical == num_process_logical:
+        return num_process_physical - 1
+
+    return num_process_physical
 
 
 def create_shared_arrays(*arrays) \

@@ -70,7 +70,7 @@ class BackgroundField:
 
     def r_value(self,
                 x: float | int) -> float:
-        """Get the value of the background field at a given (real)
+        """Return the value of the background field at a given (real)
         point.
 
         Parameters
@@ -98,7 +98,7 @@ class BackgroundField:
 
     @property
     def value_d(self) -> ComplexFunc:
-        """Get the first derivative of the profile of the background
+        """Return the first derivative of the profile of the background
         field.
 
         Returns
@@ -120,8 +120,8 @@ class BackgroundField:
 
     def r_value_d(self,
                   x: float | int) -> float:
-        """Get the value of the first derivative of the profile of the
-        background field at a given (real) point.
+        """Return the value of the first derivative of the profile of
+        the background field at a given (real) point.
 
         Parameters
         ----------
@@ -149,7 +149,7 @@ class BackgroundField:
 
     @property
     def value_d2(self) -> ComplexFunc:
-        """Get the second derivative of the profile of the background
+        """Return the second derivative of the profile of the background
         field.
 
         Returns
@@ -172,8 +172,8 @@ class BackgroundField:
 
     def r_value_d2(self,
                    x: float | int) -> float:
-        """Get the value of the second derivative of the profile of the
-        background field at a given (real) point.
+        """Return the value of the second derivative of the profile of
+        the background field at a given (real) point.
 
         Parameters
         ----------
