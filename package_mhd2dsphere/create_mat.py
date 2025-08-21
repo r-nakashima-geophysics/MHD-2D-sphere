@@ -1,4 +1,4 @@
-"""A Python module to make the matrices for the eigenvalue problem of
+"""A Python module to create the matrices for the eigenvalue problem of
 two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
 sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
@@ -10,22 +10,24 @@ magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
 I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
+
 [2] Ryosuke Nakashima (in prep.)
 """
 
 import numpy as np
 
 from package_common.common_types import ArrayComplex, ArrayFloat
+from package_common.debug_utils import under_construction_log
 
 
-def make_submat(m_order: int,
-                size_submat: int,
-                /,
-                switch_ny24: bool = False) -> tuple[ArrayFloat,
-                                                    ArrayFloat,
-                                                    ArrayFloat,
-                                                    ArrayFloat]:
-    """Make the submatrices.
+def create_submat(m_order: int,
+                  size_submat: int,
+                  /,
+                  switch_ny24: bool = False) -> tuple[ArrayFloat,
+                                                      ArrayFloat,
+                                                      ArrayFloat,
+                                                      ArrayFloat]:
+    """Create the submatrices.
 
     Parameters
     ----------
@@ -38,7 +40,7 @@ def make_submat(m_order: int,
         Yoshida (2024)[1]_ or not.
 
     Returns
-    ----------
+    -------
     submat_11 : ArrayFloat
         The (1,1)th block matrix.
     submat_12 : ArrayFloat
@@ -49,26 +51,32 @@ def make_submat(m_order: int,
         The (2,2)th block matrix.
 
     Notes
-    ----------
+    -----
     This function is based on eq. (22) in Nakashima & Yoshida
     (2024)[1]_.
     """
 
+    submat_11: ArrayFloat
+    submat_12: ArrayFloat
+    submat_21: ArrayFloat
+    submat_22: ArrayFloat
+
     if switch_ny24:
         n_t: int = size_submat + m_order - 1
-        lin_n: ArrayFloat = np.linspace(m_order, n_t, size_submat)
+        lin_n: ArrayFloat = np.linspace(
+            m_order, n_t, size_submat, dtype=np.float64)
 
-        knm: ArrayFloat = np.sqrt(
-            (lin_n-m_order) * (lin_n+m_order) / ((2*lin_n-1)*(2*lin_n+1)))
+        knm: ArrayFloat = np.sqrt((lin_n-m_order) * (lin_n+m_order)
+                                  / ((2*lin_n-1)*(2*lin_n+1)))
 
-        submat_11: ArrayFloat \
-            = np.zeros((size_submat, size_submat), dtype=np.float64)
+        submat_11 = np.zeros(
+            (size_submat, size_submat), dtype=np.float64)
         for i_submat in range(size_submat):
             submat_11[i_submat, i_submat] \
                 = 1 / ((m_order+i_submat)*(m_order+1+i_submat))
 
-        submat_12: ArrayFloat \
-            = np.zeros((size_submat, size_submat), dtype=np.float64)
+        submat_12 = np.zeros(
+            (size_submat, size_submat), dtype=np.float64)
         for i_submat in range(size_submat-1):
             submat_12[i_submat, i_submat+1] \
                 = (m_order-1+i_submat) * (m_order+4+i_submat) \
@@ -79,32 +87,32 @@ def make_submat(m_order: int,
                 * knm[1+i_submat] \
                 / ((m_order+1+i_submat)*(m_order+2+i_submat))
 
-        submat_21: ArrayFloat \
-            = np.zeros((size_submat, size_submat), dtype=np.float64)
+        submat_21 = np.zeros(
+            (size_submat, size_submat), dtype=np.float64)
         for i_submat in range(size_submat-1):
             submat_21[i_submat, i_submat+1] = knm[1+i_submat]
             submat_21[i_submat+1, i_submat] = knm[1+i_submat]
 
-        submat_22: ArrayFloat \
-            = np.zeros((size_submat, size_submat), dtype=np.float64)
+        submat_22 = np.zeros(
+            (size_submat, size_submat), dtype=np.float64)
         for i_submat in range(size_submat):
             submat_22[i_submat, i_submat] \
                 = (m_order+i_submat) * (m_order+1+i_submat)
-
-        return submat_11, submat_12, submat_21, submat_22
     else:
-        return None, None, None, None  # under construction
+        under_construction_log()
+
+    return submat_11, submat_12, submat_21, submat_22
 
 
-def make_mat(m_order: int,
-             e_eta: float,
-             submatrices: tuple[ArrayFloat,
-                                ArrayFloat,
-                                ArrayFloat,
-                                ArrayFloat],
-             alpha: float,
-             /,
-             switch_ny24: bool = False) -> ArrayFloat | ArrayComplex:
+def create_mat(m_order: int,
+               e_eta: float,
+               submatrices: tuple[ArrayFloat,
+                                  ArrayFloat,
+                                  ArrayFloat,
+                                  ArrayFloat],
+               alpha: float,
+               /,
+               switch_ny24: bool = False) -> ArrayFloat | ArrayComplex:
     """Make the total matrix.
 
     Parameters
@@ -122,12 +130,12 @@ def make_mat(m_order: int,
         Yoshida (2024)[1]_ or not.
 
     Returns
-    ----------
+    -------
     mat: ArrayFloat | ArrayComplex
         The total matrix.
 
     Notes
-    ----------
+    -----
     This function is based on eq. (22) in Nakashima & Yoshida
     (2024)[1]_.
     """
@@ -157,9 +165,9 @@ def make_mat(m_order: int,
         mat[1*size_submat:2*size_submat, 0*size_submat:1*size_submat] \
             = -m_order * alpha * submat_21
         if e_eta != 0:
-            mat[1*size_submat:2*size_submat, 1*size_submat:2*size_submat] \
-                = -1j * e_eta * submat_22
+            mat[1*size_submat:2*size_submat,
+                1*size_submat:2*size_submat] = -1j * e_eta * submat_22
     else:
-        mat = None  # under construction
+        under_construction_log()
 
     return mat
