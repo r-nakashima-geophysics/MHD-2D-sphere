@@ -94,12 +94,12 @@ def screening_eig(matrix_eig: ArrayComplex,
     size_mat: int = matrix_eig.shape[1]
 
     if (matrix_eig.shape[0] != size_mat + 1) \
-            or (check.shape[1] != size_mat):
+            or (check.shape[0] != size_mat):
         logger.error('Invalid shape of the input arrays')
         sys.exit(1)
 
     for phys_qty in phys_qtys:
-        if phys_qty.shape[1] != size_mat:
+        if phys_qty.shape[0] != size_mat:
             logger.error('Invalid shape of the input arrays')
             sys.exit(1)
 
