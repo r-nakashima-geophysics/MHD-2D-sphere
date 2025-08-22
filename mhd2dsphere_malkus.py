@@ -45,15 +45,14 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import (ArrayFloat, ArrayInt, Artist, Final,
-                                         Legend)
+from package_common.common_types import ArrayFloat, ArrayInt, Artist, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
                                             create_plotter)
 from package_common.default_timer import DefaultTimer
+from package_common.progress_bar import ProgressBar
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
-from package_common.progress_bar import ProgressBar
 
 # ========== Parameters ========== #
 
@@ -305,17 +304,15 @@ def plot_eig(eig: ArrayFloat) -> None:
     order_leg: list[int] = [3, 1, 2, 0]
     handles = [handles[i_handle] for i_handle in order_leg]
     labels = [labels[i_label] for i_label in order_leg]
-    leg: Legend
+
     if M_ORDER >= 3:
-        leg = plotter.axes.legend(
+        plotter.leg = plotter.axes.legend(
             handles=handles, labels=labels, loc='center right',
             fontsize=14)
     else:
-        leg = plotter.axes.legend(
+        plotter.leg = plotter.axes.legend(
             handles=handles, labels=labels, loc='lower left',
             fontsize=14)
-
-    leg.get_frame().set_alpha(1)
 
     plotter.axes.tick_params(labelsize=14)
 
@@ -378,10 +375,10 @@ def plot_ene(ene: ArrayFloat) -> None:
     order_leg: list[int] = [2, 0, 3, 1]
     handles = [handles[i_handle] for i_handle in order_leg]
     labels = [labels[i_label] for i_label in order_leg]
-    leg: Legend = plotter.axes.legend(
+
+    plotter.leg = plotter.axes.legend(
         handles=handles, labels=labels,
         loc='upper right', fontsize=12, bbox_to_anchor=(1.1, 1))
-    leg.get_frame().set_alpha(1)
 
     plotter.axes.tick_params(labelsize=13)
 
@@ -448,22 +445,20 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
     plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)
 
-    handles: list[list[object]] = [[], []]
-    labels: list[list[object]] = [[], []]
+    handles: list[list[Artist]] = [[], []]
+    labels: list[list[str]] = [[], []]
 
     [handles[0], labels[0]] \
         = plotter.axes[0].get_legend_handles_labels()
-    leg1: Legend = plotter.axes[0].legend(
+    plotter.leg[0] = plotter.axes[0].legend(
         handles=handles[0][::-1], labels=labels[0][::-1],
         loc='lower right', fontsize=14)
-    leg1.get_frame().set_alpha(1)
 
     [handles[1], labels[1]] \
         = plotter.axes[1].get_legend_handles_labels()
-    leg2: Legend = plotter.axes[1].legend(
+    plotter.leg[1] = plotter.axes[1].legend(
         handles=handles[1][::-1], labels=labels[1][::-1],
         loc='lower right', fontsize=14)
-    leg2.get_frame().set_alpha(1)
 
     plotter.axes[0].tick_params(labelsize=13)
     plotter.axes[1].tick_params(labelsize=13)
