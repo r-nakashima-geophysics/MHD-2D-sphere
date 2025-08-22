@@ -8,16 +8,17 @@ from typing import Literal, overload
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
-from matplotlib import artist, axes, collections, figure, legend
+from matplotlib import axes, collections, colorbar, figure, legend
 
 type Figure = figure.Figure
 type Axes = axes.Axes
-type Artist = artist.Artist
 type Legend = legend.Legend
-type Collection = collections.Collection
+type PathCollection = collections.PathCollection
+type Colorbar = colorbar.Colorbar
 
 type ArrayAxes = npt.NDArray[np.object_]
 type ArrayLegend = npt.NDArray[np.object_]
+type ArrayPathCollection = npt.NDArray[np.object_]
 
 
 class DefaultPlotter:
@@ -31,6 +32,8 @@ class DefaultPlotter:
         The instance of the Axes class.
     leg : Legend | None
         The instance of the Legend class.
+    sc : PathCollection | None
+        The instance of the PathCollection class.
 
     Examples
     --------
@@ -38,6 +41,7 @@ class DefaultPlotter:
     >>> y = [3, 4]
     >>> plotter = DefaultPlotter()
     >>> plotter.axes.plot(x, y)
+    >>> plotter.tight_layout()
     >>> plotter.save(Path('.'), 'plot.png', dpi=300)
     """
 
@@ -51,19 +55,25 @@ class DefaultPlotter:
             Keyword variadic arguments.
         """
 
+        DefaultPlotter.set_latex()
+
         self.fig: Figure
         self.axes: Axes
         self.fig, self.axes = plt.subplots(1, 1, **kwargs)
 
         self.leg: Legend | None = None
+        self.sc: PathCollection | None = None
 
         self.axes.grid()
+        self.axes.set_axisbelow(True)
         self.axes.minorticks_on()
 
     def save(self,
              path_dir: Path,
              filename: str,
-             dpi: int = 300) -> None:
+             dpi: int = 300,
+             /,
+             switch_tight_layout: bool = True) -> None:
         """Save the figure.
 
         Parameters
@@ -74,6 +84,9 @@ class DefaultPlotter:
             The filename of the figure.
         dpi : int, optional, default 300
             The resolution of the figure.
+        switch_tight_layout : bool, optional, default True
+            The boolean value to switch whether to use tight layout or
+            not.
         """
 
         if not isinstance(self.leg, np.ndarray):
@@ -84,11 +97,17 @@ class DefaultPlotter:
                 if leg is not None:
                     leg.get_frame().set_alpha(1)
 
-        self.fig.tight_layout()
+        if switch_tight_layout:
+            self.fig.tight_layout()
 
         os.makedirs(path_dir, exist_ok=True)
         path_fig: Path = path_dir / filename
         self.fig.savefig(path_fig, dpi=dpi)
+
+    def tight_layout(self) -> None:
+        """Adjust the padding of the figure."""
+
+        self.fig.tight_layout()
 
     @classmethod
     def set_latex(cls) -> None:
@@ -112,6 +131,7 @@ class DefaultGridPlotter(DefaultPlotter):
         The instance of the Axes class or the array of them.
     leg : Legend | ArrayLegend | None
         The instance of the Legend class or the array of them.
+
 
     Examples
     --------
@@ -139,6 +159,8 @@ class DefaultGridPlotter(DefaultPlotter):
             Keyword variadic arguments.
         """
 
+        DefaultPlotter.set_latex()
+
         if (nrows == 1) and (ncols == 1):
             super().__init__(**kwargs)
             return
@@ -148,6 +170,8 @@ class DefaultGridPlotter(DefaultPlotter):
         self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
 
         self.leg: ArrayLegend \
+            = np.full(nrows*ncols, None, dtype=np.object_)
+        self.sc: ArrayPathCollection \
             = np.full(nrows*ncols, None, dtype=np.object_)
 
         if (nrows == 1) or (ncols == 1):
@@ -199,8 +223,6 @@ def create_plotter(nrows: int = 1,
         The instance of the DefaultPlotter class or DefaultGridPlotter
         class.
     """
-
-    DefaultPlotter.set_latex()
 
     if (nrows == 1) and (ncols == 1):
         return DefaultPlotter(**kwargs)
