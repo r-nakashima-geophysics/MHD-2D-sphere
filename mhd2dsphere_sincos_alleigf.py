@@ -40,8 +40,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from package_common.utils_input import input_value
-from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import make_eigf
+from package_mhd2dsphere.make_legendre import load_legendre
 from package_mhd2dsphere.processing_results import screening_eig_q
 from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
@@ -303,7 +303,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
             plot_fig2 = True
             save_fig2 = True
 
-        if sym[i_mode] == 'sinuous':
+        if (sym[i_mode] == 'sinuous') or (sym[i_mode] == 's'):
             ax1[0, 0].scatter(
                 ones_lambda, LIN_THETA, s=0.001, c=psi[0],
                 cmap='Purples', vmin=cmap_min, vmax=cmap_max)
@@ -318,7 +318,7 @@ def plot_alleigf(bundle: tuple[np.ndarray, np.ndarray,
                     ones_lambda, LIN_THETA, s=0.001, c=vpa[1],
                     cmap='Purples', vmin=cmap_min, vmax=cmap_max)
 
-        elif sym[i_mode] == 'varicose':
+        elif (sym[i_mode] == 'varicose') or (sym[i_mode] == 'v'):
             ax1[1, 0].scatter(
                 ones_lambda, LIN_THETA, s=0.001, c=psi[0],
                 cmap='Purples', vmin=cmap_min, vmax=cmap_max)

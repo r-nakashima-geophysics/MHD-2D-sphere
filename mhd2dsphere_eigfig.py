@@ -1,18 +1,19 @@
-"""A code for 2D MHD waves on a rotating sphere under the non-Malkus
-field B_phi = B_0 sin(theta) cos(theta)
+"""A Python script to plot the dispersion diagram of
+two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
+sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta).
 
-Plots 1-4 figures (linear-linear and log-log / black, energy
-partitioning, and ohmic dissipation) concerning the dispersion relation
-for 2D MHD waves on a rotating sphere under the non-Malkus field B_phi =
-B_0 sin(theta) cos(theta).
+This script can create up to four figures: linear-linear and log-log
+plots of the dispersion relation with some coloring based on black or
+physical quantity (energy partitioning or ohmic dissipation).
 
 Parameters
 ----------
 M_ORDER : int
-    The zonal wavenumber (order)
+    The zonal wavenumber (order).
 
-Raises
-----------
+Warnings
+--------
 No plotted figures
     If all of the boolean values to switch whether to plot figures or
     not are False.
@@ -23,10 +24,10 @@ Meaningless figures are plotted
     case.
 
 Notes
-----------
-Parameters other than command line arguments are described below. You
-must run mhd2dsphere_sincos.py with the same parameters before executing
-this code.
+-----
+All other parameters aside from command line arguments are described
+within the script. Before executing this code, mhd2dsphere_eig.py with
+the same parameters must be run.
 
 References
 ----------
@@ -36,46 +37,56 @@ I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
+[2] Ryosuke Nakashima (in prep.)
+
 Examples
-----------
-In the below example, M_ORDER will be set to the default value.
-    python3 mhd2dsphere_sincos_fig.py
-In the below example, M_ORDER will be set to 2.
-    python3 mhd2dsphere_sincos_fig.py 2
+--------
+Run the script with the default value of M_ORDER:
+    python3 mhd2dsphere_eigfig.py
+Run the script with a specified value (say M_ORDER = 2):
+    python3 mhd2dsphere_eigfig.py 2
 """
 
-import logging
 import math
 import os
 import sys
 from pathlib import Path
-from time import perf_counter
-from typing import Final
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+from package_common.background_field import BackgroundField
+from package_common.common_types import ArrayFloat, Final
+from package_common.default_logger import DefaultLogger
+from package_common.default_plotter import DefaultGridPlotter, create_plotter
+from package_common.default_timer import DefaultTimer
 from package_common.utils_input import input_value
+from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
+from package_mhd2dsphere.typed_dict import DictBackgroundField, DictFileInfo
 
-# ========== Parameters ==========
+# ========== Parameters ========== #
 
 # The boolean values to switch whether to plot figures or not
-# 0: dispersion relation (linear-linear)
-# 1: dispersion relation (log-log)
+# SWITCH_PLOT[0]: The dispersion diagram for the linear-linear plot
+# SWITCH_PLOT[1]: The dispersion diagram for the log-log plot
 SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
 
-# The rule of the coloring of plots
-# black ('blk')
-# energy partitioning ('ene')
-# ohmic dissipation ('ohm')
-SWITCH_COLOR: Final[str] = 'ene'
+# The coloring rule
+# SWITCH_COLOR == 'blk': black
+# SWITCH_COLOR == 'ene': energy partitioning
+# SWITCH_COLOR == 'ohm': ohmic dissipation
+SWITCH_COLOR: Final[str] = 'blk'
 
-# The boolean value to switch whether to display the value of the
-# magnetic Ekman number or not when E_ETA = 0
-SWITCH_DISP_ETA: Final[bool] = False
+# Background field
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
+BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
+# The boolean value to switch whether to follow Nakashima & Yoshida
+# (2024)[1]_ or not
+# If SWITCH_NY24 is True, BG_FIELD_B and BG_FIELD_U are ignored.
+SWITCH_NY24: Final[bool] = True
 
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
@@ -84,9 +95,9 @@ M_ORDER: Final[int] = input_value(1, int)
 E_ETA: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 2000
+N_T: Final[int] = 500
 
-# A criterion for plotting eigenvalues based on the Q value
+# The criterion for plotting, which is based on the quality factor
 CRITERION_Q: Final[float] = 0
 
 # The range of eigenvalues
@@ -99,19 +110,46 @@ EIG_RE_LOG_END: Final[float] = 2
 # log, imaginary part
 EIG_IM_LOG_MIN: Final[float] = -6
 
+# The paths and filenames of inputs
+PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
+NAME_FILE: Final[str] \
+    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    if SWITCH_NY24 \
+    else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
+NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
+
 # The paths and filenames of outputs
-PATH_DIR_FIG: Final[Path] \
-    = Path('.') / 'fig' / 'MHD2Dsphere_sincos_fig'
+PATH_DIR_FIG: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_eigfig'
 NAME_FIG: Final[str] \
-    = f'MHD2Dsphere_sincos_fig_m{M_ORDER}E{E_ETA}N{N_T}'
+    = f'MHD2Dsphere_eigfig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    if SWITCH_NY24 \
+    else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
 NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
 NAME_FIG_SUFFIX_2: Final[tuple[str, str, str]] \
-    = ('_eig', '_eigene', '_eigohm')
-NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('R.png', 'I.png')
-NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('logR.png', 'logI.png')
+    = ('_blk', '_ene', '_ohm')
+NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('_R.png', '_I.png')
+NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('_logR.png', '_logI.png')
 FIG_DPI: Final[int] = 600
 
-# ================================
+# The boolean value to switch whether to display the value of the
+# magnetic Ekman number or not when E_ETA = 0
+SWITCH_DISP_ETA: Final[bool] = False
+
+# ================================ #
+
+BG_FIELD: Final[DictBackgroundField] = {
+    'B': BG_FIELD_B,
+    'U': BG_FIELD_U,
+    'NY24': SWITCH_NY24
+}
+
+INFO_INPUT: Final[DictFileInfo] = {
+    'path_dir': PATH_DIR,
+    'name_file': NAME_FILE,
+    'name_file_suffix': NAME_FILE_SUFFIX
+}
 
 SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
@@ -121,7 +159,7 @@ STRETCH_ATAN: Final[float] = 10
 COLOR_TICKS: Final[list[float]] = [
     -0.5, -0.2, -0.1, -0.05, -0.02, 0,
     0.02, 0.05, 0.1, 0.2, 0.5]
-COLOR_TICKS_ATAN: Final[np.ndarray] \
+COLOR_TICKS_ATAN: Final[ArrayFloat] \
     = np.arctan([i_ticks*STRETCH_ATAN for i_ticks in COLOR_TICKS])
 
 CBAR_LABEL: str = str()
@@ -129,7 +167,6 @@ if SWITCH_COLOR == 'ene':
     CBAR_LABEL = 'mean kinetic energy'
 elif SWITCH_COLOR == 'ohm':
     CBAR_LABEL = 'ohmic dissipation'
-#
 
 MASK_Y1: Final[float] = 10**EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
@@ -278,12 +315,12 @@ def wrapper_plot_eig(
     elif SWITCH_COLOR == 'ohm':
         name_fig_full += NAME_FIG_SUFFIX_2[2]
 
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
+    os.makedirs(PATH_DIR, exist_ok=True)
 
     name_fig_full_list: list[str] \
         = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
     path_fig: list[Path] \
-        = [PATH_DIR_FIG / name for name in name_fig_full_list]
+        = [PATH_DIR / name for name in name_fig_full_list]
 
     fig1.savefig(path_fig[0], dpi=FIG_DPI)
     if save_fig & {1, 2}:
@@ -672,10 +709,11 @@ def wrapper_plot_eig_log(
             cbar2 = fig2.colorbar(sc2[3], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
 
-    ax1[0, 1].scatter(0.013, 0.00012, s=50, c='white', marker='*',
-                      linewidth=0.5, edgecolors="black")
-    ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
-                      linewidth=0.5, edgecolors="black")
+    # For Fig. 6 in Nakashima and Yoshida (2024)
+    # ax1[0, 1].scatter(0.013, 0.00012, s=50, c='white', marker='*',
+    #                   linewidth=0.5, edgecolors="black")
+    # ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
+    #                   linewidth=0.5, edgecolors="black")
 
     name_fig_full: str
 
@@ -691,12 +729,12 @@ def wrapper_plot_eig_log(
     elif SWITCH_COLOR == 'ohm':
         name_fig_full += NAME_FIG_SUFFIX_2[2]
 
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
+    os.makedirs(PATH_DIR, exist_ok=True)
 
     name_fig_full_list: list[str] \
         = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
     path_fig: list[Path] \
-        = [PATH_DIR_FIG / name for name in name_fig_full_list]
+        = [PATH_DIR / name for name in name_fig_full_list]
 
     fig1.savefig(path_fig[0], dpi=FIG_DPI)
     if save_fig & {1, 2, 3, 4}:
@@ -953,31 +991,29 @@ def plot_eig_log(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
 
 
 if __name__ == '__main__':
-    TIME_INIT: Final[float] = perf_counter()
+    timer: DefaultTimer = DefaultTimer(__name__)
+    timer.start()
 
-    logging.basicConfig(level=logging.INFO)
-    logger: logging.Logger = logging.getLogger(__name__)
+    logger: DefaultLogger = DefaultLogger(__name__)
 
     if True not in SWITCH_PLOT:
         logger.info('No plotted figures')
-        sys.exit()
+        sys.exit(0)
 
     if SWITCH_COLOR not in ('blk', 'ene', 'ohm'):
-        logger.warning('Invalid value for \'SWITCH_COLOR\'')
-        sys.exit()
+        logger.error('Invalid value for \'SWITCH_COLOR\'')
+        sys.exit(1)
 
     if (E_ETA == 0) and (SWITCH_COLOR == 'ohm'):
         logger.warning('Meaningless figures are plotted')
-        sys.exit()
+        sys.exit(1)
 
     results: tuple[np.ndarray, np.ndarray, np.ndarray,
                    np.ndarray, np.ndarray, np.ndarray]
     results_log: tuple[np.ndarray, np.ndarray, np.ndarray,
                        np.ndarray, np.ndarray, np.ndarray]
-    results, results_log \
-        = wrapper_load_results(SWITCH_PLOT, M_ORDER, E_ETA, N_T)
-
-    plt.rcParams['text.usetex'] = True
+    results, results_log = wrapper_load_results(
+        SWITCH_PLOT, info_load=INFO_INPUT)
 
     if SWITCH_PLOT[0]:
 
@@ -1007,7 +1043,6 @@ if __name__ == '__main__':
 
         wrapper_plot_eig_log(results_log)
 
-    TIME_ELAPSED: Final[float] = perf_counter() - TIME_INIT
-    print(f'{__name__}: {TIME_ELAPSED:.3f} s')
+    timer.end()
 
     plt.show()

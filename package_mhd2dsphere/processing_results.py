@@ -189,9 +189,9 @@ def sort_sv(sym_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     sinuous = np.full(size_mat, np.nan)
     varicose = np.full(size_mat, np.nan)
     for i_mode in range(size_mat):
-        if sym_alpha[i_mode] == 'sinuous':
+        if (sym_alpha[i_mode] == 'sinuous') or (sym_alpha[i_mode] == 's'):
             sinuous[i_mode] = 1
-        elif sym_alpha[i_mode] == 'varicose':
+        elif (sym_alpha[i_mode] == 'varicose') or (sym_alpha[i_mode] == 'v'):
             varicose[i_mode] = 1
 
     return sinuous, varicose
