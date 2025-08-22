@@ -349,9 +349,9 @@ def save_results(results: tuple[ArrayComplex,
         filename = NAME_FILE + NAME_FILE_SUFFIX[0]
         path_file = PATH_DIR / filename
 
-        np.savez(path_file,
-                 lin_alpha=LIN_ALPHA, eig=eig,
-                 mke=mke, mme=mme, ohm=ohm, sym=sym)
+        np.savez_compressed(path_file,
+                            lin_alpha=LIN_ALPHA, eig=eig,
+                            mke=mke, mme=mme, ohm=ohm, sym=sym)
 
     if results_log is not None:
 
@@ -360,16 +360,16 @@ def save_results(results: tuple[ArrayComplex,
         filename = NAME_FILE + NAME_FILE_SUFFIX[1]
         path_file = PATH_DIR / filename
 
-        np.savez(path_file,
-                 lin_alpha=10**LIN_ALPHA_LOG, eig=eig,
-                 mke=mke, mme=mme, ohm=ohm, sym=sym)
+        np.savez_compressed(path_file,
+                            lin_alpha=10**LIN_ALPHA_LOG, eig=eig,
+                            mke=mke, mme=mme, ohm=ohm, sym=sym)
 
 
 if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
 
-    if True not in SWITCH_CALC:
+    if not any(SWITCH_CALC):
         DefaultLogger(__name__).warning('No saved file')
         sys.exit(0)
 

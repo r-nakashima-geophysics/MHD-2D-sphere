@@ -377,7 +377,7 @@ def check_eig(m_order: int,
 
     check: ArrayBool = np.empty(size_mat, dtype=np.bool_)
     if alpha != 0:
-        check = (low_psi > high_psi*r_c) * (low_a > high_a*r_c)
+        check = (low_psi > high_psi*r_c) & (low_a > high_a*r_c)
     else:
         check = low_psi > high_psi*r_c
 
