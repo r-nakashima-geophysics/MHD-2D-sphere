@@ -22,6 +22,7 @@ from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
 from package_mhd2dsphere.create_mat import create_mat, create_submat
+from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 
 
 def wrapper_solve_eig(
@@ -30,8 +31,8 @@ def wrapper_solve_eig(
     e_eta: float,
     size_submat: int,
     *,
-    criterion_c: dict[str, int | float],
-    background_field: dict[str, BackgroundField | bool]) \
+    criterion_c: DictCriterionC,
+    background_field: DictBackgroundField) \
         -> tuple[ArrayComplex,
                  ArrayComplex,
                  ArrayComplex,
@@ -51,9 +52,9 @@ def wrapper_solve_eig(
         The magnetic Ekman number.
     size_submat : int
         The size of submatrices.
-    criterion_c : dict[str, int | float]
+    criterion_c : DictCriterionC
         The criterion for convergence.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -109,8 +110,8 @@ def solve_eig(m_order: int,
               e_eta: float,
               mat: ArrayFloat | ArrayComplex,
               *,
-              criterion_c: dict[str, int | float],
-              background_field: dict[str, BackgroundField | bool]) \
+              criterion_c: DictCriterionC,
+              background_field: DictBackgroundField) \
         -> tuple[ArrayComplex,
                  tuple[ArrayFloat,
                        ArrayFloat,
@@ -128,9 +129,9 @@ def solve_eig(m_order: int,
         The magnetic Ekman number.
     mat: ArrayComplex
         The total matrix.
-    criterion_c : dict[str, int | float]
+    criterion_c : DictCriterionC
         The criterion for convergence.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -162,11 +163,10 @@ def solve_eig(m_order: int,
 
 
 def normalize_eigvec(
-    m_order: int,
-    eig_valvec: ArrayComplex,
-    *,
-    background_field: dict[str, BackgroundField | bool]) \
-        -> ArrayComplex:
+        m_order: int,
+        eig_valvec: ArrayComplex,
+        *,
+        background_field: DictBackgroundField) -> ArrayComplex:
     """Normalize the eigenvectors.
 
     Parameters
@@ -175,6 +175,8 @@ def normalize_eigvec(
         The zonal wavenumber (order).
     eig_valvec : ArrayComplex
         The matrix storing the eigenvalues and eigenvectors.
+    background_field : DictBackgroundField
+        The background field.
 
     Returns
     -------
@@ -197,7 +199,7 @@ def calc_qty(m_order: int,
              e_eta: float,
              eig_valvec: ArrayComplex,
              *,
-             background_field: dict[str, BackgroundField | bool]) \
+             background_field: DictBackgroundField) \
     -> tuple[ArrayFloat,
              ArrayFloat,
              ArrayFloat,
@@ -212,7 +214,7 @@ def calc_qty(m_order: int,
         The magnetic Ekman number.
     eig_valvec : ArrayComplex
         The matrix storing the eigenvalues and eigenvectors.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -272,7 +274,7 @@ def calc_qty(m_order: int,
 def calc_ene(m_order: int,
              eig_valvec: ArrayComplex,
              *,
-             background_field: dict[str, BackgroundField | bool]) \
+             background_field: DictBackgroundField) \
     -> tuple[ArrayFloat,
              ArrayFloat]:
     """Calculate the mean kinetic and magnetic energies.
@@ -283,7 +285,7 @@ def calc_ene(m_order: int,
         The zonal wavenumber (order).
     eig_valvec : ArrayComplex
         The matrix storing the eigenvalues and eigenvectors.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -326,7 +328,7 @@ def check_eig(m_order: int,
               alpha: float,
               eig_valvec: ArrayComplex,
               *,
-              criterion_c: dict[str, int | float]) -> ArrayBool:
+              criterion_c: DictCriterionC) -> ArrayBool:
     """Check the validity of eigenmodes.
 
     Parameters
@@ -337,7 +339,7 @@ def check_eig(m_order: int,
         The Lehnert number.
     eig_valvec : ArrayComplex
         The matrix storing the eigenvalues and eigenvectors.
-    criterion_c : dict[str, int | float]
+    criterion_c : DictCriterionC
         A criterion for convergence.
 
     Returns

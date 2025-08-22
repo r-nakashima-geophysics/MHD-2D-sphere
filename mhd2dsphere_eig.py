@@ -64,6 +64,7 @@ from package_common.utils_parallel import (attach_shared_arrays,
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.solve_eig import solve_eig
+from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 
 # ========== Parameters ========== #
 
@@ -87,7 +88,7 @@ M_ORDER: Final[int] = input_value(1, int)
 E_ETA: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 2000
+N_T: Final[int] = 500
 
 # The criterion for convergence
 # degree
@@ -119,15 +120,15 @@ NUM_PROCESS: Final[int] = set_num_process()
 # The number of threads for each process
 NUM_THREADS: Final[int] = 1
 
-# ================================
+# ================================ #
 
-BG_FIELD: dict[str, BackgroundField | bool] = {
+BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
     'NY24': SWITCH_NY24
 }
 
-CRITERION_C: dict[str, int | float] = {
+CRITERION_C: Final[DictCriterionC] = {
     'degree': N_C,
     'ratio': R_C
 }
@@ -155,7 +156,7 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                                                  ArrayFloat,
                                                  ArrayFloat,
                                                  ArrayStr] | None]:
-    """Solve the eigenvalue problem for given lists of alpha.
+    """Solve the eigenvalue problem for given sequences of alpha.
 
     Returns
     -------
@@ -319,16 +320,16 @@ def save_results(results: tuple[ArrayComplex,
                                     ArrayFloat,
                                     ArrayFloat,
                                     ArrayStr] | None) -> None:
-    """Save npz files of results.
+    """Save npz files of the results.
 
     Parameters
     ----------
     results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
     ArrayStr] | None
-        The tuple of results (linear-linear).
+        The tuple of the results (linear-linear).
     results_log : tuple[ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr] | None
-        The tuple of results (log-log).
+        The tuple of the results (log-log).
     """
 
     eig: ArrayComplex

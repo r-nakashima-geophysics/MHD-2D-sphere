@@ -19,12 +19,13 @@ import numpy as np
 from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.utils_debug import under_construction_log
+from package_mhd2dsphere.typed_dict import DictBackgroundField
 
 
 def create_submat(m_order: int,
                   size_submat: int,
                   *,
-                  background_field: dict[str, BackgroundField | bool]) \
+                  background_field: DictBackgroundField) \
     -> tuple[ArrayFloat,
              ArrayFloat,
              ArrayFloat,
@@ -37,7 +38,7 @@ def create_submat(m_order: int,
         The zonal wavenumber (order).
     size_submat : int
         The size of submatrices.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -100,8 +101,8 @@ def create_submat(m_order: int,
             submat_22[i_submat, i_submat] \
                 = (m_order+i_submat) * (m_order+1+i_submat)
     else:
-        # bg_field_b = background_field['B']
-        # bg_field_u = background_field['U']
+        # bg_field_b: BackgroundField = background_field['B']
+        # bg_field_u: BackgroundField = background_field['U']
 
         under_construction_log()
 
@@ -116,7 +117,7 @@ def create_mat(m_order: int,
                                   ArrayFloat,
                                   ArrayFloat],
                *,
-               background_field: dict[str, BackgroundField | bool]) \
+               background_field: DictBackgroundField) \
         -> ArrayFloat | ArrayComplex:
     """Make the total matrix.
 
@@ -130,7 +131,7 @@ def create_mat(m_order: int,
         The magnetic Ekman number.
     submatrices : tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayFloat]
         The (1,1)th, (1,2)th, (2,1)th, and (2,2)th block matrices.
-    background_field : dict[str, BackgroundField | bool]
+    background_field : DictBackgroundField
         The background field.
 
     Returns
@@ -172,8 +173,8 @@ def create_mat(m_order: int,
             mat[1*size_submat:2*size_submat,
                 1*size_submat:2*size_submat] = -1j * e_eta * submat_22
     else:
-        # bg_field_b = background_field['B']
-        # bg_field_u = background_field['U']
+        # bg_field_b: BackgroundField = background_field['B']
+        # bg_field_u: BackgroundField = background_field['U']
 
         under_construction_log()
 
