@@ -1,289 +1,307 @@
-"""Processes obtained data"""
+"""A Python module to process obtained data from the eigenvalue problem
+of two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
+sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta).
+"""
 
-import math
 
 import numpy as np
 
+from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
+from package_mhd2dsphere.typed_dict import DictParams
 
-def screening_eig_q(criterion_q: float,
-                    bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
-                                  np.ndarray, np.ndarray, np.ndarray]) \
-        -> tuple[np.ndarray, np.ndarray, np.ndarray,
-                 np.ndarray, np.ndarray, np.ndarray]:
-    """Check the Q-values of eigenmodes
+
+def screening_eig_q(results: tuple[ArrayFloat,
+                                   ArrayComplex,
+                                   ArrayFloat,
+                                   ArrayFloat,
+                                   ArrayFloat,
+                                   ArrayStr],
+                    *,
+                    criterion_q: float) -> tuple[ArrayFloat,
+                                                 ArrayComplex,
+                                                 ArrayFloat,
+                                                 ArrayFloat,
+                                                 ArrayFloat,
+                                                 ArrayStr]:
+    """Check the quality factors of eigenmodes.
 
     Parameters
     ----------
+    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
+    ArrayFloat, ArrayStr]
+        The tuple of results.
     criterion_q : float
-        A criterion for plotted eigenvalues based on the Q value
-    bundle : tuple of ndarray
-        A tuple of results
+        A criterion for plotted eigenvalues based on the quality factor.
 
     Returns
-    ----------
-    bundle : tuple of ndarray
-        A tuple of results
-
+    -------
+    lin_alpha : ArrayFloat
+        The sequence of alpha.
+    eig : ArrayComplex
+        The eigenvalues.
+    mke : ArrayFloat
+        The mean kinetic energy.
+    mme : ArrayFloat
+        The mean magnetic energy.
+    ohm : ArrayFloat
+        The ohmic dissipation.
+    sym : ArrayStr
+        The symmetry of eigenmodes.
     """
 
-    eig: np.ndarray
-    mke: np.ndarray
-    mme: np.ndarray
-    ohm: np.ndarray
-    sym: np.ndarray
-    _, eig, mke, mme, ohm, sym = bundle
+    lin_alpha: ArrayFloat
+    eig: ArrayComplex
+    mke: ArrayFloat
+    mme: ArrayFloat
+    ohm: ArrayFloat
+    sym: ArrayStr
+    lin_alpha, eig, mke, mme, ohm, sym = results
 
-    size_mat: int = eig.shape[1]
-    num_alpha: int
-    _, _, num_alpha, _ = pickup_param(bundle)
+    size_mat: int = len(eig)
 
-    check_q: np.ndarray
+    params: DictParams = pickup_param(results)
+    num_alpha: int = params['num_alpha']
 
+    check_q: ArrayFloat
     for i_alpha in range(num_alpha):
 
-        check_q = np.abs(eig[i_alpha, :].real) \
-            + 2*eig[i_alpha, :].imag*criterion_q
+        check_q = (
+            np.abs(eig[i_alpha, :].real)
+            + 2 * eig[i_alpha, :].imag * criterion_q
+        )
 
         for i_mode in range(size_mat):
             if check_q[i_mode] <= 0:
-                eig[i_alpha, i_mode] = math.nan
-                mke[i_alpha, i_mode] = math.nan
-                mme[i_alpha, i_mode] = math.nan
-                ohm[i_alpha, i_mode] = math.nan
-                sym[i_alpha, i_mode] = None
+                eig[i_alpha, i_mode] = np.nan
+                mke[i_alpha, i_mode] = np.nan
+                mme[i_alpha, i_mode] = np.nan
+                ohm[i_alpha, i_mode] = np.nan
+                sym[i_alpha, i_mode] = np.nan
 
-    bundle = (bundle[0], eig, mke, mme, ohm, sym)
-
-    return bundle
-#
+    return lin_alpha, eig, mke, mme, ohm, sym
 
 
-def pickup_param(bundle: tuple[np.ndarray, np.ndarray, np.ndarray,
-                               np.ndarray, np.ndarray, np.ndarray]) \
-        -> tuple[float, float, int, float]:
-    """Picks up some parameters from results
+def pickup_param(results: tuple[ArrayFloat,
+                                ArrayComplex,
+                                ArrayFloat,
+                                ArrayFloat,
+                                ArrayFloat,
+                                ArrayStr]) -> DictParams:
+    """Pick up some parameters from results.
 
     Parameters
     ----------
-    bundle : tuple of ndarray
-        A tuple of results
+    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
+    ArrayFloat, ArrayStr]
+        The tuple of results.
 
     Returns
-    ----------
-    alpha_init : float
-        The initial value of alpha
-    alpha_end : float
-        The end value of alpha
-    num_alpha : int
-        The number of alpha
-    ohm_max : float
-        The maximum value of the ohmic dissipation
-
+    -------
+    params : DictParams
+        The dictionary of the parameters.
     """
 
-    lin_alpha: np.ndarray
-    ohm: np.ndarray
-    lin_alpha, _, _, _, ohm, _ = bundle
+    lin_alpha: ArrayFloat
+    ohm: ArrayFloat
+    lin_alpha, _, _, _, ohm, _ = results
 
     alpha_init: float = lin_alpha[0]
     alpha_end: float = lin_alpha[-1]
-
     num_alpha: int = len(lin_alpha)
-
     ohm_max: float = np.nanmax(ohm)
 
-    return alpha_init, alpha_end, num_alpha, ohm_max
-#
+    params: DictParams = {
+        'alpha_init': alpha_init,
+        'alpha_end': alpha_end,
+        'num_alpha': num_alpha,
+        'ohm_max': ohm_max
+    }
+
+    return params
 
 
-def pickup_eig(eig_alpha: np.ndarray,
-               mke_alpha: np.ndarray,
-               sym_alpha: np.ndarray) -> dict[str, np.ndarray]:
-    """Picks up eigenvalues of various modes
+def pickup_eig(eig: ArrayComplex,
+               mke: ArrayFloat,
+               sym: ArrayStr) -> dict[str, ArrayComplex]:
+    """Pick up the eigenvalues of various modes.
 
     Parameters
     ----------
-    eig_alpha : ndarray
-        Eigenvalues for a given alpha
-    mke_alpha : ndarray
-        The mean kinetic energy for a given alpha
-    sym_alpha : ndarray
-        The symmetry of eigenmodes for a given alpha
+    eig : ArrayComplex
+        The eigenvalues for a given alpha.
+    mke : ArrayFloat
+        The mean kinetic energies for a given alpha.
+    sym : ArrayStr
+        The symmetry of the eigenmodes for a given alpha.
 
     Returns
-    ----------
-    dict_eig : dict of str and ndarray
-        The dictionary to pick up eigenvalues ofvarious modes
-
+    -------
+    dict_eig : dict[str, ArrayComplex]
+        The dictionary to pick up the eigenvalues of various modes.
     """
 
-    sinuous: np.ndarray
-    varicose: np.ndarray
-    sinuous, varicose = sort_sv(sym_alpha)
+    sinuous: ArrayFloat
+    varicose: ArrayFloat
+    sinuous, varicose = sort_sv(sym)
 
-    prograde: np.ndarray
-    retrograde: np.ndarray
-    prograde, retrograde = sort_pr(eig_alpha)
+    prograde: ArrayFloat
+    retrograde: ArrayFloat
+    prograde, retrograde = sort_pr(eig)
 
-    unstable: np.ndarray = pickup_unstable(eig_alpha)
+    unstable: ArrayFloat = pickup_unstable(eig)
 
-    alfvenic, non_alfvenic = sort_alfvenic(mke_alpha)
+    alfvenic, non_alfvenic = sort_alfvenic(mke)
 
-    dict_eig: dict[str, np.ndarray] = {
-        's': eig_alpha * sinuous,
-        'v': eig_alpha * varicose,
+    dict_eig: dict[str, ArrayComplex] = {
+        's': eig * sinuous,
+        'v': eig * varicose,
 
-        's_u': eig_alpha * sinuous * unstable,
-        'v_u': eig_alpha * varicose * unstable,
+        's_u': eig * sinuous * unstable,
+        'v_u': eig * varicose * unstable,
 
-        's_a': eig_alpha * sinuous * alfvenic,
-        'v_a': eig_alpha * varicose * alfvenic,
+        's_a': eig * sinuous * alfvenic,
+        'v_a': eig * varicose * alfvenic,
 
-        's_na': eig_alpha * sinuous * non_alfvenic,
-        'v_na': eig_alpha * varicose * non_alfvenic,
+        's_na': eig * sinuous * non_alfvenic,
+        'v_na': eig * varicose * non_alfvenic,
 
-        'sr': eig_alpha * sinuous * retrograde,
-        'sp': eig_alpha * sinuous * prograde,
-        'vr': eig_alpha * varicose * retrograde,
-        'vp': eig_alpha * varicose * prograde,
+        'sr': eig * sinuous * retrograde,
+        'sp': eig * sinuous * prograde,
+        'vr': eig * varicose * retrograde,
+        'vp': eig * varicose * prograde,
 
-        'sr_u': eig_alpha * sinuous * retrograde * unstable,
-        'sp_u': eig_alpha * sinuous * prograde * unstable,
-        'vr_u': eig_alpha * varicose * retrograde * unstable,
-        'vp_u': eig_alpha * varicose * prograde * unstable,
+        'sr_u': eig * sinuous * retrograde * unstable,
+        'sp_u': eig * sinuous * prograde * unstable,
+        'vr_u': eig * varicose * retrograde * unstable,
+        'vp_u': eig * varicose * prograde * unstable,
 
-        'sr_a': eig_alpha * sinuous * retrograde * alfvenic,
-        'sp_a': eig_alpha * sinuous * prograde * alfvenic,
-        'vr_a': eig_alpha * varicose * retrograde * alfvenic,
-        'vp_a': eig_alpha * varicose * prograde * alfvenic,
+        'sr_a': eig * sinuous * retrograde * alfvenic,
+        'sp_a': eig * sinuous * prograde * alfvenic,
+        'vr_a': eig * varicose * retrograde * alfvenic,
+        'vp_a': eig * varicose * prograde * alfvenic,
 
-        'sr_na': eig_alpha * sinuous * retrograde * non_alfvenic,
-        'sp_na': eig_alpha * sinuous * prograde * non_alfvenic,
-        'vr_na': eig_alpha * varicose * retrograde * non_alfvenic,
-        'vp_na': eig_alpha * varicose * prograde * non_alfvenic,
+        'sr_na': eig * sinuous * retrograde * non_alfvenic,
+        'sp_na': eig * sinuous * prograde * non_alfvenic,
+        'vr_na': eig * varicose * retrograde * non_alfvenic,
+        'vp_na': eig * varicose * prograde * non_alfvenic,
     }
 
     return dict_eig
-#
 
 
-def sort_sv(sym_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Sorts into sinuous and varicose modes
+def sort_sv(sym: ArrayStr) -> tuple[ArrayFloat,
+                                    ArrayFloat]:
+    """Sort into sinuous and varicose modes.
 
     Parameters
     ----------
-    sym_alpha : ndarray
-        The symmetry of eigenmodes for a given alpha
+    sym : ArrayStr
+        The symmetry of the eigenmodes for a given alpha.
 
     Returns
-    ----------
-    sinuous : ndarray
-        The identifier of sinuous modes
-    varicose : ndarray
-        The identifier of varicose modes
-
+    -------
+    sinuous : ArrayFloat
+        The identifier of sinuous modes.
+    varicose : ArrayFloat
+        The identifier of varicose modes.
     """
 
-    size_mat: int = sym_alpha.shape[0]
+    size_mat: int = len(sym)
 
-    sinuous = np.full(size_mat, np.nan)
-    varicose = np.full(size_mat, np.nan)
+    sinuous: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
+    varicose: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if (sym_alpha[i_mode] == 'sinuous') or (sym_alpha[i_mode] == 's'):
+        if sym[i_mode] in ('sinuous', 's'):
             sinuous[i_mode] = 1
-        elif (sym_alpha[i_mode] == 'varicose') or (sym_alpha[i_mode] == 'v'):
+        elif sym[i_mode] in ('varicose', 'v'):
             varicose[i_mode] = 1
 
     return sinuous, varicose
-#
 
 
-def sort_pr(eig_alpha: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Sorts into prograde and retrograde modes
+def sort_pr(eig: ArrayComplex) -> tuple[ArrayFloat,
+                                        ArrayFloat]:
+    """Sort into prograde and retrograde modes.
 
     Parameters
     ----------
-    eig_alpha : ndarray
+    eig : ArrayComplex
         Eigenvalues for a given alpha
 
     Returns
-    ----------
-    prograde : ndarray
-        The identifier of prograde modes
-    retrograde : ndarray
-        The identifier of retrograde modes
-
+    -------
+    prograde : ArrayFloat
+        The identifier of prograde modes.
+    retrograde : ArrayFloat
+        The identifier of retrograde modes.
     """
 
-    size_mat: int = eig_alpha.shape[0]
+    size_mat: int = len(eig)
 
-    prograde: np.ndarray = np.full(size_mat, np.nan)
-    retrograde: np.ndarray = np.full(size_mat, np.nan)
+    prograde: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
+    retrograde: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if eig_alpha[i_mode].real > 0:
+        if eig[i_mode].real > 0:
             prograde[i_mode] = 1
-        elif eig_alpha[i_mode].real < 0:
+        elif eig[i_mode].real < 0:
             retrograde[i_mode] = 1
 
     return prograde, retrograde
-#
 
 
-def pickup_unstable(eig_alpha: np.ndarray) -> np.ndarray:
+def pickup_unstable(eig: ArrayComplex) -> ArrayFloat:
     """Picks up unstable modes
 
     Parameters
     ----------
-    eig_alpha : ndarray
-        Eigenvalues for a given alpha
+    eig : ArrayComplex
+        The eigenvalues for a given alpha.
 
     Returns
-    ----------
-    unstable : ndarray
-        The identifier of unstable modes
-
+    -------
+    unstable : ArrayFloat
+        The identifier of unstable modes.
     """
 
-    size_mat: int = eig_alpha.shape[0]
+    size_mat: int = len(eig)
 
-    unstable: np.ndarray = np.full(size_mat, np.nan)
+    unstable: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if math.fabs(eig_alpha[i_mode].imag) > 0:
+        if np.abs(eig[i_mode].imag) > 0:
             unstable[i_mode] = 1
 
     return unstable
-#
 
 
-def sort_alfvenic(mke_alpha: np.ndarray) \
-        -> tuple[np.ndarray, np.ndarray]:
-    """Sorts into alfvenic and non-alfvenic modes
+def sort_alfvenic(mke: ArrayFloat) -> tuple[ArrayFloat,
+                                            ArrayFloat]:
+    """Sort into alfvenic and non-alfvenic modes.
 
     Parameters
     ----------
-    mke_alpha : ndarray
-        The mean kinetic energy for a given alpha
+    mke : ArrayFloat
+        The mean kinetic energy for a given alpha.
 
     Returns
     ----------
-    alfvenic : ndarray
-        The identifier of alfvenic modes
-    non_alfvenic : ndarray
+    alfvenic : ArrayFloat
+        The identifier of alfvenic modes.
+    non_alfvenic : ArrayFloat
         The identifier of non-alfvenic modes
-
     """
 
-    size_mat: int = mke_alpha.shape[0]
+    size_mat: int = len(mke)
 
-    alfvenic: np.ndarray = np.full(size_mat, np.nan)
-    non_alfvenic: np.ndarray = np.full(size_mat, np.nan)
+    alfvenic: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
+    non_alfvenic: ArrayFloat \
+        = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if mke_alpha[i_mode] > 0.51:
+        if mke[i_mode] > 0.51:
             non_alfvenic[i_mode] = 1
-        elif mke_alpha[i_mode] < 0.49:
+        elif mke[i_mode] < 0.49:
             non_alfvenic[i_mode] = 1
         else:
             alfvenic[i_mode] = 1
 
     return alfvenic, non_alfvenic
-#

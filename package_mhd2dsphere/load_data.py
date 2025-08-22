@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from package_common.common_types import ArrayFloat, ArrayStr
+from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictFileInfo
@@ -19,13 +19,13 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
                          *,
                          info_load: DictFileInfo) \
     -> tuple[tuple[ArrayFloat,
-                   ArrayFloat,
+                   ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayStr] | None,
              tuple[ArrayFloat,
-                   ArrayFloat,
+                   ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayFloat,
@@ -41,22 +41,22 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
 
     Returns
     -------
-    bundle_all : tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayFloat,
+    data : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr] | None
         The tuple of results (linear-linear).
-    bundle_all_log : tuple[ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayFloat, ArrayStr] | None
+    data_log : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
+    ArrayFloat, ArrayStr] | None
         The tuple of results (log-log).
     """
 
     data: tuple[ArrayFloat,
-                ArrayFloat,
+                ArrayComplex,
                 ArrayFloat,
                 ArrayFloat,
                 ArrayFloat,
                 ArrayStr] | None = None
     data_log: tuple[ArrayFloat,
-                    ArrayFloat,
+                    ArrayComplex,
                     ArrayFloat,
                     ArrayFloat,
                     ArrayFloat,
@@ -77,7 +77,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
             = info_load['name_file'] + info_load['name_file_suffix'][1]
 
         tmp_tuple: tuple[ArrayFloat,
-                         ArrayFloat,
+                         ArrayComplex,
                          ArrayFloat,
                          ArrayFloat,
                          ArrayFloat,
@@ -95,7 +95,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
 def load_results(name_file: str,
                  *,
                  info_load: DictFileInfo) -> tuple[ArrayFloat,
-                                                   ArrayFloat,
+                                                   ArrayComplex,
                                                    ArrayFloat,
                                                    ArrayFloat,
                                                    ArrayFloat,
@@ -113,7 +113,7 @@ def load_results(name_file: str,
     -------
     lin_alpha : ArrayFloat
         The sequence of alpha.
-    eig : ArrayFloat
+    eig : ArrayComplex
         The eigenvalues.
     mke : ArrayFloat
         The mean kinetic energy.
@@ -143,7 +143,7 @@ def load_results(name_file: str,
     npz_kw = np.load(path_file, allow_pickle=True)
 
     lin_alpha: ArrayFloat = npz_kw['lin_alpha']
-    eig: ArrayFloat = npz_kw['eig']
+    eig: ArrayComplex = npz_kw['eig']
     mke: ArrayFloat = npz_kw['mke']
     mme: ArrayFloat = npz_kw['mme']
     ohm: ArrayFloat = npz_kw['ohm']

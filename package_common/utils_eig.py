@@ -31,7 +31,7 @@ def sort_eig(eigenvalues: ArrayComplex,
     >>> matrix_eig = sort_eig(eigenvalues, eigenvectors)
     """
 
-    size_matrix: int = eigenvalues.shape[0]
+    size_matrix: int = len(eigenvalues)
 
     tmp: ArrayComplex = np.empty(
         (2*size_matrix+2, size_matrix), dtype=np.complex128)
@@ -94,12 +94,12 @@ def screening_eig(matrix_eig: ArrayComplex,
     size_mat: int = matrix_eig.shape[1]
 
     if (matrix_eig.shape[0] != size_mat + 1) \
-            or (check.shape[0] != size_mat):
+            or (len(check.ravel()) != size_mat):
         logger.error('Invalid shape of the input arrays')
         sys.exit(1)
 
     for phys_qty in phys_qtys:
-        if phys_qty.shape[0] != size_mat:
+        if len(phys_qty.ravel()) != size_mat:
             logger.error('Invalid shape of the input arrays')
             sys.exit(1)
 

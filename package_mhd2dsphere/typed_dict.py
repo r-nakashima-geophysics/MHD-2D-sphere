@@ -21,3 +21,10 @@ class DictFileInfo(TypedDict):
     path_dir: Path
     name_file: str
     name_file_suffix: tuple[str, ...]
+
+
+class DictParams(TypedDict):
+    alpha_init: float
+    alpha_end: float
+    num_alpha: int
+    ohm_max: float
