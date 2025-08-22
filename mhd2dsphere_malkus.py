@@ -45,10 +45,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from package_common.common_types import ArrayFloat, ArrayInt, Artist, Final
+from package_common.common_types import ArrayFloat, ArrayInt, Final
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import (DefaultGridPlotter, DefaultPlotter,
-                                            create_plotter)
+from package_common.default_plotter import (Artist, DefaultGridPlotter,
+                                            DefaultPlotter, create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.utils_input import input_value

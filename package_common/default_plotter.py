@@ -7,9 +7,17 @@ from typing import Literal, overload
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
+from matplotlib import artist, axes, collections, figure, legend
 
-from package_common.common_types import (ArrayAxes, ArrayLegend, Axes, Figure,
-                                         Legend)
+type Figure = figure.Figure
+type Axes = axes.Axes
+type Artist = artist.Artist
+type Legend = legend.Legend
+type Collection = collections.Collection
+
+type ArrayAxes = npt.NDArray[np.object_]
+type ArrayLegend = npt.NDArray[np.object_]
 
 
 class DefaultPlotter:
