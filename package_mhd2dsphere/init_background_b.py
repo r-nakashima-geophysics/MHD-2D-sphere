@@ -79,7 +79,7 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
                                value_d2=b_hydro_d2_theta,
                                tex=tex)
 
-    logger.warning('Invalid argument')
+    logger.error('Invalid argument')
     sys.exit(1)
 
 
@@ -153,7 +153,7 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
                                value_d2=b_malkus_d2_theta,
                                tex=tex)
 
-    logger.warning('Invalid argument')
+    logger.error('Invalid argument')
     sys.exit(1)
 
 
@@ -222,7 +222,7 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
                                value_d2=b_sincos_d2_theta,
                                tex=tex)
 
-    logger.warning('Invalid argument')
+    logger.error('Invalid argument')
     sys.exit(1)
 
 
@@ -291,5 +291,5 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
                                value_d2=b_sin2cos_d2_theta,
                                tex=tex)
 
-    logger.warning('Invalid argument')
+    logger.error('Invalid argument')
     sys.exit(1)
