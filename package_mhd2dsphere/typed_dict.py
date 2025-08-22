@@ -1,4 +1,4 @@
-"""A Python module to define typed dictionaries"""
+"""A Python module to define typed dictionaries for MHD-2D-sphere"""
 
 from pathlib import Path
 from typing import TypedDict
