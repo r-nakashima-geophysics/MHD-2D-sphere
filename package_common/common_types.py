@@ -23,6 +23,7 @@ type ArrayStr = npt.NDArray[np.str_]
 type ArrayAny = npt.NDArray[np.object_]
 
 type ArrayAxes = npt.NDArray[np.object_]
+type ArrayLegend = npt.NDArray[np.object_]
 
 type ComplexFunc = Callable[[complex], complex]
 

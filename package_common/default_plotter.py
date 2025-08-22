@@ -6,8 +6,10 @@ from pathlib import Path
 from typing import Literal, overload
 
 import matplotlib.pyplot as plt
+import numpy as np
 
-from package_common.common_types import ArrayAxes, Axes, Figure
+from package_common.common_types import (ArrayAxes, ArrayLegend, Axes, Figure,
+                                         Legend)
 
 
 class DefaultPlotter:
@@ -19,6 +21,8 @@ class DefaultPlotter:
         The instance of the Figure class.
     axes : Axes
         The instance of the Axes class.
+    leg : Legend | None
+        The instance of the Legend class.
 
     Examples
     --------
@@ -43,6 +47,8 @@ class DefaultPlotter:
         self.axes: Axes
         self.fig, self.axes = plt.subplots(1, 1, **kwargs)
 
+        self.leg: Legend | None = None
+
         self.axes.grid()
         self.axes.minorticks_on()
 
@@ -61,6 +67,14 @@ class DefaultPlotter:
         dpi : int, optional, default 300
             The resolution of the figure.
         """
+
+        if not isinstance(self.leg, np.ndarray):
+            if self.leg is not None:
+                self.leg.get_frame().set_alpha(1)
+        else:
+            for leg in self.leg:
+                if leg is not None:
+                    leg.get_frame().set_alpha(1)
 
         self.fig.tight_layout()
 
@@ -87,8 +101,9 @@ class DefaultGridPlotter(DefaultPlotter):
     fig : Figure
         The instance of the Figure class.
     axes : Axes | ArrayAxes
-        The instance of the Axes class or the array of the instance of
-        the Axes class.
+        The instance of the Axes class or the array of them.
+    leg : Legend | ArrayLegend | None
+        The instance of the Legend class or the array of them.
 
     Examples
     --------
@@ -123,6 +138,9 @@ class DefaultGridPlotter(DefaultPlotter):
         self.fig: Figure
         self.axes: ArrayAxes
         self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
+
+        self.leg: ArrayLegend \
+            = np.full(nrows*ncols, None, dtype=np.object_)
 
         if (nrows == 1) or (ncols == 1):
             num_axes: int = max(nrows, ncols)
