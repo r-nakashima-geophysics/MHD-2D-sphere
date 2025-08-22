@@ -2,7 +2,6 @@
 
 import os
 import sys
-import uuid
 from multiprocessing import shared_memory
 
 import numpy as np
