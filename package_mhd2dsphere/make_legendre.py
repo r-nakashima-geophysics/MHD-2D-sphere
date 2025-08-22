@@ -57,4 +57,54 @@ def make_legendre(m_order: int,
 
     time_elapsed: float = perf_counter() - time_init
     print(f'{__name__}: {time_elapsed:.3f} s')
-#
+
+
+def load_legendre(m_order: int,
+                  n_t: int,
+                  num_theta: int) -> np.ndarray:
+    """Loads data of values of associated Legendre polynomials at grid
+    points
+
+    Parameters
+    ----------
+    m_order : int
+        The zonal wavenumber (order)
+    n_t : int
+        The truncation degree
+    num_theta : int
+        The number of the grid in the theta direction
+
+    Returns
+    ----------
+    legendre_norm : ndarray
+        Values of associated Legendre polynomials at grid points
+
+    Raises
+    ----------
+    File not found. Do you want to run package/make_legendre.py?
+        If there is no output file for the same parameters. Then, you
+        can execute package/make_legendre.py.
+
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    @yes_exe_no_quit
+    def wrapper_make_legendre(m_order, n_t, num_theta) -> None:
+        make_legendre(m_order, n_t, num_theta)
+
+    path_dir: Path = Path('.') / 'output' / 'make_legendre'
+    name_file: str = f'make_legendre_m{m_order}N{n_t}th{num_theta}.npy'
+    path_file: Path = path_dir / name_file
+
+    legendre_norm: np.ndarray
+    if path_file.exists():
+        legendre_norm = np.load(path_file)
+    else:
+        logger.info(
+            'File not found. '
+            + 'Do you want to run package/make_legendre.py?')
+        wrapper_make_legendre(m_order, n_t, num_theta)
+        legendre_norm = np.load(path_file)
+
+    return legendre_norm

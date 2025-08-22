@@ -34,11 +34,11 @@ import numpy as np
 from scipy.optimize import root
 from scipy.special import obl_ang1, pro_ang1
 
-from package_common.decorator_yesno.py import exe_yes_continue
+from package_common.decorator_yesno import exe_yes_continue
 from package_mhd2dsphere.dispersion_fmr import dispersion_fmr
-from package_mhd2dsphere.load_data import load_legendre
 from package_mhd2dsphere.make_eigf import (adjust_sign, amp_range, choose_eigf,
                                            make_eigf)
+from package_mhd2dsphere.make_legendre import load_legendre
 from package_mhd2dsphere.solve_eig import wrapper_solve_eig
 
 # ========== Parameters ==========
