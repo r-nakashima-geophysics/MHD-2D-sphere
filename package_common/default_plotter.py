@@ -9,11 +9,6 @@ import matplotlib.pyplot as plt
 
 from package_common.common_types import ArrayAxes, Axes, Figure
 
-if shutil.which('latex') is not None:
-    plt.rcParams['text.usetex'] = True
-else:
-    plt.rcParams['text.usetex'] = False
-
 
 class DefaultPlotter:
     """Class to handle figures with a single axis.
@@ -54,7 +49,7 @@ class DefaultPlotter:
     def save(self,
              path_dir: Path,
              filename: str,
-             dpi: int) -> None:
+             dpi: int = 300) -> None:
         """Save the figure.
 
         Parameters
@@ -63,7 +58,7 @@ class DefaultPlotter:
             The path of the directory.
         filename : str
             The filename of the figure.
-        dpi : int
+        dpi : int, optional, default 300
             The resolution of the figure.
         """
 
@@ -72,6 +67,15 @@ class DefaultPlotter:
         os.makedirs(path_dir, exist_ok=True)
         path_fig: Path = path_dir / filename
         self.fig.savefig(path_fig, dpi=dpi)
+
+    @classmethod
+    def set_latex(cls) -> None:
+        """Set latex."""
+
+        if shutil.which('latex') is not None:
+            plt.rcParams['text.usetex'] = True
+        else:
+            plt.rcParams['text.usetex'] = False
 
 
 class DefaultGridPlotter(DefaultPlotter):
@@ -169,6 +173,8 @@ def create_plotter(nrows: int = 1,
         The instance of the DefaultPlotter class or DefaultGridPlotter
         class.
     """
+
+    DefaultPlotter.set_latex()
 
     if (nrows == 1) and (ncols == 1):
         return DefaultPlotter(**kwargs)
