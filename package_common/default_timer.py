@@ -2,6 +2,7 @@
 time of a Python script.
 """
 
+import sys
 from time import perf_counter
 
 import caffeine
@@ -39,7 +40,8 @@ class DefaultTimer:
 
         self.__logger: DefaultLogger = DefaultLogger(name)
 
-        caffeine.on(display=False)
+        if sys.platform == "darwin":
+            caffeine.on(display=False)
 
     def start(self) -> None:
         """Start the timer."""
