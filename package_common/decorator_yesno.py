@@ -50,7 +50,8 @@ def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
 
         yes_or_no: str
         while True:
-            yes_or_no = input('Enter yes or no: ').strip().lower()
+            yes_or_no \
+                = input('Enter \'yes\' or \'no\': ').strip().lower()
 
             if yes_or_no in ('y', 'yes'):
                 func(*args, **kwargs)
@@ -113,7 +114,8 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
 
             while True:
                 yes_or_no = input(
-                    'Re-execute? Enter yes or no: ').strip().lower()
+                    'Re-execute? Enter \'yes\' or \'no\': '
+                ).strip().lower()
 
                 if yes_or_no in ('y', 'yes'):
                     break

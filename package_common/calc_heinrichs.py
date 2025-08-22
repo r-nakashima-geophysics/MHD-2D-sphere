@@ -61,8 +61,10 @@ def heinrichs_d(n_degree: int,
     1.0000000000000002
     """
 
-    return (1-(s_pos**2)) * chebyshev_d(n_degree, s_pos) \
+    return (
+        (1-(s_pos**2)) * chebyshev_d(n_degree, s_pos)
         - 2 * s_pos * chebyshev(n_degree, s_pos)
+    )
 
 
 def heinrichs_d2(n_degree: int,
@@ -89,9 +91,11 @@ def heinrichs_d2(n_degree: int,
     11.000000000000002
     """
 
-    return (1-(s_pos**2)) * chebyshev_d2(n_degree, s_pos) \
-        - 4 * s_pos * chebyshev_d(n_degree, s_pos) \
+    return (
+        (1-(s_pos**2)) * chebyshev_d2(n_degree, s_pos)
+        - 4 * s_pos * chebyshev_d(n_degree, s_pos)
         - 2 * chebyshev(n_degree, s_pos)
+    )
 
 
 def heinrichs_d3(n_degree: int,
@@ -118,6 +122,8 @@ def heinrichs_d3(n_degree: int,
     -18.000000000000004
     """
 
-    return (1-(s_pos**2)) * chebyshev_d3(n_degree, s_pos) \
-        - 6 * s_pos * chebyshev_d2(n_degree, s_pos) \
+    return (
+        (1-(s_pos**2)) * chebyshev_d3(n_degree, s_pos)
+        - 6 * s_pos * chebyshev_d2(n_degree, s_pos)
         - 6 * chebyshev_d(n_degree, s_pos)
+    )

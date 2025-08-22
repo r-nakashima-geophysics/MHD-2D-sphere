@@ -64,7 +64,12 @@ class BackgroundField:
         self.value: ComplexFunc = value
         self.__value_d: Optional[ComplexFunc] = value_d
         self.__value_d2: Optional[ComplexFunc] = value_d2
-        self.tex: str = tex if tex is not None else self.name
+
+        self.tex: str
+        if tex is not None:
+            self.tex = tex
+        else:
+            self.tex = self.name
 
         self.__logger: DefaultLogger = DefaultLogger(self.name)
 

@@ -90,9 +90,11 @@ def chebyshev_d2(n_degree: int,
     """
 
     t: TypeVarFloatComplex = np.acos(s_pos)
-    return (-n_degree**2 * np.cos(n_degree*t)
+    return (
+        (-(n_degree**2) * np.cos(n_degree*t)
             + chebyshev_d(n_degree, s_pos) * np.cos(t)
-            ) / (np.sin(t)**2)
+         ) / (np.sin(t)**2)
+    )
 
 
 def chebyshev_d3(n_degree: int,
@@ -120,6 +122,8 @@ def chebyshev_d3(n_degree: int,
     """
 
     t: TypeVarFloatComplex = np.acos(s_pos)
-    return ((1-n_degree**2) * chebyshev_d(n_degree, s_pos)
+    return (
+        ((1-(n_degree**2)) * chebyshev_d(n_degree, s_pos)
             + 3 * chebyshev_d2(n_degree, s_pos) * np.cos(t)
-            ) / (np.sin(t)**2)
+         ) / (np.sin(t)**2)
+    )
