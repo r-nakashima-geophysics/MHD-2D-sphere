@@ -11,6 +11,11 @@ from package_common.utils_name import get_current_function_name
 def under_construction_log() -> None:
     """Log the under construction message.
 
+    Warnings
+    --------
+    Under construction
+        If the feature is under construction.
+
     Examples
     --------
     >>> under_construction_log()

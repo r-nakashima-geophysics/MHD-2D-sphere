@@ -40,7 +40,7 @@ class DefaultLogger:
             try:
                 level = getattr(logging, level.upper())
             except AttributeError:
-                print(f'/WARNING/ {self.__class__.__name__}'
+                print(f'/ERROR/ {self.__class__.__name__}'
                       + ': Invalid input')
                 sys.exit(1)
 

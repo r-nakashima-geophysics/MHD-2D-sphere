@@ -85,7 +85,7 @@ class ProgressBar:
 
         if (self.__num_calc <= 0) or (i_calc < 0) or (
                 i_calc + 1 > self.__num_calc):
-            self.__logger.warning('Invalid argument')
+            self.__logger.error('Invalid argument')
             sys.exit(1)
 
         if ((i_calc+1) % num_process == 0) \

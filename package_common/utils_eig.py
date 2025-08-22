@@ -76,8 +76,8 @@ def screening_eig(matrix_eig: ArrayComplex,
     phys_qtys : tuple[ArrayAny, ...]
         The physical quantities.
 
-    Warning
-    -------
+    Warnings
+    --------
     Invalid shape of the input arrays
         If the shapes of the input arrays do not match.
 
