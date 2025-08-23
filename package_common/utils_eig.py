@@ -27,6 +27,7 @@ def sort_eig(eigenvalues: ArrayComplex,
 
     Examples
     --------
+    >>> from package_common.utils_eig import sort_eig
     >>> eigenvalues, eigenvectors = np.linalg.eig(matrix)
     >>> matrix_eig = sort_eig(eigenvalues, eigenvectors)
     """
@@ -83,6 +84,7 @@ def screening_eig(matrix_eig: ArrayComplex,
 
     Examples
     --------
+    >>> from package_common.utils_eig import sort_eig, screening_eig
     >>> eigenvalues, eigenvectors = np.linalg.eig(matrix)
     >>> matrix_eig = sort_eig(eigenvalues, eigenvectors)
     >>> matrix_eig, phys_qtys = screening_eig(matrix_eig, check,

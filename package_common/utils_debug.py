@@ -18,6 +18,7 @@ def under_construction_log() -> None:
 
     Examples
     --------
+    >>> from package_common.utils_debug import under_construction_log
     >>> under_construction_log()
     """
 

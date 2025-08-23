@@ -28,6 +28,7 @@ def set_num_threads(num_threads: int) -> None:
     Examples
     --------
     Run a script with 4 threads:
+        >>> from package_common.utils_parallel import set_num_threads
         >>> set_num_threads(4)
     """
 
@@ -52,6 +53,12 @@ def set_num_process() -> int:
     -------
     int
         The number of processes for multiprocessing.
+
+    Examples
+    --------
+    >>> from package_common.utils_parallel import set_num_process
+    >>> set_num_process()
+    4
     """
 
     num_process_physical: int | None = psutil.cpu_count(logical=False)
@@ -96,6 +103,8 @@ def create_shared_arrays(*arrays) \
     Examples
     --------
     In the main process:
+        >>> from package_common.utils_parallel import
+        create_shared_arrays
         >>> shm, info = create_shared_arrays(np.array([1, 2, 3]))
     """
 
@@ -148,6 +157,8 @@ def attach_shared_arrays(shared_info: list[tuple[str,
     Examples
     --------
     In a subprocess:
+        >>> from package_common.utils_parallel import
+        attach_shared_arrays
         >>> shm, array = attach_shared_arrays(info)
     """
 
@@ -190,8 +201,12 @@ def detach_shared_arrays(*shms,
     Examples
     --------
     In a subprocess:
+        >>> from package_common.utils_parallel import
+        detach_shared_arrays
         >>> detach_shared_arrays(shm)
     In the main process:
+        >>> from package_common.utils_parallel import
+        detach_shared_arrays
         >>> detach_shared_arrays(shm, unlink=True)
     """
 

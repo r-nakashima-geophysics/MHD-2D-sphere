@@ -9,6 +9,7 @@ class DefaultLogger:
 
     Examples
     --------
+    >>> from package_common.default_logger import DefaultLogger
     >>> logger = DefaultLogger('my_logger')
     >>> logger.debug('This is a debug message.')
     >>> logger.info('This is an info message.')

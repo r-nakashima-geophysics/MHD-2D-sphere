@@ -15,6 +15,7 @@ class DefaultTimer:
 
     Examples
     --------
+    >>> from package_common.default_timer import DefaultTimer
     >>> timer = DefaultTimer('my_timer')
     >>> timer.start()
     >>> timer.show()

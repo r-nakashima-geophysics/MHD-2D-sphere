@@ -229,25 +229,23 @@ def calc_qty(m_order: int,
         The symmetry of eigenmodes.
     """
 
-    mke: ArrayFloat
-    mme: ArrayFloat
+    size_mat: int = eig_valvec.shape[1]
+    size_submat: int = int(size_mat/2)
+
+    mke: ArrayFloat = np.empty(size_mat, dtype=np.float64)
+    mme: ArrayFloat = np.empty(size_mat, dtype=np.float64)
     mke, mme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
 
     if background_field['NY24']:
 
-        size_mat: int = eig_valvec.shape[1]
-        size_submat: int = int(size_mat/2)
-
         ohm: ArrayFloat = np.zeros(size_mat)
         if e_eta != 0:
             n_degree: int
-            nn1: int
             for i_n in range(size_submat):
                 n_degree = m_order + i_n
-                nn1 = n_degree * (n_degree+1)
 
-                ohm += (nn1**2) * (
+                ohm += (n_degree**2) * ((n_degree+1)**2) * (
                     np.abs(eig_valvec[size_submat+i_n, :])**2)
 
             ohm *= e_eta

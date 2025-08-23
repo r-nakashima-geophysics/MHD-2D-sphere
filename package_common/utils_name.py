@@ -36,6 +36,7 @@ def get_current_function_name(frame: FrameType | None = None) -> str:
 
     Examples
     --------
+    >>> from package_common.utils_name import get_current_function_name
     >>> def func():
     ...     return get_current_function_name()
     ...
@@ -80,6 +81,8 @@ def create_function_name_logger(level: int | str = logging.DEBUG) \
 
     Examples
     --------
+    >>> from package_common.utils_name import
+    create_function_name_logger
     >>> logger = create_function_name_logger()
     """
 
@@ -105,6 +108,8 @@ def create_function_name_progress_bar(num_calc: int) -> ProgressBar:
 
     Examples
     --------
+    >>> from package_common.progress_bar import
+    create_function_name_progress_bar
     >>> progress_bar = create_function_name_progress_bar(100)
     """
 

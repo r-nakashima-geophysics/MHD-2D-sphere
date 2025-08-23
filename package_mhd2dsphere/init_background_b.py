@@ -32,8 +32,9 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
 
     Examples
     --------
-    >>> b_hydro = b_hydro('mu')
-    >>> b_hydro = b_hydro('theta')
+    >>> from package_mhd2dsphere import init_background_b
+    >>> b_hydro = init_background_b.b_hydro('mu')
+    >>> b_hydro = init_background_b.b_hydro('theta')
     """
 
     logger: DefaultLogger = create_function_name_logger()
@@ -106,8 +107,9 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
 
     Examples
     --------
-    >>> b_malkus = b_malkus('mu')
-    >>> b_malkus = b_malkus('theta')
+    >>> from package_mhd2dsphere import init_background_b
+    >>> b_malkus = init_background_b.b_malkus('mu')
+    >>> b_malkus = init_background_b.b_malkus('theta')
     """
 
     logger: DefaultLogger = create_function_name_logger()
@@ -179,8 +181,9 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
 
     Examples
     --------
-    >>> b_sincos = b_sincos('mu')
-    >>> b_sincos = b_sincos('theta')
+    >>> from package_mhd2dsphere import init_background_b
+    >>> b_sincos = init_background_b.b_sincos('mu')
+    >>> b_sincos = init_background_b.b_sincos('theta')
     """
 
     logger: DefaultLogger = create_function_name_logger()
@@ -249,8 +252,9 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
 
     Examples
     --------
-    >>> b_sin2cos = b_sin2cos('mu')
-    >>> b_sin2cos = b_sin2cos('theta')
+    >>> from package_mhd2dsphere import init_background_b
+    >>> b_sin2cos = init_background_b.b_sin2cos('mu')
+    >>> b_sin2cos = init_background_b.b_sin2cos('theta')
     """
 
     logger: DefaultLogger = create_function_name_logger()

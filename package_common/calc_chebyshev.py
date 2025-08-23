@@ -30,6 +30,7 @@ def chebyshev(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_chebyshev import chebyshev
     >>> print(chebyshev(3, 0.5))
     -1.0
     """
@@ -57,6 +58,7 @@ def chebyshev_d(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_chebyshev import chebyshev_d
     >>> print(chebyshev_d(3, 0.5))
     4.2423009548996277e-16
     """
@@ -85,6 +87,7 @@ def chebyshev_d2(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_chebyshev import chebyshev_d2
     >>> print(chebyshev_d2(3, 0.5))
     12.000000000000002
     """
@@ -117,6 +120,7 @@ def chebyshev_d3(n_degree: int,
 
     Examples
     ----------
+    >>> from package_common.calc_chebyshev import chebyshev_d3
     >>> print(chebyshev_d3(3, 0.5))
     24.000000000000007
     """

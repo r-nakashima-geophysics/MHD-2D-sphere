@@ -1,4 +1,11 @@
-"""A Python module to define a class for figures."""
+"""A Python module to define a class for figures.
+
+Notes
+-----
+The Initializers of the DefaultPlotter class and the DefaultGridPlotter
+class should not be used to create instances of these classes directly.
+The use of `create_plotter` function is recommended.
+"""
 
 import os
 import shutil
@@ -37,6 +44,7 @@ class DefaultPlotter:
 
     Examples
     --------
+    >>> from package_common.default_plotter import DefaultPlotter
     >>> x = [1, 2]
     >>> y = [3, 4]
     >>> plotter = DefaultPlotter()
@@ -127,20 +135,24 @@ class DefaultGridPlotter(DefaultPlotter):
     ----------
     fig : Figure
         The instance of the Figure class.
-    axes : Axes | ArrayAxes
-        The instance of the Axes class or the array of them.
-    leg : Legend | ArrayLegend | None
-        The instance of the Legend class or the array of them.
-
+    axes : ArrayAxes
+        The array of the instance of the Axes class.
+    leg : ArrayLegend
+        The array of the instance of the Legend class.
+    sc : ArrayPathCollection
+        The array of the instance of the PathCollection class.
 
     Examples
     --------
+    >>> from package_common.default_plotter import DefaultGridPlotter
     >>> x = [1, 2]
     >>> y = [3, 4]
-    >>> grid_plotter_1_2 = DefaultGridPlotter(1, 2)
-    >>> grid_plotter_1_2.axes[0].plot(x, y)
-    >>> grid_plotter_2_2 = DefaultGridPlotter(2, 2)
-    >>> grid_plotter_2_2.axes[0, 0].plot(x, y)
+    >>> grid_plotter = DefaultGridPlotter(1, 2)
+    >>> grid_plotter.axes[0].plot(x, y)
+    >>> grid_plotter.tight_layout()
+    >>> grid_plotter.save(Path('.'), 'plot.png', dpi=300)
+    >>> grid_plotter = DefaultGridPlotter(2, 2)
+    >>> grid_plotter.axes[0, 0].plot(x, y)
     """
 
     def __init__(self,
@@ -178,11 +190,13 @@ class DefaultGridPlotter(DefaultPlotter):
             num_axes: int = max(nrows, ncols)
             for i in range(num_axes):
                 self.axes[i].grid()
+                self.axes[i].set_axisbelow(True)
                 self.axes[i].minorticks_on()
         else:
             for i in range(nrows):
                 for j in range(ncols):
                     self.axes[i, j].grid()
+                    self.axes[i, j].set_axisbelow(True)
                     self.axes[i, j].minorticks_on()
 
 
@@ -203,8 +217,7 @@ def create_plotter(nrows: int,
 
 def create_plotter(nrows: int = 1,
                    ncols: int = 1,
-                   **kwargs) \
-        -> DefaultPlotter | DefaultGridPlotter:
+                   **kwargs) -> DefaultPlotter | DefaultGridPlotter:
     """Create the instance of the DefaultPlotter class or
     DefaultGridPlotter class.
 
@@ -222,6 +235,12 @@ def create_plotter(nrows: int = 1,
     DefaultPlotter | DefaultGridPlotter
         The instance of the DefaultPlotter class or DefaultGridPlotter
         class.
+
+    Examples
+    --------
+    >>> from package_common.default_plotter import create_plotter
+    >>> plotter = create_plotter()
+    >>> grid_plotter = create_plotter(2, 2)
     """
 
     if (nrows == 1) and (ncols == 1):

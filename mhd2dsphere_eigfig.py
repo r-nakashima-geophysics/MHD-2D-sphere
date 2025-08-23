@@ -42,9 +42,9 @@ doi: 10.1080/03091929.2024.2384388
 Examples
 --------
 Run the script with the default value of M_ORDER:
-    python3 mhd2dsphere_eigfig.py
+    $ python3 mhd2dsphere_eigfig.py
 Run the script with a specified value (say M_ORDER = 2):
-    python3 mhd2dsphere_eigfig.py 2
+    $ python3 mhd2dsphere_eigfig.py 2
 """
 
 import math
@@ -116,7 +116,7 @@ EIG_RE_LOG_END: Final[float] = 2
 EIG_IM_LOG_MIN: Final[float] = -6
 
 # The paths and filenames of inputs
-PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
+PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
     = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
@@ -151,7 +151,7 @@ BG_FIELD: Final[DictBackgroundField] = {
 }
 
 INFO_INPUT: Final[DictFileInfo] = {
-    'path_dir': PATH_DIR,
+    'path_dir': PATH_DIR_INPUT,
     'name_file': NAME_FILE,
     'name_file_suffix': NAME_FILE_SUFFIX
 }
@@ -685,7 +685,8 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
 
     elif SWITCH_COLOR == 'ohm':
 
-        cbar1 = plotter_real.fig.colorbar(plotter_real.sc[0], cax=cbar_ax_1)
+        cbar1 = plotter_real.fig.colorbar(
+            plotter_real.sc[0], cax=cbar_ax_1)
         cbar1.set_label(label=CBAR_LABEL, size=16)
         if 1 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
@@ -995,26 +996,26 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
         plot.
     """
 
-    name_fig_full: str
+    name_fig: str
     if (E_ETA != 0) and (CRITERION_Q > 0):
-        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
+        name_fig = NAME_FIG + NAME_FIG_SUFFIX_1
     else:
-        name_fig_full = NAME_FIG
+        name_fig = NAME_FIG
 
     if SWITCH_COLOR == 'blk':
-        name_fig_full += NAME_FIG_SUFFIX_2[0]
+        name_fig += NAME_FIG_SUFFIX_2[0]
     elif SWITCH_COLOR == 'ene':
-        name_fig_full += NAME_FIG_SUFFIX_2[1]
+        name_fig += NAME_FIG_SUFFIX_2[1]
     elif SWITCH_COLOR == 'ohm':
-        name_fig_full += NAME_FIG_SUFFIX_2[2]
+        name_fig += NAME_FIG_SUFFIX_2[2]
 
     list_name_fig: list[str]
     if not switch_log:
         list_name_fig \
-            = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
+            = [name_fig + suffix for suffix in NAME_FIG_SUFFIX_3]
     else:
         list_name_fig \
-            = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
+            = [name_fig + suffix for suffix in NAME_FIG_SUFFIX_4]
 
     plotter_real.save(PATH_DIR_FIG, list_name_fig[0], FIG_DPI,
                       switch_tight_layout=False)

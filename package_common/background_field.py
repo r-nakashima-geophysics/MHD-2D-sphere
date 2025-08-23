@@ -24,6 +24,7 @@ class BackgroundField:
 
     Examples
     --------
+    >>> from package_common.background_field import BackgroundField
     >>> linear = BackgroundField('linear', value=lambda x: x)
     >>> linear.r_value(1)
     1.0

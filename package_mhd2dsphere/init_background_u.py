@@ -19,20 +19,21 @@ def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
         is used.
 
     Returns
-    ----------
+    -------
     BackgroundField
         The instance of the BackgroundField class for the rigid body
         rotation (U=0).
 
     Warnings
-    ----------
+    --------
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
 
     Examples
-    ----------
-    >>> u_rigid = u_rigid('mu')
-    >>> u_rigid = u_rigid('theta')
+    --------
+    >>> from package_mhd2dsphere import init_background_u
+    >>> u_rigid = init_background_u.u_rigid('mu')
+    >>> u_rigid = init_background_u.u_rigid('theta')
     """
 
     logger: DefaultLogger = create_function_name_logger()

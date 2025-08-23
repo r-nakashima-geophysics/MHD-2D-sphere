@@ -11,6 +11,7 @@ class ProgressBar:
 
     Examples
     --------
+    >>> from package_common.progress_bar import ProgressBar
     >>> n = 100
     >>> progress_bar = ProgressBar('my_progress_bar', n)
     >>> for i in range(n):

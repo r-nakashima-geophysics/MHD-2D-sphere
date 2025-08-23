@@ -31,6 +31,7 @@ def yes_exe_no_quit(func: Callable[..., None]) -> Callable[..., None]:
 
     Examples
     --------
+    >>> from package_common.decorator_yesno import yes_exe_no_quit
     >>> def test():
     ...     print('test')
     ...
@@ -89,6 +90,7 @@ def exe_yes_continue(func: Callable[..., None]) -> Callable[..., None]:
 
     Examples
     --------
+    >>> from package_common.decorator_yesno import exe_yes_continue
     >>> def test():
     ...     print('test')
     ...

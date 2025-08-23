@@ -1,4 +1,13 @@
-"""A Python module to define type aliases."""
+"""A Python module to define type aliases.
+
+Examples
+--------
+>>> from package_common.common_types import ArrayFloat
+>>> import numpy as np
+>>> array: ArrayFloat = np.array([1.0, 2.0, 3.0])
+>>> print(array)
+[1. 2. 3.]
+"""
 
 from multiprocessing import shared_memory
 from typing import Callable, Final, TypeVar

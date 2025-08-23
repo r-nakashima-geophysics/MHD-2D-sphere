@@ -37,11 +37,13 @@ def input_value(default: TypeVarIntFloat,
     Examples
     --------
     Run a script without a command line argument:
+        >>> from package_common.utils_input import input_value
         >>> input_value(1, int)
         1
         >>> input_value(1.0, float)
         1.0
     Run a script with a command line argument (say 2):
+        >>> from package_common.utils_input import input_value
         >>> input_value(1, int)
         2
     """
@@ -93,6 +95,7 @@ def input_value_within(min_value: TypeVarIntFloat,
 
     Examples
     --------
+    >>> from package_common.utils_input import input_value_within
     >>> input_value_within(0, 10, int)
     Enter a value in [0, 10] or q to quit: 1
     1

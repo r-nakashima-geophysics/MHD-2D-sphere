@@ -30,6 +30,7 @@ def heinrichs(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_heinrichs import heinrichs
     >>> print(heinrichs(3, 0.5))
     -0.75
     """
@@ -57,6 +58,7 @@ def heinrichs_d(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_heinrichs import heinrichs_d
     >>> print(heinrichs_d(3, 0.5))
     1.0000000000000002
     """
@@ -87,6 +89,7 @@ def heinrichs_d2(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_heinrichs import heinrichs_d2
     >>> print(heinrichs_d2(3, 0.5))
     11.000000000000002
     """
@@ -118,6 +121,7 @@ def heinrichs_d3(n_degree: int,
 
     Examples
     --------
+    >>> from package_common.calc_heinrichs import heinrichs_d3
     >>> print(heinrichs_d3(3, 0.5))
     -18.000000000000004
     """
