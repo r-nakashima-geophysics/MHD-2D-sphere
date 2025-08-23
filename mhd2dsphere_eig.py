@@ -152,7 +152,7 @@ def wrapper_solve_eig_for_alpha(*,
              ArrayFloat,
              ArrayFloat,
              ArrayFloat,
-             ArrayStr] | None:
+             ArrayStr]:
     """Solve the eigenvalue problem for given sequences of alpha.
 
     Parameters
@@ -163,9 +163,16 @@ def wrapper_solve_eig_for_alpha(*,
 
     Returns
     -------
-    results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayStr] | None
-        The tuple of results.
+    eig : ArrayComplex
+        The eigenvalues.
+    mke : ArrayFloat
+        The mean kinetic energy.
+    mme : ArrayFloat
+        The mean magnetic energy.
+    ohm : ArrayFloat
+        The ohmic dissipation.
+    sym : ArrayStr
+        The symmetry of eigenmodes.
     """
 
     submatrices: tuple[ArrayFloat,
@@ -178,12 +185,6 @@ def wrapper_solve_eig_for_alpha(*,
     shared_memories: tuple[SharedMemory, ...]
     shared_info: list[tuple[str, tuple[int, ...], np.dtype]]
     shared_memories, shared_info = create_shared_arrays(*submatrices)
-
-    results: tuple[ArrayComplex,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayStr] | None = None
 
     num_alpha: int
     args_list: list[tuple[float,
@@ -210,8 +211,7 @@ def wrapper_solve_eig_for_alpha(*,
     with multiprocessing.Pool(processes=NUM_PROCESS,
                               initializer=set_num_threads,
                               initargs=(NUM_THREADS,)) as pool:
-        for i_alpha, result in enumerate(
-                pool.imap(worker, args_list)):
+        for i_alpha, result in enumerate(pool.imap(worker, args_list)):
 
             eig[i_alpha, :] = result[0][SIZE_MAT, :]
             mke[i_alpha, :] = result[1][0]
@@ -221,11 +221,9 @@ def wrapper_solve_eig_for_alpha(*,
 
             progress_bar.update(i_alpha, NUM_PROCESS)
 
-    results = (eig, mke, mme, ohm, sym)
-
     detach_shared_arrays(*shared_memories, unlink=True)
 
-    return results
+    return eig, mke, mme, ohm, sym
 
 
 def worker(args: tuple[float,
@@ -279,22 +277,19 @@ def save_results(results: tuple[ArrayComplex,
                                 ArrayFloat,
                                 ArrayFloat,
                                 ArrayFloat,
-                                ArrayStr] | None,
-                 results_log: tuple[ArrayComplex,
-                                    ArrayFloat,
-                                    ArrayFloat,
-                                    ArrayFloat,
-                                    ArrayStr] | None) -> None:
+                                ArrayStr],
+                 *,
+                 switch_log: bool = False) -> None:
     """Save npz files of the results.
 
     Parameters
     ----------
     results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
-    ArrayStr] | None
+    ArrayStr]
         The tuple of the results (linear-linear).
-    results_log : tuple[ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr] | None
-        The tuple of the results (log-log).
+    switch_log : bool, optional, default False
+        The boolean value for the dispersion problem of the log-log
+        plot.
     """
 
     eig: ArrayComplex
@@ -302,32 +297,23 @@ def save_results(results: tuple[ArrayComplex,
     mme: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
-    filename: str
-    path_file: Path
 
     os.makedirs(PATH_DIR, exist_ok=True)
 
-    if results is not None:
+    eig, mke, mme, ohm, sym = results
 
-        eig, mke, mme, ohm, sym = results
+    name_file: str
+    if not switch_log:
+        name_file = NAME_FILE + NAME_FILE_SUFFIX[0]
+        lin_alpha = LIN_ALPHA
+    else:
+        name_file = NAME_FILE + NAME_FILE_SUFFIX[1]
+        lin_alpha = 10**LIN_ALPHA_LOG
+    path_file: Path = PATH_DIR / name_file
 
-        filename = NAME_FILE + NAME_FILE_SUFFIX[0]
-        path_file = PATH_DIR / filename
-
-        np.savez_compressed(path_file,
-                            lin_alpha=LIN_ALPHA, eig=eig,
-                            mke=mke, mme=mme, ohm=ohm, sym=sym)
-
-    if results_log is not None:
-
-        eig, mke, mme, ohm, sym = results_log
-
-        filename = NAME_FILE + NAME_FILE_SUFFIX[1]
-        path_file = PATH_DIR / filename
-
-        np.savez_compressed(path_file,
-                            lin_alpha=10**LIN_ALPHA_LOG, eig=eig,
-                            mke=mke, mme=mme, ohm=ohm, sym=sym)
+    np.savez_compressed(path_file,
+                        lin_alpha=lin_alpha, eig=eig,
+                        mke=mke, mme=mme, ohm=ohm, sym=sym)
 
 
 if __name__ == '__main__':
@@ -343,17 +329,12 @@ if __name__ == '__main__':
                 ArrayFloat,
                 ArrayFloat,
                 ArrayStr] | None = None
-    data_log: tuple[ArrayComplex,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayStr] | None = None
 
     if SWITCH_CALC[0]:
         data = wrapper_solve_eig_for_alpha()
+        save_results(data)
     if SWITCH_CALC[1]:
-        data_log = wrapper_solve_eig_for_alpha(switch_log=True)
-
-    save_results(data, data_log)
+        data = wrapper_solve_eig_for_alpha(switch_log=True)
+        save_results(data, switch_log=True)
 
     timer.end()
