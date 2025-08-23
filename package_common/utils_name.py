@@ -5,17 +5,16 @@ import logging
 import sys
 from types import FrameType
 
-from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 from package_common.progress_bar import ProgressBar
 
 
-def get_current_function_name(frame: Optional[FrameType] = None) -> str:
+def get_current_function_name(frame: FrameType | None = None) -> str:
     """Return the name of the current function.
 
     Parameters
     ----------
-    frame : Optional[FrameType], optional, default None
+    frame : FrameType | None, optional, default None
         The frame to inspect.
 
     Returns
@@ -47,7 +46,7 @@ def get_current_function_name(frame: Optional[FrameType] = None) -> str:
     if frame is None:
         frame = inspect.currentframe()
 
-    this_frame: Optional[FrameType] = inspect.currentframe()
+    this_frame: FrameType | None = inspect.currentframe()
     this_name: str
     if this_frame is not None:
         this_name = this_frame.f_code.co_name
@@ -84,15 +83,14 @@ def create_function_name_logger(level: int | str = logging.DEBUG) \
     >>> logger = create_function_name_logger()
     """
 
-    frame: Optional[FrameType] = inspect.currentframe()
+    frame: FrameType | None = inspect.currentframe()
     function_name: str = get_current_function_name(frame)
     del frame
 
     return DefaultLogger(function_name, level=level)
 
 
-def create_function_name_progress_bar(num_calc: int) \
-        -> ProgressBar:
+def create_function_name_progress_bar(num_calc: int) -> ProgressBar:
     """Create a progress bar with the name of the current function.
 
     Parameters
@@ -110,7 +108,7 @@ def create_function_name_progress_bar(num_calc: int) \
     >>> progress_bar = create_function_name_progress_bar(100)
     """
 
-    frame: Optional[FrameType] = inspect.currentframe()
+    frame: FrameType | None = inspect.currentframe()
     function_name: str = get_current_function_name(frame)
     del frame
 

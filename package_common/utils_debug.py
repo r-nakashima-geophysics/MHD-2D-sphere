@@ -2,10 +2,8 @@
 
 import inspect
 import sys
-
 from types import FrameType
 
-from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import get_current_function_name
 
@@ -23,7 +21,7 @@ def under_construction_log() -> None:
     >>> under_construction_log()
     """
 
-    frame: Optional[FrameType] = inspect.currentframe()
+    frame: FrameType | None = inspect.currentframe()
 
     function_name: str = get_current_function_name(frame)
     del frame

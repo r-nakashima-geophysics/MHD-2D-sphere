@@ -2,7 +2,7 @@
 
 import sys
 
-from package_common.common_types import ComplexFunc, Optional
+from package_common.common_types import ComplexFunc
 from package_common.default_logger import DefaultLogger
 
 
@@ -15,11 +15,11 @@ class BackgroundField:
         The name of the background field.
     value : ComplexFunc
          The profile of the background field.
-    value_d : Optional[ComplexFunc]
+    value_d : ComplexFunc | None
         The first derivative of the profile of the background field.
-    value_d2 : Optional[ComplexFunc]
+    value_d2 : ComplexFunc | None
         The second derivative of the profile of the background field.
-    tex : str
+    tex : str | None
         The LaTeX text of the background field.
 
     Examples
@@ -41,9 +41,9 @@ class BackgroundField:
                  name: str,
                  *,
                  value: ComplexFunc,
-                 value_d: Optional[ComplexFunc] = None,
-                 value_d2: Optional[ComplexFunc] = None,
-                 tex: Optional[str] = None) -> None:
+                 value_d: ComplexFunc | None = None,
+                 value_d2: ComplexFunc | None = None,
+                 tex: str | None = None) -> None:
         """Initialize an instance of the BackgroundField class.
 
         Parameters
@@ -52,18 +52,18 @@ class BackgroundField:
             The name of the background field.
         value : ComplexFunc
             The profile of the background field.
-        value_d : Optional[ComplexFunc], optional, default None
+        value_d : ComplexFunc | None, optional, default None
             The first derivative of the profile of the background field.
-        value_d2 : Optional[ComplexFunc], optional, default None
+        value_d2 : ComplexFunc | None, optional, default None
             The second derivative of the profile of the background field.
-        tex : Optional[str], optional, default None
+        tex : str | None, optional, default None
             The LaTeX text of the background field.
         """
 
         self.name: str = name
         self.value: ComplexFunc = value
-        self.__value_d: Optional[ComplexFunc] = value_d
-        self.__value_d2: Optional[ComplexFunc] = value_d2
+        self.__value_d: ComplexFunc | None = value_d
+        self.__value_d2: ComplexFunc | None = value_d2
 
         self.tex: str
         if tex is not None:

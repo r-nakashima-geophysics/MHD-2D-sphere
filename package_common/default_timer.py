@@ -7,7 +7,6 @@ from time import perf_counter
 
 import caffeine
 
-from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 
 
@@ -34,9 +33,9 @@ class DefaultTimer:
             The name of the timer.
         """
 
-        self.__start_time: Optional[float] = None
-        self.__elapsed_time: Optional[float] = None
-        self.__split_time: Optional[float] = None
+        self.__start_time: float | None = None
+        self.__elapsed_time: float | None = None
+        self.__split_time: float | None = None
 
         self.__logger: DefaultLogger = DefaultLogger(name)
 
@@ -72,12 +71,12 @@ class DefaultTimer:
         self.show()
         self.__logger.info('End')
 
-    def lap(self) -> Optional[float]:
+    def lap(self) -> float | None:
         """Measure the lap time.
 
         Returns
         -------
-        Optional[float]
+        float | None
             The lap time.
         """
 

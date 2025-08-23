@@ -2,7 +2,6 @@
 
 import sys
 
-from package_common.common_types import Optional
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 
@@ -91,7 +90,7 @@ class ProgressBar:
         if ((i_calc+1) % num_process == 0) \
                 or (i_calc + 1 == self.__num_calc):
 
-            lap_time: Optional[float] = self.__timer.lap()
+            lap_time: float | None = self.__timer.lap()
             if lap_time is None:
                 self.__logger.warning(
                     'Progress bar has not been started.')
