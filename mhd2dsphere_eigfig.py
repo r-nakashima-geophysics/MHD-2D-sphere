@@ -483,43 +483,6 @@ def plot_eig(results: tuple[ArrayFloat,
     return plotter_real, plotter_imag, set_save_fig
 
 
-def save_plot_eig(plotter_real: DefaultGridPlotter,
-                  plotter_imag: DefaultGridPlotter,
-                  set_save_fig: set[int]) -> None:
-    """Save the dispersion diagram for the linear-linear plot.
-
-    Parameters
-    ----------
-    plotter_real : DefaultGridPlotter
-        The instance of the DefaultGridPlotter class.
-    plotter_imag : DefaultGridPlotter
-        The instance of the DefaultGridPlotter class.
-    set_save_fig : set[int]
-        The set storing the IDs of figures to save.
-    """
-    name_fig_full: str
-    if (E_ETA != 0) and (CRITERION_Q > 0):
-        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
-    else:
-        name_fig_full = NAME_FIG
-
-    if SWITCH_COLOR == 'blk':
-        name_fig_full += NAME_FIG_SUFFIX_2[0]
-    elif SWITCH_COLOR == 'ene':
-        name_fig_full += NAME_FIG_SUFFIX_2[1]
-    elif SWITCH_COLOR == 'ohm':
-        name_fig_full += NAME_FIG_SUFFIX_2[2]
-
-    list_name_fig: list[str] \
-        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
-
-    plotter_real.save(PATH_DIR_FIG, list_name_fig[0], FIG_DPI,
-                      switch_tight_layout=False)
-    if set_save_fig & {1, 2}:
-        plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
-                          switch_tight_layout=False)
-
-
 def wrapper_plot_eig_log(results: tuple[ArrayFloat,
                                         ArrayComplex,
                                         ArrayFloat,
@@ -747,7 +710,8 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     # ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
     #                   linewidth=0.5, edgecolors="black")
 
-    save_plot_eig_log(plotter_real, plotter_imag, set_save_fig)
+    save_plot_eig(plotter_real, plotter_imag, set_save_fig,
+                  switch_log=True)
 
 
 def plot_eig_log(results: tuple[ArrayFloat,
@@ -1011,10 +975,12 @@ def plot_eig_log(results: tuple[ArrayFloat,
     return plotter_real, plotter_imag, set_save_fig
 
 
-def save_plot_eig_log(plotter_real: DefaultGridPlotter,
-                      plotter_imag: DefaultGridPlotter,
-                      set_save_fig: set[int]) -> None:
-    """Save the dispersion diagram for the linear-linear plot.
+def save_plot_eig(plotter_real: DefaultGridPlotter,
+                  plotter_imag: DefaultGridPlotter,
+                  set_save_fig: set[int],
+                  *,
+                  switch_log: bool = False) -> None:
+    """Save the dispersion diagram.
 
     Parameters
     ----------
@@ -1024,6 +990,9 @@ def save_plot_eig_log(plotter_real: DefaultGridPlotter,
         The instance of the DefaultGridPlotter class.
     set_save_fig : set[int]
         The set storing the IDs of figures to save.
+    switch_log : bool, optional, default False
+        The boolean value for the dispersion diagram of the log-log
+        plot.
     """
 
     name_fig_full: str
@@ -1039,12 +1008,20 @@ def save_plot_eig_log(plotter_real: DefaultGridPlotter,
     elif SWITCH_COLOR == 'ohm':
         name_fig_full += NAME_FIG_SUFFIX_2[2]
 
-    list_name_fig: list[str] \
-        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
+    list_name_fig: list[str]
+    if not switch_log:
+        list_name_fig \
+            = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
+    else:
+        list_name_fig \
+            = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
 
     plotter_real.save(PATH_DIR_FIG, list_name_fig[0], FIG_DPI,
                       switch_tight_layout=False)
-    if set_save_fig & {1, 2, 3, 4}:
+    if (not switch_log) and (set_save_fig & {1, 2}):
+        plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
+                          switch_tight_layout=False)
+    if (not switch_log) and (set_save_fig & {1, 2, 3, 4}):
         plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
                           switch_tight_layout=False)
 
