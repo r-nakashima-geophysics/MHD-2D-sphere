@@ -146,26 +146,26 @@ SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 
-def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayStr] | None,
-                                           tuple[ArrayComplex,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayStr] | None]:
+def wrapper_solve_eig_for_alpha(*,
+                                switch_log: bool = False) \
+    -> tuple[ArrayComplex,
+             ArrayFloat,
+             ArrayFloat,
+             ArrayFloat,
+             ArrayStr] | None:
     """Solve the eigenvalue problem for given sequences of alpha.
+
+    Parameters
+    ----------
+    switch_log : bool, optional, default False
+        The boolean value for the dispersion problem of the log-log
+        plot.
 
     Returns
     -------
     results : tuple[ArrayComplex, ArrayFloat, ArrayFloat, ArrayFloat,
     ArrayStr] | None
-        The tuple of results (linear-linear).
-    results_log : tuple[ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr] | None
-        The tuple of results (log-log).
+        The tuple of results.
     """
 
     submatrices: tuple[ArrayFloat,
@@ -184,87 +184,52 @@ def wrapper_solve_eig_for_alpha() -> tuple[tuple[ArrayComplex,
                    ArrayFloat,
                    ArrayFloat,
                    ArrayStr] | None = None
-    results_log: tuple[ArrayComplex,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayStr] | None = None
 
-    eig: ArrayComplex
-    mke: ArrayFloat
-    mme: ArrayFloat
-    ohm: ArrayFloat
-    sym: ArrayStr
-
-    progress_bar: ProgressBar
-
-    if SWITCH_CALC[0]:
-
-        eig = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.complex128)
-        mke = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        mme = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        ohm = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.float64)
-        sym = np.empty((NUM_ALPHA, SIZE_MAT), dtype=np.str_)
-
+    num_alpha: int
+    args_list: list[tuple[float,
+                          list[tuple[str, tuple[int, ...], np.dtype]]]]
+    if not switch_log:
+        num_alpha = NUM_ALPHA
         args_list = [(LIN_ALPHA[i_alpha], shared_info)
                      for i_alpha in range(NUM_ALPHA)]
-
-        progress_bar = create_function_name_progress_bar(NUM_ALPHA)
-        progress_bar.start()
-        with multiprocessing.Pool(processes=NUM_PROCESS,
-                                  initializer=set_num_threads,
-                                  initargs=(NUM_THREADS,)) as pool:
-            for i_alpha, result in enumerate(
-                    pool.imap(worker, args_list)):
-
-                eig[i_alpha, :] = result[0][SIZE_MAT, :]
-                mke[i_alpha, :] = result[1][0]
-                mme[i_alpha, :] = result[1][1]
-                ohm[i_alpha, :] = result[1][2]
-                sym[i_alpha, :] = result[1][3]
-
-                progress_bar.update(i_alpha, NUM_PROCESS)
-
-        results = (eig, mke, mme, ohm, sym)
-
-    if SWITCH_CALC[1]:
-
-        eig = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.complex128)
-        mke = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        mme = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        ohm = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.float64)
-        sym = np.empty((NUM_ALPHA_LOG, SIZE_MAT), dtype=np.str_)
-
+    else:
+        num_alpha = NUM_ALPHA_LOG
         args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
                      for i_alpha in range(NUM_ALPHA_LOG)]
 
-        progress_bar = create_function_name_progress_bar(NUM_ALPHA_LOG)
-        progress_bar.start()
-        with multiprocessing.Pool(processes=NUM_PROCESS,
-                                  initializer=set_num_threads,
-                                  initargs=(NUM_THREADS,)) as pool:
-            for i_alpha, result in enumerate(
-                    pool.imap(worker, args_list)):
+    eig: ArrayComplex \
+        = np.empty((num_alpha, SIZE_MAT), dtype=np.complex128)
+    mke: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
+    mme: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
+    ohm: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
+    sym: ArrayStr = np.empty((num_alpha, SIZE_MAT), dtype=np.str_)
 
-                eig[i_alpha, :] = result[0][SIZE_MAT, :]
-                mke[i_alpha, :] = result[1][0]
-                mme[i_alpha, :] = result[1][1]
-                ohm[i_alpha, :] = result[1][2]
-                sym[i_alpha, :] = result[1][3]
+    progress_bar: ProgressBar \
+        = create_function_name_progress_bar(num_alpha)
+    progress_bar.start()
+    with multiprocessing.Pool(processes=NUM_PROCESS,
+                              initializer=set_num_threads,
+                              initargs=(NUM_THREADS,)) as pool:
+        for i_alpha, result in enumerate(
+                pool.imap(worker, args_list)):
 
-                progress_bar.update(i_alpha, NUM_PROCESS)
+            eig[i_alpha, :] = result[0][SIZE_MAT, :]
+            mke[i_alpha, :] = result[1][0]
+            mme[i_alpha, :] = result[1][1]
+            ohm[i_alpha, :] = result[1][2]
+            sym[i_alpha, :] = result[1][3]
 
-        results_log = (eig, mke, mme, ohm, sym)
+            progress_bar.update(i_alpha, NUM_PROCESS)
+
+    results = (eig, mke, mme, ohm, sym)
 
     detach_shared_arrays(*shared_memories, unlink=True)
 
-    return results, results_log
+    return results
 
 
 def worker(args: tuple[float,
-                       list[tuple[str,
-                                  tuple[int, ...],
-                                  np.dtype]]]) \
+                       list[tuple[str, tuple[int, ...], np.dtype]]]) \
     -> tuple[ArrayComplex,
              tuple[ArrayFloat,
                    ArrayFloat,
@@ -377,13 +342,17 @@ if __name__ == '__main__':
                 ArrayFloat,
                 ArrayFloat,
                 ArrayFloat,
-                ArrayStr] | None
+                ArrayStr] | None = None
     data_log: tuple[ArrayComplex,
                     ArrayFloat,
                     ArrayFloat,
                     ArrayFloat,
-                    ArrayStr] | None
-    data, data_log = wrapper_solve_eig_for_alpha()
+                    ArrayStr] | None = None
+
+    if SWITCH_CALC[0]:
+        data = wrapper_solve_eig_for_alpha()
+    if SWITCH_CALC[1]:
+        data_log = wrapper_solve_eig_for_alpha(switch_log=True)
 
     save_results(data, data_log)
 
