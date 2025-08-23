@@ -48,7 +48,6 @@ Run the script with a specified value (say M_ORDER = 2):
 """
 
 import math
-import os
 import sys
 from pathlib import Path
 
@@ -314,27 +313,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
                 plotter_imag.sc[1], cax=cbar_ax_2)
             cbar.set_label(label=CBAR_LABEL, size=16)
 
-    name_fig_full: str
-    if (E_ETA != 0) and (CRITERION_Q > 0):
-        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
-    else:
-        name_fig_full = NAME_FIG
-
-    if SWITCH_COLOR == 'blk':
-        name_fig_full += NAME_FIG_SUFFIX_2[0]
-    elif SWITCH_COLOR == 'ene':
-        name_fig_full += NAME_FIG_SUFFIX_2[1]
-    elif SWITCH_COLOR == 'ohm':
-        name_fig_full += NAME_FIG_SUFFIX_2[2]
-
-    list_name_fig: list[str] \
-        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
-
-    plotter_real.save(PATH_DIR, list_name_fig[0], FIG_DPI,
-                      switch_tight_layout=False)
-    if set_save_fig & {1, 2}:
-        plotter_imag.save(PATH_DIR, list_name_fig[1], FIG_DPI,
-                          switch_tight_layout=False)
+    save_plot_eig(plotter_real, plotter_imag, set_save_fig)
 
 
 def plot_eig(results: tuple[ArrayFloat,
@@ -436,7 +415,7 @@ def plot_eig(results: tuple[ArrayFloat,
                 plotter_imag.axes[1].scatter(
                     ones_alpha, dict_eig['v'].imag,
                     s=0.1, c='black')
-                set_save_fig.union({1, 2})
+                set_save_fig.update({1, 2})
 
         elif SWITCH_COLOR in ('ene', 'ohm'):
 
@@ -499,9 +478,46 @@ def plot_eig(results: tuple[ArrayFloat,
                     ones_alpha, dict_eig['v'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
-                set_save_fig.union({1, 2})
+                set_save_fig.update({1, 2})
 
     return plotter_real, plotter_imag, set_save_fig
+
+
+def save_plot_eig(plotter_real: DefaultGridPlotter,
+                  plotter_imag: DefaultGridPlotter,
+                  set_save_fig: set[int]) -> None:
+    """Save the dispersion diagram for the linear-linear plot.
+
+    Parameters
+    ----------
+    plotter_real : DefaultGridPlotter
+        The instance of the DefaultGridPlotter class.
+    plotter_imag : DefaultGridPlotter
+        The instance of the DefaultGridPlotter class.
+    set_save_fig : set[int]
+        The set storing the IDs of figures to save.
+    """
+    name_fig_full: str
+    if (E_ETA != 0) and (CRITERION_Q > 0):
+        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
+    else:
+        name_fig_full = NAME_FIG
+
+    if SWITCH_COLOR == 'blk':
+        name_fig_full += NAME_FIG_SUFFIX_2[0]
+    elif SWITCH_COLOR == 'ene':
+        name_fig_full += NAME_FIG_SUFFIX_2[1]
+    elif SWITCH_COLOR == 'ohm':
+        name_fig_full += NAME_FIG_SUFFIX_2[2]
+
+    list_name_fig: list[str] \
+        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_3]
+
+    plotter_real.save(PATH_DIR_FIG, list_name_fig[0], FIG_DPI,
+                      switch_tight_layout=False)
+    if set_save_fig & {1, 2}:
+        plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
+                          switch_tight_layout=False)
 
 
 def wrapper_plot_eig_log(results: tuple[ArrayFloat,
@@ -531,25 +547,24 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     alpha_log_init: float = dict_params['alpha_init']
     alpha_log_end: float = dict_params['alpha_end']
 
-    ax_all: tuple[Axes, Axes, Axes, Axes, Axes, Axes, Axes, Axes] \
-        = (plotter_real.axes[0, 0], plotter_real.axes[0, 1], plotter_real.axes[1, 0], plotter_real.axes[1, 1],
-           plotter_imag.axes[0, 0], plotter_imag.axes[0, 1], plotter_imag.axes[1, 0], plotter_imag.axes[1, 1])
+    ax_real_all: tuple[Axes, Axes, Axes, Axes] \
+        = (plotter_real.axes[0, 0], plotter_real.axes[0, 1],
+           plotter_real.axes[1, 0], plotter_real.axes[1, 1])
+    ax_imag_all: tuple[Axes, Axes, Axes, Axes] \
+        = (plotter_imag.axes[0, 0], plotter_imag.axes[0, 1],
+           plotter_imag.axes[1, 0], plotter_imag.axes[1, 1])
 
-    for axis in (plotter_real.axes[0, 0], plotter_real.axes[0, 1], plotter_real.axes[1, 0], plotter_real.axes[1, 1]):
+    for axis in ax_real_all:
         axis.set_xlim(10**alpha_log_init, 10**alpha_log_end)
         axis.set_ylim(10**EIG_RE_LOG_INIT, 10**EIG_RE_LOG_END)
-
-    for axis in (plotter_imag.axes[0, 0], plotter_imag.axes[0, 1], plotter_imag.axes[1, 0], plotter_imag.axes[1, 1]):
-        axis.set_xlim(10**alpha_log_init, 10**alpha_log_end)
-
-    for axis in ax_all:
-        axis.set_xscale('log')
-
-    for axis in (plotter_real.axes[0, 0], plotter_real.axes[0, 1], plotter_real.axes[1, 0], plotter_real.axes[1, 1]):
         axis.set_yscale('log')
 
-    for axis in (plotter_imag.axes[0, 0], plotter_imag.axes[0, 1], plotter_imag.axes[1, 0], plotter_imag.axes[1, 1]):
+    for axis in ax_imag_all:
+        axis.set_xlim(10**alpha_log_init, 10**alpha_log_end)
         axis.set_yscale('symlog', linthresh=10**EIG_IM_LOG_MIN)
+
+    for axis in (ax_real_all + ax_imag_all):
+        axis.set_xscale('log')
 
     plotter_real.axes[1, 0].set_xlabel(
         r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
@@ -617,7 +632,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
         plotter_real.axes[1, 1].set_title(
             r'Varicose, Prograde ($\lambda>0$)', fontsize=16)
 
-    for axis in ax_all:
+    for axis in (ax_real_all + ax_imag_all):
         axis.tick_params(labelsize=12)
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
@@ -732,27 +747,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     # ax1[0, 1].scatter(0.013, 0.00025, s=50, c='white', marker='*',
     #                   linewidth=0.5, edgecolors="black")
 
-    name_fig_full: str
-    if (E_ETA != 0) and (CRITERION_Q > 0):
-        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
-    else:
-        name_fig_full = NAME_FIG
-
-    if SWITCH_COLOR == 'blk':
-        name_fig_full += NAME_FIG_SUFFIX_2[0]
-    elif SWITCH_COLOR == 'ene':
-        name_fig_full += NAME_FIG_SUFFIX_2[1]
-    elif SWITCH_COLOR == 'ohm':
-        name_fig_full += NAME_FIG_SUFFIX_2[2]
-
-    list_name_fig: list[str] \
-        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
-
-    plotter_real.save(PATH_DIR, list_name_fig[0], FIG_DPI,
-                      switch_tight_layout=False)
-    if set_save_fig & {1, 2, 3, 4}:
-        plotter_imag.save(PATH_DIR, list_name_fig[1], FIG_DPI,
-                          switch_tight_layout=False)
+    save_plot_eig_log(plotter_real, plotter_imag, set_save_fig)
 
 
 def plot_eig_log(results: tuple[ArrayFloat,
@@ -798,7 +793,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
     plotter_imag: DefaultGridPlotter \
         = create_plotter(2, 2, figsize=(10, 10))
 
-    set_save_fig: set = set()
+    set_save_fig: set[int] = set()
 
     cmap_min: float = math.nan
     cmap_max: float = math.nan
@@ -888,7 +883,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     ones_alpha, dict_eig['vr'].imag, s=0.1, c='black')
                 plotter_imag.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].imag, s=0.1, c='black')
-                set_save_fig.union({1, 2, 3, 4})
+                set_save_fig.update({1, 2, 3, 4})
 
         elif SWITCH_COLOR in ('ene', 'ohm'):
 
@@ -1001,19 +996,57 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     ones_alpha, dict_eig['vp'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
-                set_save_fig.add({1, 2, 3, 4})
+                set_save_fig.update({1, 2, 3, 4})
 
     mask_x: np.ndarray = 10**lin_alpha
     plotter_imag.axes[0, 0].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='grey')
+        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     plotter_imag.axes[0, 1].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='grey')
+        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     plotter_imag.axes[1, 0].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='grey')
+        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     plotter_imag.axes[1, 1].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='grey')
+        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
 
     return plotter_real, plotter_imag, set_save_fig
+
+
+def save_plot_eig_log(plotter_real: DefaultGridPlotter,
+                      plotter_imag: DefaultGridPlotter,
+                      set_save_fig: set[int]) -> None:
+    """Save the dispersion diagram for the linear-linear plot.
+
+    Parameters
+    ----------
+    plotter_real : DefaultGridPlotter
+        The instance of the DefaultGridPlotter class.
+    plotter_imag : DefaultGridPlotter
+        The instance of the DefaultGridPlotter class.
+    set_save_fig : set[int]
+        The set storing the IDs of figures to save.
+    """
+
+    name_fig_full: str
+    if (E_ETA != 0) and (CRITERION_Q > 0):
+        name_fig_full = NAME_FIG + NAME_FIG_SUFFIX_1
+    else:
+        name_fig_full = NAME_FIG
+
+    if SWITCH_COLOR == 'blk':
+        name_fig_full += NAME_FIG_SUFFIX_2[0]
+    elif SWITCH_COLOR == 'ene':
+        name_fig_full += NAME_FIG_SUFFIX_2[1]
+    elif SWITCH_COLOR == 'ohm':
+        name_fig_full += NAME_FIG_SUFFIX_2[2]
+
+    list_name_fig: list[str] \
+        = [name_fig_full + suffix for suffix in NAME_FIG_SUFFIX_4]
+
+    plotter_real.save(PATH_DIR_FIG, list_name_fig[0], FIG_DPI,
+                      switch_tight_layout=False)
+    if set_save_fig & {1, 2, 3, 4}:
+        plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
+                          switch_tight_layout=False)
 
 
 if __name__ == '__main__':

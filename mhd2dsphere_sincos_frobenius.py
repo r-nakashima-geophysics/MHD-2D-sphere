@@ -155,10 +155,10 @@ def wrapper_plot_frobenius(psi_vec: np.ndarray,
     ymax: float
 
     ymin, ymax = axes[0].get_ylim()
-    axes[0].plot([0, 0], [ymin, ymax], color='grey', linestyle='-')
+    axes[0].plot([0, 0], [ymin, ymax], color='gray', linestyle='-')
     axes[0].set_ylim(ymin, ymax)
     ymin, ymax = axes[1].get_ylim()
-    axes[1].plot([0, 0], [ymin, ymax], color='grey', linestyle='-')
+    axes[1].plot([0, 0], [ymin, ymax], color='gray', linestyle='-')
     axes[1].set_ylim(ymin, ymax)
 
     axes[2].set_xlim(0, math.pi/2)
@@ -366,7 +366,7 @@ def plot_frobenius(psi_vec: np.ndarray,
         LIN_THETA[i_theta_c-NUM_DATA],
         LIN_THETA[i_theta_c+NUM_DATA], 2*NUM_DATA)
     axes[2].fill_between(
-        fit_range, amp_max, amp_min, facecolor='lightgrey')
+        fit_range, amp_max, amp_min, facecolor='lightgray')
 
     c_1_eq: float = (b1_eq + a2_eq) / 2
     c_1_pole: float = (b1_pole + a2_pole) / 2

@@ -121,7 +121,7 @@ def plot_dependdegree(
     axis.scatter(i_mode_2, eig_2.real, s=5, color='blue',
                  label=r'$N_\mathrm{t}=$' + f' {N_T_2}')
 
-    axis.fill_between(MASK_X, MASK_Y1, MASK_Y2, facecolor='grey')
+    axis.fill_between(MASK_X, MASK_Y1, MASK_Y2, facecolor='gray')
 
     axis.grid()
     axis.set_axisbelow(True)

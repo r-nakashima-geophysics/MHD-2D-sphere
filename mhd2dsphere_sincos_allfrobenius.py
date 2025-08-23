@@ -255,9 +255,9 @@ def plot_allfrobenius(
                        label=r'$\mathrm{Re}(I_\mathrm{num})$')
         ax2[1].scatter(eig_v.real, integral[2].real, s=1, color='black',
                        label=r'$\mathrm{Re}(I_\mathrm{num})$')
-        ax2[0].scatter(eig_s.real, integral[1].imag, s=1, color='grey',
+        ax2[0].scatter(eig_s.real, integral[1].imag, s=1, color='gray',
                        label=r'$\mathrm{Im}(I_\mathrm{num})$')
-        ax2[1].scatter(eig_v.real, integral[2].imag, s=1, color='grey',
+        ax2[1].scatter(eig_v.real, integral[2].imag, s=1, color='gray',
                        label=r'$\mathrm{Im}(I_\mathrm{num})$')
     else:
         ax2[0].scatter(eig_s.real, integral[1].real, s=1, color='black',
