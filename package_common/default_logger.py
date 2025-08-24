@@ -20,14 +20,14 @@ class DefaultLogger:
 
     def __init__(self,
                  name: str,
-                 level: int | str = logging.DEBUG) -> None:
+                 level: int | str = logging.INFO) -> None:
         """Initialize an instance of the DefaultLogger class.
 
         Parameters
         ----------
         name : str
             The name of the logger.
-        level : int, optional, default logging.DEBUG
+        level : int, optional, default logging.INFO
             The logging level.
 
         Warnings

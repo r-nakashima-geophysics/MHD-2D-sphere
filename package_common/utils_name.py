@@ -65,13 +65,13 @@ def get_current_function_name(frame: FrameType | None = None) -> str:
     return function_name
 
 
-def create_function_name_logger(level: int | str = logging.DEBUG) \
+def create_function_name_logger(level: int | str = logging.INFO) \
         -> DefaultLogger:
     """Create a logger with the name of the current function.
 
     Parameters
     ----------
-    level : int, optional, default logging.DEBUG
+    level : int, optional, default logging.INFO
         The logging level.
 
     Returns
