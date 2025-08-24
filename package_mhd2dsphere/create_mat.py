@@ -26,13 +26,15 @@ from package_mhd2dsphere.typed_dict import DictBackgroundField
 
 
 def create_submat(m_order: int,
+                  e_eta: float,
+                  rossby: float,
                   size_submat: int,
                   *,
                   background_field: DictBackgroundField) \
-    -> tuple[ArrayFloat,
-             ArrayFloat,
-             ArrayFloat,
-             ArrayFloat]:
+    -> tuple[ArrayFloat | ArrayComplex,
+             ArrayFloat | ArrayComplex,
+             ArrayFloat | ArrayComplex,
+             ArrayFloat | ArrayComplex]:
     """Create the submatrices.
 
     Parameters
@@ -46,13 +48,13 @@ def create_submat(m_order: int,
 
     Returns
     -------
-    submat_11 : ArrayFloat
+    submat_11 : ArrayFloat | ArrayComplex
         The (1,1)th block matrix.
-    submat_12 : ArrayFloat
+    submat_12 : ArrayFloat | ArrayComplex
         The (1,2)th block matrix.
-    submat_21 : ArrayFloat
+    submat_21 : ArrayFloat | ArrayComplex
         The (2,1)th block matrix.
-    submat_22 : ArrayFloat
+    submat_22 : ArrayFloat | ArrayComplex
         The (2,2)th block matrix.
 
     Notes
@@ -61,13 +63,14 @@ def create_submat(m_order: int,
     (2024)[1]_.
     """
 
-    submat_11: ArrayFloat
-    submat_12: ArrayFloat
-    submat_21: ArrayFloat
-    submat_22: ArrayFloat
+    submat_11: ArrayFloat | ArrayComplex
+    submat_12: ArrayFloat | ArrayComplex
+    submat_21: ArrayFloat | ArrayComplex
+    submat_22: ArrayFloat | ArrayComplex
 
+    n_t: int
     if background_field['NY24']:
-        n_t: int = size_submat + m_order - 1
+        n_t = size_submat + m_order - 1
         lin_n: ArrayFloat = np.linspace(
             m_order, n_t, size_submat, dtype=np.float64)
 
@@ -103,11 +106,111 @@ def create_submat(m_order: int,
         for i_submat in range(size_submat):
             submat_22[i_submat, i_submat] \
                 = (m_order+i_submat) * (m_order+1+i_submat)
-    else:
-        # bg_field_b: BackgroundField = background_field['B']
-        # bg_field_u: BackgroundField = background_field['U']
 
-        under_construction_log()
+    else:
+        n_t = size_submat - 1
+
+        if e_eta != 0:
+            under_construction_log()
+
+        bg_field_b: BackgroundField = background_field['B']
+        bg_field_u: BackgroundField = background_field['U']
+        mu_complex: ComplexCoordinate = background_field['MU']
+
+        switch_float: bool = (mu_complex.params['alpha'] == 0) \
+            and (mu_complex.params['beta_0'] == 0) \
+            and (mu_complex.params['beta_1'] == 0)
+
+        if switch_float and (e_eta == 0):
+            submat_11 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+            submat_12 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+            submat_21 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+            submat_22 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+            submat_b_11 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+            submat_b_22 = np.zeros(
+                (size_submat, size_submat), dtype=np.float64)
+        else:
+            submat_11 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+            submat_12 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+            submat_21 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+            submat_22 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+            submat_b_11 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+            submat_b_22 = np.zeros(
+                (size_submat, size_submat), dtype=np.complex128)
+
+        s_pos: float
+        mu: float | complex
+        u_mu: float | complex
+        b_mu: float | complex
+        u_shear_mu: float | complex
+        b_shear_mu: float | complex
+        for i_l in range(size_submat):
+            s_pos = - np.cos((i_l+1)*np.pi/(n_t+2))
+
+            if switch_float:
+                mu = mu_complex.r_value(s_pos)
+                u_mu = bg_field_u.r_value(mu)
+                u_shear_mu = (
+                    bg_field_u.r_value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_u.r_value_d(mu)
+                    - 2 * bg_field_u.r_value(mu)
+                )
+                b_mu = bg_field_b.r_value(mu)
+                b_shear_mu = (
+                    bg_field_b.r_value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_b.r_value_d(mu)
+                    - 2 * bg_field_b.r_value(mu)
+                )
+            else:
+                mu = mu_complex.value(s_pos)
+                u_mu = bg_field_u.value(mu)
+                u_shear_mu = (
+                    bg_field_u.value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_u.value_d(mu)
+                    - 2 * bg_field_u.value(mu)
+                )
+                b_mu = bg_field_b.value(mu)
+                b_shear_mu = (
+                    bg_field_b.value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_b.value_d(mu)
+                    - 2 * bg_field_b.value(mu)
+                )
+
+            for i_n in range(size_submat):
+                h_n: float = heinrichs(i_n, s_pos)
+                laplacian: float | complex = laplacian_heinrichs(
+                    m_order, i_n, s_pos,
+                    background_field=background_field)
+
+                submat_11[i_l, i_n] \
+                    = rossby*u_mu*laplacian + h_n \
+                    - rossby*u_shear_mu*h_n
+                submat_12[i_l, i_n] = b_mu*laplacian - b_shear_mu*h_n
+                submat_21[i_l, i_n] = b_mu * h_n
+                submat_22[i_l, i_n] = m_order*rossby*u_mu*h_n
+
+                submat_b_11[i_l, i_n] = laplacian
+                submat_b_22[i_l, i_n] = h_n
+
+        inv_submat_b_11: ArrayFloat | ArrayComplex \
+            = np.linalg.inv(submat_b_11)
+        inv_submat_b_22: ArrayFloat | ArrayComplex \
+            = np.linalg.inv(submat_b_22)
+
+        submat_11 = inv_submat_b_11 @ submat_11
+        submat_12 = inv_submat_b_11 @ submat_12
+        submat_21 = inv_submat_b_22 @ submat_21
+        submat_22 = inv_submat_b_22 @ submat_22
 
     return submat_11, submat_12, submat_21, submat_22
 
@@ -140,15 +243,15 @@ def laplacian_heinrichs(
     """
 
     mu_complex: ComplexCoordinate = background_field['MU']
-    params: dict[str, float] = mu_complex.params
-    alpha: float = params['alpha']
-    beta_0: float = params['beta_0']
-    beta_1: float = params['beta_1']
+
+    switch_float: bool = (mu_complex.params['alpha'] == 0) \
+        and (mu_complex.params['beta_0'] == 0) \
+        and (mu_complex.params['beta_1'] == 0)
 
     mu: float | complex
     mu_d: float | complex
     mu_d2: float | complex
-    if (alpha == 0) and (beta_0 == 0) and (beta_1 == 0):
+    if switch_float:
         mu = mu_complex.r_value(s_pos)
         mu_d = mu_complex.r_value_d(s_pos)
         mu_d2 = mu_complex.r_value_d2(s_pos)
@@ -162,7 +265,7 @@ def laplacian_heinrichs(
     return (
         sin2 * heinrichs_d2(n_degree, s_pos) / (mu_d**2)
         - (2*mu/mu_d + sin2*mu_d2/(mu_d**3))
-            * heinrichs_d(n_degree, s_pos)
+        * heinrichs_d(n_degree, s_pos)
         - (m_order**2) * heinrichs(n_degree, s_pos) / sin2
     )
 
@@ -170,12 +273,12 @@ def laplacian_heinrichs(
 def create_mat(m_order: int,
                alpha: float,
                e_eta: float,
-               submatrices: tuple[ArrayFloat,
-                                  ArrayFloat,
-                                  ArrayFloat,
-                                  ArrayFloat],
+               submatrices: tuple[ArrayFloat | ArrayComplex,
+                                  ArrayFloat | ArrayComplex,
+                                  ArrayFloat | ArrayComplex,
+                                  ArrayFloat | ArrayComplex],
                *,
-               background_field: DictBackgroundField)
+               background_field: DictBackgroundField) \
         -> ArrayFloat | ArrayComplex:
     """Make the total matrix.
 
@@ -187,7 +290,8 @@ def create_mat(m_order: int,
         The Lehnert number.
     e_eta: float
         The magnetic Ekman number.
-    submatrices: tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayFloat]
+    submatrices: tuple[ArrayFloat | ArrayComplex, ArrayFloat |
+    ArrayComplex, ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex]
         The(1, 1)th, (1, 2)th, (2, 1)th, and (2, 2)th block matrices.
     background_field: DictBackgroundField
         The background field.
@@ -203,37 +307,53 @@ def create_mat(m_order: int,
     (2024)[1]_.
     """
 
-    submat_11: ArrayFloat
-    submat_12: ArrayFloat
-    submat_21: ArrayFloat
-    submat_22: ArrayFloat
-    mat: ArrayFloat | ArrayComplex
+    submat_11: ArrayFloat | ArrayComplex
+    submat_12: ArrayFloat | ArrayComplex
+    submat_21: ArrayFloat | ArrayComplex
+    submat_22: ArrayFloat | ArrayComplex
+    submat_11, submat_12, submat_21, submat_22 = submatrices
+
+    size_submat: int = submat_11.shape[0]
+    size_mat: int = 2 * size_submat
 
     if background_field['NY24']:
-        submat_11, submat_12, submat_21, submat_22=submatrices
-
-        size_submat: int=submat_11.shape[0]
-        size_mat: int=2 * size_submat
 
         if e_eta == 0:
-            mat=np.zeros((size_mat, size_mat), dtype=np.float64)
+            mat = np.zeros((size_mat, size_mat), dtype=np.float64)
         else:
-            mat=np.zeros((size_mat, size_mat), dtype=np.complex128)
+            mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
 
-        mat[0*size_submat:1*size_submat, 0 *
-            size_submat:1*size_submat]=-m_order * submat_11
-        mat[0*size_submat:1*size_submat, 1*size_submat:2 *
-            size_submat]=-m_order * alpha * submat_12
+        mat[0*size_submat:1*size_submat,
+            0*size_submat:1*size_submat] = -m_order * submat_11
+        mat[0*size_submat:1*size_submat,
+            1*size_submat:2*size_submat] = -m_order * alpha * submat_12
 
-        mat[1*size_submat:2*size_submat, 0*size_submat:1 *
-            size_submat]=-m_order * alpha * submat_21
+        mat[1*size_submat:2*size_submat,
+            0*size_submat:1*size_submat] = -m_order * alpha * submat_21
         if e_eta != 0:
             mat[1*size_submat:2*size_submat,
-                1*size_submat:2*size_submat]=-1j * e_eta * submat_22
+                1*size_submat:2*size_submat] = -1j * e_eta * submat_22
     else:
-        # bg_field_b: BackgroundField = background_field['B']
-        # bg_field_u: BackgroundField = background_field['U']
 
-        under_construction_log()
+        mu_complex: ComplexCoordinate = background_field['MU']
+
+        switch_float: bool = (mu_complex.params['alpha'] == 0) \
+            and (mu_complex.params['beta_0'] == 0) \
+            and (mu_complex.params['beta_1'] == 0)
+
+        if switch_float and (e_eta == 0):
+            mat = np.zeros((size_mat, size_mat), dtype=np.float64)
+        else:
+            mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
+
+        mat[0*size_submat:1*size_submat,
+            0*size_submat:1*size_submat] = m_order * submat_11
+        mat[0*size_submat:1*size_submat,
+            1*size_submat:2*size_submat] = -m_order * alpha * submat_12
+
+        mat[1*size_submat:2*size_submat,
+            0*size_submat:1*size_submat] = -m_order * alpha * submat_21
+        mat[1*size_submat:2*size_submat,
+            1*size_submat:2*size_submat] = submat_22
 
     return mat

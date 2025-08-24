@@ -29,6 +29,7 @@ def wrapper_solve_eig(
     m_order: int,
     alpha: float,
     e_eta: float,
+    rossby: float,
     size_submat: int,
     *,
     criterion_c: DictCriterionC,
@@ -50,6 +51,8 @@ def wrapper_solve_eig(
         The Lehnert number.
     e_eta : float
         The magnetic Ekman number.
+    rossby : float
+        The Rossby number.
     size_submat : int
         The size of submatrices.
     criterion_c : DictCriterionC
@@ -77,11 +80,11 @@ def wrapper_solve_eig(
 
     size_mat: int = 2 * size_submat
 
-    submatrices: tuple[ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat] \
-        = create_submat(m_order, size_submat,
+    submatrices: tuple[ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex] \
+        = create_submat(m_order, e_eta, rossby, size_submat,
                         background_field=background_field)
 
     mat: ArrayFloat | ArrayComplex = create_mat(

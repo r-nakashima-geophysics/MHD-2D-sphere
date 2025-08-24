@@ -105,6 +105,9 @@ M_ORDER: Final[int] = input_value(1, int)
 # The magnetic Ekman number
 E_ETA: Final[float] = 0
 
+# The Rossby number
+ROSSBY: Final[float] = 0
+
 # The truncation degree
 N_T: Final[int] = 100
 # N_T: Final[int] = 2000
@@ -125,7 +128,7 @@ EIG_IM_LOG_MIN: Final[float] = -6
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
@@ -138,7 +141,7 @@ NAME_FIG: Final[str] \
     = f'MHD2Dsphere_eigfig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
+    + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
     + f'{COMPLEX_MU.name}'
 NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
 NAME_FIG_SUFFIX_2: Final[tuple[str, str, str]] \
@@ -166,7 +169,12 @@ INFO_INPUT: Final[DictFileInfo] = {
     'name_file_suffix': NAME_FILE_SUFFIX
 }
 
-SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
+size_submat: int
+if SWITCH_NY24:
+    size_submat = N_T - M_ORDER + 1
+else:
+    size_submat = N_T + 1
+SIZE_SUBMAT: Final[int] = size_submat
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 # if SWITCH_COLOR == 'ene':

@@ -93,6 +93,9 @@ M_ORDER: Final[int] = input_value(1, int)
 # The magnetic Ekman number
 E_ETA: Final[float] = 0
 
+# The Rossby number
+ROSSBY: Final[float] = 0
+
 # The truncation degree
 N_T: Final[int] = 100
 # N_T: Final[int] = 2000
@@ -116,7 +119,7 @@ ALPHA_LOG_END: Final[float] = 2
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
@@ -155,7 +158,7 @@ size_submat: int
 if SWITCH_NY24:
     size_submat = N_T - M_ORDER + 1
 else:
-    size_submat = N_T - 1
+    size_submat = N_T + 1
 SIZE_SUBMAT: Final[int] = size_submat
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
@@ -189,11 +192,11 @@ def wrapper_solve_eig_for_alpha(*,
         The symmetry of eigenmodes.
     """
 
-    submatrices: tuple[ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat] \
-        = create_submat(M_ORDER, SIZE_SUBMAT,
+    submatrices: tuple[ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex] \
+        = create_submat(M_ORDER, E_ETA, ROSSBY, SIZE_SUBMAT,
                         background_field=BG_FIELD)
 
     shared_memories: tuple[SharedMemory, ...]
