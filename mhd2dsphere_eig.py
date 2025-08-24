@@ -76,7 +76,7 @@ from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
@@ -119,10 +119,10 @@ ALPHA_LOG_END: Final[float] = 2
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
+    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
+    + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
     + f'{COMPLEX_MU.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 

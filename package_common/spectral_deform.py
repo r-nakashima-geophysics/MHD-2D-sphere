@@ -108,7 +108,7 @@ def init_complex_coordinate(
     if (alpha == 0) and (beta_0 == 0) and (beta_1 == 0):
         name: str = ''
     else:
-        name: str = f'_{alpha}-{beta_0}-{beta_1}'
+        name: str = f'_({alpha}_{beta_0}_{beta_1})'
 
     params: dict[str, float] = {
         "alpha": alpha,
