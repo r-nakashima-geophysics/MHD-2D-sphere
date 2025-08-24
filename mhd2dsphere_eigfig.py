@@ -100,7 +100,8 @@ M_ORDER: Final[int] = input_value(1, int)
 E_ETA: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 500
+N_T: Final[int] = 100
+# N_T: Final[int] = 2000
 
 # The criterion for plotting, which is based on the quality factor
 CRITERION_Q: Final[float] = 0

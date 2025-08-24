@@ -11,6 +11,7 @@ class DictBackgroundField(TypedDict):
 
     B: BackgroundField
     U: BackgroundField
+    MU: BackgroundField
     NY24: bool
 
 

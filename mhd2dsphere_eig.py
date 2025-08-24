@@ -55,6 +55,7 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
+from package_common.spectral_deform import complex_coord_transformation
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
 from package_common.utils_parallel import (attach_shared_arrays,
@@ -76,10 +77,14 @@ SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 # Background field
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
+# For the spectral deformation method
+COMPLEX_MU: Final[BackgroundField] = complex_coord_transformation(
+    -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
-# If SWITCH_NY24 is True, BG_FIELD_B and BG_FIELD_U are ignored.
-SWITCH_NY24: Final[bool] = True
+# If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
+# COMPLEX_MU are ignored.
+SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
@@ -88,7 +93,8 @@ M_ORDER: Final[int] = input_value(1, int)
 E_ETA: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 2000
+N_T: Final[int] = 100
+# N_T: Final[int] = 2000
 
 # The criterion for convergence
 # degree
@@ -125,7 +131,8 @@ NUM_THREADS: Final[int] = 1
 BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
-    'NY24': SWITCH_NY24
+    'MU': COMPLEX_MU,
+    'NY24': SWITCH_NY24,
 }
 
 CRITERION_C: Final[DictCriterionC] = {
@@ -142,7 +149,12 @@ LIN_ALPHA: Final[ArrayFloat] = np.linspace(
 LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
     ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
-SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
+size_submat: int
+if SWITCH_NY24:
+    size_submat = N_T - M_ORDER + 1
+else:
+    size_submat = N_T - 1
+SIZE_SUBMAT: Final[int] = size_submat
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 
