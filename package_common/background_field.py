@@ -75,13 +75,13 @@ class BackgroundField:
         self.__logger: DefaultLogger = DefaultLogger(self.name)
 
     def r_value(self,
-                x: float | int) -> float:
+                x: float) -> float:
         """Return the value of the background field at a given (real)
         point.
 
         Parameters
         ----------
-        x : float | int
+        x : float
             The (real) point at which the value of the background field
             is evaluated.
 
@@ -125,13 +125,13 @@ class BackgroundField:
         sys.exit(1)
 
     def r_value_d(self,
-                  x: float | int) -> float:
+                  x: float) -> float:
         """Return the value of the first derivative of the profile of
         the background field at a given (real) point.
 
         Parameters
         ----------
-        x : float | int
+        x : float
             The (real) point at which the value of the first derivative
             of the profile of the background field is evaluated.
 
@@ -177,13 +177,13 @@ class BackgroundField:
         sys.exit(1)
 
     def r_value_d2(self,
-                   x: float | int) -> float:
+                   x: float) -> float:
         """Return the value of the second derivative of the profile of
         the background field at a given (real) point.
 
         Parameters
         ----------
-        x : float | int
+        x : float
             The (real) point at which the value of the second derivative
             of the profile of the background field is evaluated.
 

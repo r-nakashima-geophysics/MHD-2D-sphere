@@ -62,6 +62,8 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
                                             create_plotter)
 from package_common.default_timer import DefaultTimer
+from package_common.spectral_deform import (ComplexCoordinate,
+                                            init_complex_coordinate)
 from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.load_data import wrapper_load_results
@@ -88,10 +90,14 @@ SWITCH_COLOR: Final[str] = 'ene'
 # Background field
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
+# For the spectral deformation method
+COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
+    -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
-# If SWITCH_NY24 is True, BG_FIELD_B and BG_FIELD_U are ignored.
-SWITCH_NY24: Final[bool] = True
+# If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
+# COMPLEX_MU are ignored.
+SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
@@ -122,7 +128,8 @@ NAME_FILE: Final[str] \
     = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
+    + f'{COMPLEX_MU.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The paths and filenames of outputs
@@ -131,7 +138,8 @@ NAME_FIG: Final[str] \
     = f'MHD2Dsphere_eigfig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
+    + f'{COMPLEX_MU.name}'
 NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
 NAME_FIG_SUFFIX_2: Final[tuple[str, str, str]] \
     = ('_blk', '_ene', '_ohm')
@@ -148,6 +156,7 @@ SWITCH_DISP_ETA: Final[bool] = False
 BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
+    'MU': COMPLEX_MU,
     'NY24': SWITCH_NY24
 }
 

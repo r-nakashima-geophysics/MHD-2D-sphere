@@ -12,19 +12,78 @@ Corporation, (2001).
 """
 
 from package_common.background_field import BackgroundField
-from package_common.utils_name import get_current_function_name
+from package_common.common_types import ComplexFunc
 
 
-def complex_coord_transformation(
-        y_start: float | int,
-        y_end: float | int,
+class ComplexCoordinate(BackgroundField):
+    """Subclass of the BackgroundField class to define the complex
+    coordinate transformation.
+
+    Attributes
+    ----------
+    name : str
+        The name of the complex coordinate transformation.
+    value : ComplexFunc
+         The profile of the complex coordinate transformation.
+    value_d : ComplexFunc | None
+        The first derivative of the profile of the complex coordinate
+        transformation.
+    value_d2 : ComplexFunc | None
+        The second derivative of the profile of the complex coordinate
+        transformation.
+    tex : str | None
+        The LaTeX text of the complex coordinate transformation.
+    params : dict[str, float]
+        The parameters for the complex coordinate transformation.
+    """
+
+    def __init__(self,
+                 name: str,
+                 *,
+                 value: ComplexFunc,
+                 value_d: ComplexFunc | None = None,
+                 value_d2: ComplexFunc | None = None,
+                 tex: str | None = None,
+                 params: dict[str, float]) -> None:
+        """Initialize an instance of the ComplexCoordinate class.
+
+        Parameters
+        ----------
+        name : str
+            The name of the complex coordinate transformation.
+        value : ComplexFunc
+            The profile of the complex coordinate transformation.
+        value_d : ComplexFunc | None, optional, default None
+            The first derivative of the profile of the complex
+            coordinate transformation.
+        value_d2 : ComplexFunc | None, optional, default None
+            The second derivative of the profile of the complex
+            coordinate transformation.
+        tex : str | None, optional, default None
+            The LaTeX text of the complex coordinate transformation.
+        params : dict[str, float]
+            The parameters for the complex coordinate transformation.
+        """
+
+        self.params: dict[str, float] = params
+
+        super().__init__(name,
+                         value=value,
+                         value_d=value_d,
+                         value_d2=value_d2,
+                         tex=tex)
+
+
+def init_complex_coordinate(
+        y_start: float,
+        y_end: float,
         *,
-        alpha: float | int,
-        beta_0: float | int,
-        beta_1: float | int) -> BackgroundField:
-    """Construct an instance of the BackgroundField class for the
-    coordinate transformation, y = y(s), to a complex coordinate in the
-    spectral deformation method.
+        alpha: float,
+        beta_0: float,
+        beta_1: float) -> ComplexCoordinate:
+    """Construct an instance of the ComplexCoordinate class for the
+    complex coordinate transformation, y = y(s), in the spectral
+    deformation method.
 
     Parameters
     ----------
@@ -33,20 +92,29 @@ def complex_coord_transformation(
     y_end : float
         The ending point.
     alpha : float
-        A parameter for the transformation to complex coordinates.
+        A parameter for the complex coordinate transformation.
     beta_0 : float
-        A parameter for the transformation to complex coordinates.
+        A parameter for the complex coordinate transformation.
     beta_1 : float
-        A parameter for the transformation to complex coordinates.
+        A parameter for the complex coordinate transformation.
 
     Returns
     -------
-    BackgroundField
-        The instance of the BackgroundField class for the transformation
-        to complex coordinates.
+    ComplexCoordinate
+        The instance of the ComplexCoordinate class for the
+        transformation to complex coordinates.
     """
 
-    name: str = get_current_function_name()
+    if (alpha == 0) and (beta_0 == 0) and (beta_1 == 0):
+        name: str = ''
+    else:
+        name: str = f'_{alpha}-{beta_0}-{beta_1}'
+
+    params: dict[str, float] = {
+        "alpha": alpha,
+        "beta_0": beta_0,
+        "beta_1": beta_1
+    }
 
     def y_complex(s_pos: complex) -> complex:
         return (
@@ -65,7 +133,8 @@ def complex_coord_transformation(
             - 2 * (alpha+1j) * (3*beta_1*s_pos+beta_0)
         )
 
-    return BackgroundField(name,
-                           value=y_complex,
-                           value_d=y_complex_d,
-                           value_d2=y_complex_d2)
+    return ComplexCoordinate(name,
+                             value=y_complex,
+                             value_d=y_complex_d,
+                             value_d2=y_complex_d2,
+                             params=params)

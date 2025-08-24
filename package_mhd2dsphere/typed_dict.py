@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from package_common.background_field import BackgroundField
+from package_common.spectral_deform import ComplexCoordinate
 
 
 class DictBackgroundField(TypedDict):
@@ -11,7 +12,7 @@ class DictBackgroundField(TypedDict):
 
     B: BackgroundField
     U: BackgroundField
-    MU: BackgroundField
+    MU: ComplexCoordinate
     NY24: bool
 
 

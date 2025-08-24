@@ -55,7 +55,8 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
-from package_common.spectral_deform import complex_coord_transformation
+from package_common.spectral_deform import (ComplexCoordinate,
+                                            init_complex_coordinate)
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
 from package_common.utils_parallel import (attach_shared_arrays,
@@ -78,7 +79,7 @@ SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_hydro('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-COMPLEX_MU: Final[BackgroundField] = complex_coord_transformation(
+COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
@@ -118,7 +119,8 @@ NAME_FILE: Final[str] \
     = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}N{N_T}'
+    + f'_m{M_ORDER}E{E_ETA}N{N_T}' \
+    + f'{COMPLEX_MU.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
