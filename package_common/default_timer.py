@@ -1,11 +1,15 @@
 """A Python module to define a class for measuring the computational
 time of a Python script.
+
+Note
+----
+The caffeine module will be imported in the initializer of the DefaultTimer class when the class is used on macOS.
 """
 
+import importlib
 import sys
 from time import perf_counter
-
-import caffeine
+from types import ModuleType
 
 from package_common.default_logger import DefaultLogger
 
@@ -24,6 +28,8 @@ class DefaultTimer:
     >>> timer.end()
     """
 
+    __import_caffeine: bool = False
+
     def __init__(self,
                  name: str) -> None:
         """Initialize an instance of the DefaultTimer class.
@@ -40,8 +46,12 @@ class DefaultTimer:
 
         self.__logger: DefaultLogger = DefaultLogger(name)
 
-        if sys.platform == "darwin":
+        if (sys.platform == "darwin") \
+                and (not DefaultTimer.__import_caffeine):
+
+            caffeine: ModuleType = importlib.import_module('caffeine')
             caffeine.on(display=False)
+            DefaultTimer.__import_caffeine = True
 
     def start(self) -> None:
         """Start the timer."""
