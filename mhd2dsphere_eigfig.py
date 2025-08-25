@@ -85,10 +85,10 @@ SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
 # SWITCH_COLOR == 'blk': black
 # SWITCH_COLOR == 'ene': energy partitioning
 # SWITCH_COLOR == 'ohm': ohmic dissipation
-SWITCH_COLOR: Final[str] = 'blk'
+SWITCH_COLOR: Final[str] = 'ene'
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
@@ -109,7 +109,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 100
+N_T: Final[int] = 200
 # N_T: Final[int] = 2000
 
 # The criterion for plotting, which is based on the quality factor
@@ -122,8 +122,8 @@ EIG_RE_END: Final[float] = 2
 # log, real part
 EIG_RE_LOG_INIT: Final[float] = -6
 EIG_RE_LOG_END: Final[float] = 2
-# log, imaginary part
-EIG_IM_LOG_MIN: Final[float] = -6
+# linear & log, imaginary part
+EIG_IM_LOG_MIN: Final[float] = -10
 
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
@@ -662,7 +662,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     if SWITCH_COLOR == 'ene':
 
         cbar1 = plotter_real.fig.colorbar(
-            plotter_real.sc[0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
+            plotter_real.sc[0, 0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
         cbar1.ax.set_yticklabels(
             [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
         cbar1.ax.tick_params(labelsize=14)
@@ -670,7 +670,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
 
         if 1 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0], cax=cbar_ax_2,
+                plotter_imag.sc[0, 0], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -678,7 +678,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1], cax=cbar_ax_2,
+                plotter_imag.sc[0, 1], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -686,7 +686,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 3 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[2], cax=cbar_ax_2,
+                plotter_imag.sc[1, 0], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -694,7 +694,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 4 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[3], cax=cbar_ax_2,
+                plotter_imag.sc[1, 1], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -704,23 +704,23 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     elif SWITCH_COLOR == 'ohm':
 
         cbar1 = plotter_real.fig.colorbar(
-            plotter_real.sc[0], cax=cbar_ax_1)
+            plotter_real.sc[0, 0], cax=cbar_ax_1)
         cbar1.set_label(label=CBAR_LABEL, size=16)
         if 1 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0], cax=cbar_ax_2)
+                plotter_imag.sc[0, 0], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1], cax=cbar_ax_2)
+                plotter_imag.sc[0, 1], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 3 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[2], cax=cbar_ax_2)
+                plotter_imag.sc[1, 0], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 4 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[3], cax=cbar_ax_2)
+                plotter_imag.sc[1, 1], cax=cbar_ax_2)
             cbar2.set_label(label=CBAR_LABEL, size=16)
 
     # For Fig. 6 in Nakashima and Yoshida (2024)
@@ -896,7 +896,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
 
-                plotter_real.sc[0] = plotter_real.axes[0, 0].scatter(
+                plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_na'].real, s=0.2,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
@@ -914,7 +914,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     vmin=cmap_min, vmax=cmap_max)
 
                 if False in np.isnan(dict_eig['sr_u']):
-                    plotter_imag.sc[0] \
+                    plotter_imag.sc[0, 0] \
                         = plotter_imag.axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
@@ -922,7 +922,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     set_save_fig.add(1)
 
                 if False in np.isnan(dict_eig['sp_u']):
-                    plotter_imag.sc[1] \
+                    plotter_imag.sc[0, 1] \
                         = plotter_imag.axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
@@ -930,7 +930,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     set_save_fig.add(2)
 
                 if False in np.isnan(dict_eig['vr_u']):
-                    plotter_imag.sc[2] \
+                    plotter_imag.sc[1, 0] \
                         = plotter_imag.axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
@@ -938,7 +938,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     set_save_fig.add(3)
 
                 if False in np.isnan(dict_eig['vp_u']):
-                    plotter_imag.sc[3] \
+                    plotter_imag.sc[1, 1] \
                         = plotter_imag.axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag, s=0.1,
                         c=scatter_color, cmap='jet',
@@ -946,7 +946,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     set_save_fig.add(4)
 
             else:
-                plotter_real.sc[0] = plotter_real.axes[0, 0].scatter(
+                plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
@@ -963,19 +963,19 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
 
-                plotter_imag.sc[0] = plotter_imag.axes[0, 0].scatter(
+                plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[1] = plotter_imag.axes[0, 1].scatter(
+                plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[2] = plotter_imag.axes[1, 0].scatter(
+                plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[3] = plotter_imag.axes[1, 1].scatter(
+                plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].imag, s=0.1,
                     c=scatter_color, cmap='jet',
                     vmin=cmap_min, vmax=cmap_max)
@@ -1040,7 +1040,7 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
     if (not switch_log) and (set_save_fig & {1, 2}):
         plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
                           switch_tight_layout=False)
-    if (not switch_log) and (set_save_fig & {1, 2, 3, 4}):
+    if switch_log and (set_save_fig & {1, 2, 3, 4}):
         plotter_imag.save(PATH_DIR_FIG, list_name_fig[1], FIG_DPI,
                           switch_tight_layout=False)
 
@@ -1062,6 +1062,21 @@ if __name__ == '__main__':
     if (E_ETA == 0) and (SWITCH_COLOR == 'ohm'):
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
+
+    if SWITCH_NY24:
+        logger.show_params(f'SWITCH_NY24 = {SWITCH_NY24}',
+                           f'M_ORDER = {M_ORDER}',
+                           f'E_ETA = {E_ETA}',
+                           f'ROSSBY = {ROSSBY}',
+                           f'N_T = {N_T}')
+    else:
+        logger.show_params(f'BG_FIELD_B.name = {BG_FIELD_B.name}',
+                           f'BG_FIELD_U.name = {BG_FIELD_U.name}',
+                           f'COMPLEX_MU.name = {COMPLEX_MU.name}',
+                           f'M_ORDER = {M_ORDER}',
+                           f'E_ETA = {E_ETA}',
+                           f'ROSSBY = {ROSSBY}',
+                           f'N_T = {N_T}')
 
     data: tuple[ArrayFloat,
                 ArrayComplex,

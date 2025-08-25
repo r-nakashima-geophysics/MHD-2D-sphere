@@ -149,4 +149,6 @@ def load_results(name_file: str,
     ohm: ArrayFloat = npz_kw['ohm']
     sym: ArrayStr = npz_kw['sym']
 
+    DefaultLogger(name_file).info(f'Loaded')
+
     return lin_alpha, eig, mke, mme, ohm, sym

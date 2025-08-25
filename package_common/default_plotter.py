@@ -17,6 +17,8 @@ import numpy as np
 import numpy.typing as npt
 from matplotlib import axes, collections, colorbar, figure, legend
 
+from package_common.default_logger import DefaultLogger
+
 type Figure = figure.Figure
 type Axes = axes.Axes
 type Legend = legend.Legend
@@ -52,6 +54,8 @@ class DefaultPlotter:
     >>> plotter.tight_layout()
     >>> plotter.save(Path('.'), 'plot.png', dpi=300)
     """
+
+    __set_latex: bool = False
 
     def __init__(self,
                  **kwargs) -> None:
@@ -101,7 +105,7 @@ class DefaultPlotter:
             if self.leg is not None:
                 self.leg.get_frame().set_alpha(1)
         else:
-            for leg in self.leg:
+            for leg in self.leg.ravel():
                 if leg is not None:
                     leg.get_frame().set_alpha(1)
 
@@ -112,6 +116,8 @@ class DefaultPlotter:
         path_fig: Path = path_dir / filename
         self.fig.savefig(path_fig, dpi=dpi)
 
+        DefaultLogger(filename).info(f'Saved')
+
     def tight_layout(self) -> None:
         """Adjust the padding of the figure."""
 
@@ -121,10 +127,13 @@ class DefaultPlotter:
     def set_latex(cls) -> None:
         """Set latex."""
 
-        if shutil.which('latex') is not None:
-            plt.rcParams['text.usetex'] = True
-        else:
-            plt.rcParams['text.usetex'] = False
+        if not cls.__set_latex:
+            cls.__set_latex = True
+
+            if shutil.which('latex') is not None:
+                plt.rcParams['text.usetex'] = True
+            else:
+                plt.rcParams['text.usetex'] = False
 
 
 class DefaultGridPlotter(DefaultPlotter):
@@ -182,22 +191,14 @@ class DefaultGridPlotter(DefaultPlotter):
         self.fig, self.axes = plt.subplots(nrows, ncols, **kwargs)
 
         self.leg: ArrayLegend \
-            = np.full(nrows*ncols, None, dtype=np.object_)
+            = np.full_like(self.axes, None, dtype=np.object_)
         self.sc: ArrayPathCollection \
-            = np.full(nrows*ncols, None, dtype=np.object_)
+            = np.full_like(self.axes, None, dtype=np.object_)
 
-        if (nrows == 1) or (ncols == 1):
-            num_axes: int = max(nrows, ncols)
-            for i in range(num_axes):
-                self.axes[i].grid()
-                self.axes[i].set_axisbelow(True)
-                self.axes[i].minorticks_on()
-        else:
-            for i in range(nrows):
-                for j in range(ncols):
-                    self.axes[i, j].grid()
-                    self.axes[i, j].set_axisbelow(True)
-                    self.axes[i, j].minorticks_on()
+        for axis in self.axes.ravel():
+            axis.grid()
+            axis.set_axisbelow(True)
+            axis.minorticks_on()
 
 
 @overload

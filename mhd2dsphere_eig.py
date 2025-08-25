@@ -97,7 +97,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 100
+N_T: Final[int] = 200
 # N_T: Final[int] = 2000
 
 # The criterion for convergence
