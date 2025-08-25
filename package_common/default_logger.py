@@ -16,6 +16,9 @@ class DefaultLogger:
     >>> logger.warning('This is a warning message.')
     >>> logger.error('This is an error message.')
     >>> logger.critical('This is a critical message.')
+    >>> param1 = 1
+    >>> param2 = 2
+    >>> logger.show_params(f'param1 = {param1}', f'param2 = {param2}')
     """
 
     def __init__(self,
@@ -118,3 +121,18 @@ class DefaultLogger:
         """
 
         self.__logger.critical(message)
+
+    def show_params(self,
+                    *args) -> None:
+        """Show the parameters.
+
+        Parameters
+        ----------
+        *args
+            The parameters to log.
+        """
+
+        self.__logger.info(f'----- Parameters -----')
+        for parameter in args:
+            self.__logger.info(parameter)
+        self.__logger.info(f'----------------------')

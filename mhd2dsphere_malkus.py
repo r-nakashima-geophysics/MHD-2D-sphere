@@ -477,8 +477,12 @@ if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
 
+    logger: DefaultLogger = DefaultLogger(__name__)
+
+    logger.show_params(f'M_ORDER = {M_ORDER}')
+
     if not any(SWITCH_PLOT):
-        DefaultLogger(__name__).warning('No plotted figures')
+        logger.warning('No plotted figures')
         sys.exit(0)
 
     data: tuple[ArrayFloat,

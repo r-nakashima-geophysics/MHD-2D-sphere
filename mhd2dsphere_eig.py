@@ -76,7 +76,7 @@ from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
@@ -332,13 +332,32 @@ def save_results(results: tuple[ArrayComplex,
                         lin_alpha=lin_alpha, eig=eig,
                         mke=mke, mme=mme, ohm=ohm, sym=sym)
 
+    DefaultLogger(name_file).info(f'Saved')
+
 
 if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
 
+    logger: DefaultLogger = DefaultLogger(__name__)
+
+    if SWITCH_NY24:
+        logger.show_params(f'SWITCH_NY24 = {SWITCH_NY24}',
+                           f'M_ORDER = {M_ORDER}',
+                           f'E_ETA = {E_ETA}',
+                           f'ROSSBY = {ROSSBY}',
+                           f'N_T = {N_T}')
+    else:
+        logger.show_params(f'BG_FIELD_B.name = {BG_FIELD_B.name}',
+                           f'BG_FIELD_U.name = {BG_FIELD_U.name}',
+                           f'COMPLEX_MU.name = {COMPLEX_MU.name}',
+                           f'M_ORDER = {M_ORDER}',
+                           f'E_ETA = {E_ETA}',
+                           f'ROSSBY = {ROSSBY}',
+                           f'N_T = {N_T}')
+
     if not any(SWITCH_CALC):
-        DefaultLogger(__name__).warning('No saved file')
+        logger.warning('No saved file')
         sys.exit(0)
 
     data: tuple[ArrayComplex,

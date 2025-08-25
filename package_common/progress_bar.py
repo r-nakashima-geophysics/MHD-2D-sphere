@@ -21,7 +21,7 @@ class ProgressBar:
     ...         progress_bar.update(i)
     """
 
-    __bar_width: int = 20
+    __bar_width: int = 15
     __mark_empty: str = ' '
     __mark_filled: str = '█'
 
