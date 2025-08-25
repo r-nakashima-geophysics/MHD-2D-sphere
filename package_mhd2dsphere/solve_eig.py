@@ -16,12 +16,14 @@ doi: 10.1080/03091929.2024.2384388
 
 import numpy as np
 
-from package_common.background_field import BackgroundField
+from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
+from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
-from package_mhd2dsphere.create_mat import create_mat, create_submat
+from package_mhd2dsphere.create_mat import (create_mat, create_submat,
+                                            laplacian_heinrichs)
 from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 
 
@@ -240,34 +242,31 @@ def calc_qty(m_order: int,
     mke, mme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
 
-    if background_field['NY24']:
-
-        ohm: ArrayFloat = np.zeros(size_mat)
-        if e_eta != 0:
+    ohm: ArrayFloat = np.zeros(size_mat)
+    if e_eta != 0:
+        if background_field['NY24']:
             n_degree: int
             for i_n in range(size_submat):
                 n_degree = m_order + i_n
 
                 ohm += (n_degree**2) * ((n_degree+1)**2) * (
                     np.abs(eig_valvec[size_submat+i_n, :])**2)
-
             ohm *= e_eta
+        else:
+            under_construction_log()
 
-        even: ArrayFloat = np.zeros(size_mat)
-        odd: ArrayFloat = np.zeros(size_mat)
-        sym: ArrayStr = np.empty(size_mat, dtype=np.str_)
-        for i_n in range(int(size_submat/2)):
-            even += np.abs(eig_valvec[2*i_n, :])
-            odd += np.abs(eig_valvec[2*i_n+1, :])
+    even: ArrayFloat = np.zeros(size_mat)
+    odd: ArrayFloat = np.zeros(size_mat)
+    sym: ArrayStr = np.empty(size_mat, dtype=np.str_)
+    for i_n in range(int(size_submat/2)):
+        even += np.abs(eig_valvec[2*i_n, :])
+        odd += np.abs(eig_valvec[2*i_n+1, :])
 
-        for i_mode in range(size_mat):
-            if even[i_mode] > odd[i_mode]:
-                sym[i_mode] = 'sinuous'
-            else:
-                sym[i_mode] = 'varicose'
-
-    else:
-        under_construction_log()
+    for i_mode in range(size_mat):
+        if even[i_mode] > odd[i_mode]:
+            sym[i_mode] = 'sinuous'
+        else:
+            sym[i_mode] = 'varicose'
 
     return mke, mme, ohm, sym
 
@@ -302,14 +301,13 @@ def calc_ene(m_order: int,
     (2024)[1]_.
     """
 
+    size_mat: int = eig_valvec.shape[1]
+    size_submat: int = int(size_mat/2)
+
+    mke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
+    mme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
+
     if background_field['NY24']:
-
-        size_mat: int = eig_valvec.shape[1]
-        size_submat: int = int(size_mat/2)
-
-        mke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
-        mme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
-
         n_degree: int
         nn1: int
         for i_n in range(size_submat):
@@ -318,9 +316,50 @@ def calc_ene(m_order: int,
 
             mke += nn1 * (np.abs(eig_valvec[i_n, :])**2)
             mme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
-
     else:
-        under_construction_log()
+        mu_complex: ComplexCoordinate = background_field['MU']
+
+        switch_float: bool = (mu_complex.params['alpha'] == 0) \
+            and (mu_complex.params['beta_0'] == 0) \
+            and (mu_complex.params['beta_1'] == 0)
+
+        if switch_float:
+            psi_vec: ArrayComplex = eig_valvec[:size_submat, :]
+            vpa_vec: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+
+            num_point: int = 3 * size_submat
+            for i_k in range(1, num_point+1):
+                x = np.cos((2*i_k-1)*np.pi/(2*num_point))
+
+                psi: ArrayComplex \
+                    = np.zeros(size_mat, dtype=np.complex128)
+                vpa: ArrayComplex \
+                    = np.zeros(size_mat, dtype=np.complex128)
+                laplacian_psi: ArrayComplex \
+                    = np.zeros(size_mat, dtype=np.complex128)
+                laplacian_vpa: ArrayComplex \
+                    = np.zeros(size_mat, dtype=np.complex128)
+
+                for i_n in range(size_submat):
+                    psi += psi_vec[i_n, :] * heinrichs(i_n, x)
+                    vpa += vpa_vec[i_n, :] * heinrichs(i_n, x)
+                    laplacian_psi \
+                        += psi_vec[i_n, :] * laplacian_heinrichs(
+                            m_order, i_n, x,
+                            background_field=background_field)
+                    laplacian_vpa \
+                        += vpa_vec[i_n, :] * laplacian_heinrichs(
+                            m_order, i_n, x,
+                            background_field=background_field)
+                mke += np.real(
+                    np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x**2))
+                mme += np.real(
+                    np.conj(vpa) * (-laplacian_vpa)) * np.sqrt(1-(x**2))
+            mke *= (np.pi/num_point)
+            mme *= (np.pi/num_point)
+        else:
+            mke = np.full(size_mat, 0.5, dtype=np.float64)
+            mme = np.full(size_mat, 0.5, dtype=np.float64)
 
     return mke, mme
 
