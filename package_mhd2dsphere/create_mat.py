@@ -18,9 +18,9 @@ import numpy as np
 
 from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs, heinrichs_d, heinrichs_d2
-from package_common.common_types import (ArrayComplex, ArrayFloat,
-                                         TypeVarFloatComplex)
-from package_common.spectral_deform import ComplexCoordinate
+from package_common.common_types import ArrayComplex, ArrayFloat
+from package_common.spectral_deform import (ComplexCoordinate,
+                                            check_spectral_deform)
 from package_common.utils_debug import under_construction_log
 from package_mhd2dsphere.typed_dict import DictBackgroundField
 
@@ -41,6 +41,10 @@ def create_submat(m_order: int,
     ----------
     m_order : int
         The zonal wavenumber (order).
+    e_eta : float
+        The magnetic Ekman number.
+    rossby : float
+        The Rossby number.
     size_submat : int
         The size of submatrices.
     background_field : DictBackgroundField
@@ -117,36 +121,32 @@ def create_submat(m_order: int,
         bg_field_u: BackgroundField = background_field['U']
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        switch_float: bool = (mu_complex.params['alpha'] == 0) \
-            and (mu_complex.params['beta_0'] == 0) \
-            and (mu_complex.params['beta_1'] == 0)
-
-        if switch_float and (e_eta == 0):
+        if check_spectral_deform(mu_complex) or (e_eta != 0):
             submat_11 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
             submat_12 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
             submat_21 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
             submat_22 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
             submat_b_11 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
             submat_b_22 = np.zeros(
-                (size_submat, size_submat), dtype=np.float64)
+                (size_submat, size_submat), dtype=np.complex128)
         else:
             submat_11 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
             submat_12 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
             submat_21 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
             submat_22 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
             submat_b_11 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
             submat_b_22 = np.zeros(
-                (size_submat, size_submat), dtype=np.complex128)
+                (size_submat, size_submat), dtype=np.float64)
 
         s_pos: float
         mu: float | complex
@@ -157,21 +157,7 @@ def create_submat(m_order: int,
         for i_l in range(size_submat):
             s_pos = - np.cos((i_l+1)*np.pi/(n_t+2))
 
-            if switch_float:
-                mu = mu_complex.r_value(s_pos)
-                u_mu = bg_field_u.r_value(mu)
-                u_shear_mu = (
-                    bg_field_u.r_value_d2(mu) * (1-(mu**2))
-                    - 4 * mu * bg_field_u.r_value_d(mu)
-                    - 2 * bg_field_u.r_value(mu)
-                )
-                b_mu = bg_field_b.r_value(mu)
-                b_shear_mu = (
-                    bg_field_b.r_value_d2(mu) * (1-(mu**2))
-                    - 4 * mu * bg_field_b.r_value_d(mu)
-                    - 2 * bg_field_b.r_value(mu)
-                )
-            else:
+            if check_spectral_deform(mu_complex):
                 mu = mu_complex.value(s_pos)
                 u_mu = bg_field_u.value(mu)
                 u_shear_mu = (
@@ -184,6 +170,20 @@ def create_submat(m_order: int,
                     bg_field_b.value_d2(mu) * (1-(mu**2))
                     - 4 * mu * bg_field_b.value_d(mu)
                     - 2 * bg_field_b.value(mu)
+                )
+            else:
+                mu = mu_complex.r_value(s_pos)
+                u_mu = bg_field_u.r_value(mu)
+                u_shear_mu = (
+                    bg_field_u.r_value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_u.r_value_d(mu)
+                    - 2 * bg_field_u.r_value(mu)
+                )
+                b_mu = bg_field_b.r_value(mu)
+                b_shear_mu = (
+                    bg_field_b.r_value_d2(mu) * (1-(mu**2))
+                    - 4 * mu * bg_field_b.r_value_d(mu)
+                    - 2 * bg_field_b.r_value(mu)
                 )
 
             for i_n in range(size_submat):
@@ -244,21 +244,17 @@ def laplacian_heinrichs(
 
     mu_complex: ComplexCoordinate = background_field['MU']
 
-    switch_float: bool = (mu_complex.params['alpha'] == 0) \
-        and (mu_complex.params['beta_0'] == 0) \
-        and (mu_complex.params['beta_1'] == 0)
-
     mu: float | complex
     mu_d: float | complex
     mu_d2: float | complex
-    if switch_float:
-        mu = mu_complex.r_value(s_pos)
-        mu_d = mu_complex.r_value_d(s_pos)
-        mu_d2 = mu_complex.r_value_d2(s_pos)
-    else:
+    if check_spectral_deform(mu_complex):
         mu = mu_complex.value(s_pos)
         mu_d = mu_complex.value_d(s_pos)
         mu_d2 = mu_complex.value_d2(s_pos)
+    else:
+        mu = mu_complex.r_value(s_pos)
+        mu_d = mu_complex.r_value_d(s_pos)
+        mu_d2 = mu_complex.r_value_d2(s_pos)
 
     sin2: float | complex = 1 - (mu**2)
 
@@ -337,14 +333,10 @@ def create_mat(m_order: int,
 
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        switch_float: bool = (mu_complex.params['alpha'] == 0) \
-            and (mu_complex.params['beta_0'] == 0) \
-            and (mu_complex.params['beta_1'] == 0)
-
-        if switch_float and (e_eta == 0):
-            mat = np.zeros((size_mat, size_mat), dtype=np.float64)
-        else:
+        if check_spectral_deform(mu_complex) or (e_eta != 0):
             mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
+        else:
+            mat = np.zeros((size_mat, size_mat), dtype=np.float64)
 
         mat[0*size_submat:1*size_submat,
             0*size_submat:1*size_submat] = m_order * submat_11

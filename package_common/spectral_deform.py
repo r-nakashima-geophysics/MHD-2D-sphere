@@ -135,3 +135,30 @@ def init_complex_coordinate(
                              value_d=y_complex_d,
                              value_d2=y_complex_d2,
                              params=params)
+
+
+def check_spectral_deform(complex_coordinate: ComplexCoordinate) \
+        -> bool:
+    """Check the spectral deformation method is used.
+
+    Parameters
+    ----------
+    complex_coordinate : ComplexCoordinate
+        The instance of the ComplexCoordinate class.
+
+    Returns
+    -------
+    check : bool
+        The boolean value to check whether the spectral deformation
+        method is used or not.
+    """
+
+    params: dict[str, float] = complex_coordinate.params
+
+    check: bool = False
+    for value in params.values():
+        if value != 0:
+            check = True
+            break
+
+    return check

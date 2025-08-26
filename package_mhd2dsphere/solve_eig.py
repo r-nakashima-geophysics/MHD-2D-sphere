@@ -19,7 +19,8 @@ import numpy as np
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
-from package_common.spectral_deform import ComplexCoordinate
+from package_common.spectral_deform import (ComplexCoordinate,
+                                            check_spectral_deform)
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
 from package_mhd2dsphere.create_mat import (create_mat, create_submat,
@@ -319,11 +320,7 @@ def calc_ene(m_order: int,
     else:
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        switch_float: bool = (mu_complex.params['alpha'] == 0) \
-            and (mu_complex.params['beta_0'] == 0) \
-            and (mu_complex.params['beta_1'] == 0)
-
-        if switch_float:
+        if not check_spectral_deform(mu_complex):
             psi_vec: ArrayComplex = eig_valvec[:size_submat, :]
             vpa_vec: ArrayComplex = eig_valvec[size_submat:size_mat, :]
 
