@@ -297,11 +297,9 @@ def sort_alfvenic(mke: ArrayFloat) -> tuple[ArrayFloat,
     non_alfvenic: ArrayFloat \
         = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if mke[i_mode] > 0.51:
-            non_alfvenic[i_mode] = 1
-        elif mke[i_mode] < 0.49:
-            non_alfvenic[i_mode] = 1
-        else:
+        if 0.49 < mke[i_mode] < 0.51:
             alfvenic[i_mode] = 1
+        else:
+            non_alfvenic[i_mode] = 1
 
     return alfvenic, non_alfvenic

@@ -132,9 +132,12 @@ def load_results(name_file: str,
     """
 
     logger: DefaultLogger = create_function_name_logger()
+    file_logger: DefaultLogger = DefaultLogger(name_file)
 
     path_dir: Path = info_load['path_dir']
     path_file: Path = path_dir / name_file
+
+    file_logger.info(f'Start loading')
 
     if not path_file.exists():
         logger.error('File not found')
@@ -149,6 +152,6 @@ def load_results(name_file: str,
     ohm: ArrayFloat = npz_kw['ohm']
     sym: ArrayStr = npz_kw['sym']
 
-    DefaultLogger(name_file).info(f'Loaded')
+    file_logger.info(f'Loaded')
 
     return lin_alpha, eig, mke, mme, ohm, sym
