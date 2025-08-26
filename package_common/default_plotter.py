@@ -118,7 +118,7 @@ class DefaultPlotter:
         path_fig: Path = path_dir / filename
         self.fig.savefig(path_fig, dpi=dpi)
 
-        DefaultLogger(filename).info(f'Saved')
+        DefaultLogger(filename).info('Saved')
 
     def tight_layout(self) -> None:
         """Adjust the padding of the figure."""

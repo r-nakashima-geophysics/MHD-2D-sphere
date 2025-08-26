@@ -169,12 +169,7 @@ INFO_INPUT: Final[DictFileInfo] = {
     'name_file_suffix': NAME_FILE_SUFFIX
 }
 
-size_submat: int
-if SWITCH_NY24:
-    size_submat = N_T - M_ORDER + 1
-else:
-    size_submat = N_T + 1
-SIZE_SUBMAT: Final[int] = size_submat
+SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 # if SWITCH_COLOR == 'ene':

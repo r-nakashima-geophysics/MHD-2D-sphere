@@ -36,14 +36,13 @@ def wrapper_solve_eig(
     size_submat: int,
     *,
     criterion_c: DictCriterionC,
-    background_field: DictBackgroundField) \
-        -> tuple[ArrayComplex,
-                 ArrayComplex,
-                 ArrayComplex,
-                 ArrayFloat,
-                 ArrayFloat,
-                 ArrayFloat,
-                 ArrayStr]:
+    background_field: DictBackgroundField) -> tuple[ArrayComplex,
+                                                    ArrayComplex,
+                                                    ArrayComplex,
+                                                    ArrayFloat,
+                                                    ArrayFloat,
+                                                    ArrayFloat,
+                                                    ArrayStr]:
     """Solve the eigenvalue problem for a given alpha.
 
     Parameters

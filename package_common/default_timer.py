@@ -3,7 +3,8 @@ time of a Python script.
 
 Note
 ----
-The caffeine module will be imported in the initializer of the DefaultTimer class when this class is used on macOS.
+The caffeine module will be imported in the initializer of the
+DefaultTimer class when this class is used on macOS.
 """
 
 import importlib

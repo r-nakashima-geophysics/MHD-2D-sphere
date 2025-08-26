@@ -132,8 +132,8 @@ class DefaultLogger:
             The parameters to log.
         """
 
-        self.__logger.info(f'----- Parameters -----')
+        self.__logger.info('----- Parameters -----')
         for parameter in args:
             parameter = parameter.replace('=', ' = ')
             self.__logger.info(parameter)
-        self.__logger.info(f'----------------------')
+        self.__logger.info('----------------------')

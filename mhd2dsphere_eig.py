@@ -154,12 +154,7 @@ LIN_ALPHA: Final[ArrayFloat] = np.linspace(
 LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
     ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
-size_submat: int
-if SWITCH_NY24:
-    size_submat = N_T - M_ORDER + 1
-else:
-    size_submat = N_T + 1
-SIZE_SUBMAT: Final[int] = size_submat
+SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 
@@ -332,7 +327,7 @@ def save_results(results: tuple[ArrayComplex,
                         lin_alpha=lin_alpha, eig=eig,
                         mke=mke, mme=mme, ohm=ohm, sym=sym)
 
-    DefaultLogger(name_file).info(f'Saved')
+    DefaultLogger(name_file).info('Saved')
 
 
 if __name__ == '__main__':
