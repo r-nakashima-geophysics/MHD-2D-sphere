@@ -93,7 +93,7 @@ class BackgroundField:
         Warnings
         --------
         Invalid type of the argument.
-            If the argument is not a float or int.
+            If the argument is not a float or integer.
         """
 
         if not isinstance(x, (float, int)):
@@ -144,7 +144,7 @@ class BackgroundField:
         Warnings
         --------
         Invalid type of the argument.
-            If the argument is not a float or int.
+            If the argument is not a float or integer.
         """
 
         if not isinstance(x, (float, int)):
@@ -196,7 +196,7 @@ class BackgroundField:
         Warnings
         --------
         Invalid type of the argument.
-            If the argument is not a float or int.
+            If the argument is not a float or integer.
         """
 
         if not isinstance(x, (float, int)):

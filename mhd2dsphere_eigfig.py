@@ -1064,19 +1064,19 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if SWITCH_NY24:
-        logger.show_params(f'SWITCH_NY24 = {SWITCH_NY24}',
-                           f'M_ORDER = {M_ORDER}',
-                           f'E_ETA = {E_ETA}',
-                           f'ROSSBY = {ROSSBY}',
-                           f'N_T = {N_T}')
+        logger.show_params(f'{SWITCH_NY24=}',
+                           f'{M_ORDER=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}')
     else:
-        logger.show_params(f'BG_FIELD_B.name = {BG_FIELD_B.name}',
-                           f'BG_FIELD_U.name = {BG_FIELD_U.name}',
-                           f'COMPLEX_MU.name = {COMPLEX_MU.name}',
-                           f'M_ORDER = {M_ORDER}',
-                           f'E_ETA = {E_ETA}',
-                           f'ROSSBY = {ROSSBY}',
-                           f'N_T = {N_T}')
+        logger.show_params(f'{BG_FIELD_B.name=}',
+                           f'{BG_FIELD_U.name=}',
+                           f'{COMPLEX_MU.name=}',
+                           f'{M_ORDER=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}')
 
     data: tuple[ArrayFloat,
                 ArrayComplex,

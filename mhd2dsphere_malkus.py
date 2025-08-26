@@ -479,7 +479,7 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
-    logger.show_params(f'M_ORDER = {M_ORDER}')
+    logger.show_params(f'{M_ORDER=}')
 
     if not any(SWITCH_PLOT):
         logger.warning('No plotted figures')

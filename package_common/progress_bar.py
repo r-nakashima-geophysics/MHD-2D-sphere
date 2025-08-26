@@ -21,9 +21,10 @@ class ProgressBar:
     ...         progress_bar.update(i)
     """
 
-    __bar_width: int = 15
+    __bar_width: int = 10
     __mark_empty: str = ' '
     __mark_filled: str = '█'
+    __max_length_print_name: int = 15
 
     def __init__(self,
                  name: str,
@@ -46,6 +47,12 @@ class ProgressBar:
         self.__name: str = name
         self.__num_calc: int = num_calc
 
+        self.__print_name: str = self.__name
+        if len(self.__name) > ProgressBar.__max_length_print_name:
+            self.__print_name \
+                = self.__name[:ProgressBar.__max_length_print_name] \
+                + '...'
+
         self.__logger: DefaultLogger = DefaultLogger(self.__name)
         self.__timer: DefaultTimer = DefaultTimer(self.__name)
 
@@ -61,7 +68,8 @@ class ProgressBar:
 
         text: str = f'0/{self.__num_calc}'
         p_bar: str = ProgressBar.__mark_empty * ProgressBar.__bar_width
-        print(f'{self.__name} [{p_bar}] {text}', end='', flush=True)
+        print(f'{self.__print_name} [{p_bar}] {text}',
+              end='', flush=True)
 
     def update(self,
                i_calc: int,
@@ -107,15 +115,15 @@ class ProgressBar:
                     * (ProgressBar.__bar_width - len_filled)
                 text: str = f'{i_calc+1}/{self.__num_calc}' \
                     + f': Finish {remaining_hours:.1f} hrs later ' \
-                    + f'(lap: {lap_time / num_process:.2f} sec)'
+                    + f'(lap: {lap_time / num_process:.1f} sec)'
 
                 if i_calc + 1 < self.__num_calc:
-                    print(f'\r{self.__name} [{p_bar}] {text}', end='',
-                          flush=True)
+                    print(f'\r{self.__print_name} [{p_bar}] {text}',
+                          end='', flush=True)
                 elif i_calc + 1 == self.__num_calc:
                     len_text: int = len(text)
                     text = f'{i_calc+1}/{self.__num_calc}: Finished'
                     print(
-                        f'\r{self.__name} [{p_bar}] {text:<{len_text}}',
-                        flush=True)
+                        f'\r{self.__print_name} [{p_bar}] '
+                        + f'{text:<{len_text}}', flush=True)
                     self.__logger.info('End')

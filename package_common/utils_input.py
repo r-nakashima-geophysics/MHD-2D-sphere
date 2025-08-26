@@ -91,7 +91,7 @@ def input_value_within(min_value: TypeVarIntFloat,
     Out of range
         If the input value is not within the specified range.
     Invalid input
-        If the input string is not an integer.
+        If the input string is not an integer or float.
 
     Examples
     --------

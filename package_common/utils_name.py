@@ -51,7 +51,6 @@ def get_current_function_name(frame: FrameType | None = None) -> str:
     this_name: str
     if this_frame is not None:
         this_name = this_frame.f_code.co_name
-    del this_frame
     logger: DefaultLogger = DefaultLogger(this_name)
     if not isinstance(frame, FrameType):
         logger.error('Invalid type of the argument')
@@ -60,7 +59,6 @@ def get_current_function_name(frame: FrameType | None = None) -> str:
     function_name: str = 'Unknown'
     if (frame is not None) and (frame.f_back is not None):
         function_name = frame.f_back.f_code.co_name
-    del frame
 
     return function_name
 
@@ -88,7 +86,6 @@ def create_function_name_logger(level: int | str = logging.INFO) \
 
     frame: FrameType | None = inspect.currentframe()
     function_name: str = get_current_function_name(frame)
-    del frame
 
     return DefaultLogger(function_name, level=level)
 
@@ -115,6 +112,5 @@ def create_function_name_progress_bar(num_calc: int) -> ProgressBar:
 
     frame: FrameType | None = inspect.currentframe()
     function_name: str = get_current_function_name(frame)
-    del frame
 
     return ProgressBar(function_name, num_calc)

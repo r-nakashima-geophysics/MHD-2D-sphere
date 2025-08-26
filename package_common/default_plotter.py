@@ -46,6 +46,7 @@ class DefaultPlotter:
 
     Examples
     --------
+    >>> import matplotlib.pyplot as plt
     >>> from package_common.default_plotter import DefaultPlotter
     >>> x = [1, 2]
     >>> y = [3, 4]
@@ -53,6 +54,7 @@ class DefaultPlotter:
     >>> plotter.axes.plot(x, y)
     >>> plotter.tight_layout()
     >>> plotter.save(Path('.'), 'plot.png', dpi=300)
+    >>> plt.show()
     """
 
     __set_latex: bool = False
@@ -153,15 +155,19 @@ class DefaultGridPlotter(DefaultPlotter):
 
     Examples
     --------
-    >>> from package_common.default_plotter import DefaultGridPlotter
-    >>> x = [1, 2]
-    >>> y = [3, 4]
-    >>> grid_plotter = DefaultGridPlotter(1, 2)
-    >>> grid_plotter.axes[0].plot(x, y)
-    >>> grid_plotter.tight_layout()
-    >>> grid_plotter.save(Path('.'), 'plot.png', dpi=300)
-    >>> grid_plotter = DefaultGridPlotter(2, 2)
-    >>> grid_plotter.axes[0, 0].plot(x, y)
+    Create a (1, 2) plot:
+        >>> import matplotlib.pyplot as plt
+        >>> from package_common.default_plotter import DefaultGridPlotter
+        >>> x = [1, 2]
+        >>> y = [3, 4]
+        >>> grid_plotter = DefaultGridPlotter(1, 2)
+        >>> grid_plotter.axes[0].plot(x, y)
+        >>> grid_plotter.tight_layout()
+        >>> grid_plotter.save(Path('.'), 'plot.png', dpi=300)
+        >>> plt.show()
+    Create a (2, 2) plot:
+        >>> grid_plotter = DefaultGridPlotter(2, 2)
+        >>> grid_plotter.axes[0, 0].plot(x, y)
     """
 
     def __init__(self,
@@ -180,11 +186,11 @@ class DefaultGridPlotter(DefaultPlotter):
             Keyword variadic arguments.
         """
 
-        DefaultPlotter.set_latex()
-
         if (nrows == 1) and (ncols == 1):
             super().__init__(**kwargs)
             return
+
+        DefaultPlotter.set_latex()
 
         self.fig: Figure
         self.axes: ArrayAxes

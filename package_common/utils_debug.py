@@ -25,7 +25,6 @@ def under_construction_log() -> None:
     frame: FrameType | None = inspect.currentframe()
 
     function_name: str = get_current_function_name(frame)
-    del frame
     logger: DefaultLogger = DefaultLogger(function_name, level='INFO')
 
     logger.info('Under construction')

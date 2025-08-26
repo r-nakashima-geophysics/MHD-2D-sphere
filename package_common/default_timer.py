@@ -3,7 +3,7 @@ time of a Python script.
 
 Note
 ----
-The caffeine module will be imported in the initializer of the DefaultTimer class when the class is used on macOS.
+The caffeine module will be imported in the initializer of the DefaultTimer class when this class is used on macOS.
 """
 
 import importlib
@@ -55,6 +55,9 @@ class DefaultTimer:
 
     def start(self) -> None:
         """Start the timer."""
+
+        self.__elapsed_time = None
+        self.__split_time = None
 
         self.__logger.info('Start')
         self.__start_time = perf_counter()
