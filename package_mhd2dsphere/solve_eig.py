@@ -345,10 +345,10 @@ def calc_ene(m_order: int,
                         for i_n in range(size_submat)]
                 )
 
-                psi = psi_vec @ heinrichs_x
-                vpa = vpa_vec @ heinrichs_x
-                laplacian_psi = psi_vec @ laplacian_heinrichs_x
-                laplacian_vpa = vpa_vec @ laplacian_heinrichs_x
+                psi = heinrichs_x @ psi_vec
+                vpa = heinrichs_x @ vpa_vec
+                laplacian_psi = laplacian_heinrichs_x @ psi_vec
+                laplacian_vpa = laplacian_heinrichs_x @ vpa_vec
 
                 mke += np.real(
                     np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x_pos**2))
