@@ -237,8 +237,8 @@ def calc_qty(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
-    mke: ArrayFloat = np.empty(size_mat, dtype=np.float64)
-    mme: ArrayFloat = np.empty(size_mat, dtype=np.float64)
+    mke: ArrayFloat
+    mme: ArrayFloat
     mke, mme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
 
@@ -324,33 +324,36 @@ def calc_ene(m_order: int,
             vpa_vec: ArrayComplex = eig_valvec[size_submat:size_mat, :]
 
             num_point: int = 3 * size_submat
+            x_pos: float
+            heinrichs_x: ArrayFloat
+            laplacian_heinrichs_x: ArrayFloat
+            psi: ArrayComplex
+            vpa: ArrayComplex
+            laplacian_psi: ArrayComplex
+            laplacian_vpa: ArrayComplex
             for i_k in range(1, num_point+1):
-                x = np.cos((2*i_k-1)*np.pi/(2*num_point))
+                x_pos = np.cos((2*i_k-1)*np.pi/(2*num_point))
 
-                psi: ArrayComplex \
-                    = np.zeros(size_mat, dtype=np.complex128)
-                vpa: ArrayComplex \
-                    = np.zeros(size_mat, dtype=np.complex128)
-                laplacian_psi: ArrayComplex \
-                    = np.zeros(size_mat, dtype=np.complex128)
-                laplacian_vpa: ArrayComplex \
-                    = np.zeros(size_mat, dtype=np.complex128)
+                heinrichs_x = np.array(
+                    [heinrichs(i_n, x_pos)
+                     for i_n in range(size_submat)]
+                )
+                laplacian_heinrichs_x = np.array(
+                    [laplacian_heinrichs(
+                        m_order, i_n, x_pos,
+                        background_field=background_field)
+                        for i_n in range(size_submat)]
+                )
 
-                for i_n in range(size_submat):
-                    psi += psi_vec[i_n, :] * heinrichs(i_n, x)
-                    vpa += vpa_vec[i_n, :] * heinrichs(i_n, x)
-                    laplacian_psi \
-                        += psi_vec[i_n, :] * laplacian_heinrichs(
-                            m_order, i_n, x,
-                            background_field=background_field)
-                    laplacian_vpa \
-                        += vpa_vec[i_n, :] * laplacian_heinrichs(
-                            m_order, i_n, x,
-                            background_field=background_field)
+                psi = psi_vec @ heinrichs_x
+                vpa = vpa_vec @ heinrichs_x
+                laplacian_psi = psi_vec @ laplacian_heinrichs_x
+                laplacian_vpa = vpa_vec @ laplacian_heinrichs_x
+
                 mke += np.real(
-                    np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x**2))
+                    np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x_pos**2))
                 mme += np.real(
-                    np.conj(vpa) * (-laplacian_vpa)) * np.sqrt(1-(x**2))
+                    np.conj(vpa) * (-laplacian_vpa)) * np.sqrt(1-(x_pos**2))
             mke *= (np.pi/num_point)
             mme *= (np.pi/num_point)
         else:
