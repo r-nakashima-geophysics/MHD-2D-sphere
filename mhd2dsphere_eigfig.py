@@ -185,11 +185,19 @@ COLOR_TICKS: Final[list[float]] = [
 COLOR_TICKS_ATAN: Final[ArrayFloat] \
     = np.arctan([i_ticks*STRETCH_ATAN for i_ticks in COLOR_TICKS])
 
-CBAR_LABEL: str = str()
-if SWITCH_COLOR == 'ene':
-    CBAR_LABEL = 'mean kinetic energy'
-elif SWITCH_COLOR == 'ohm':
-    CBAR_LABEL = 'ohmic dissipation'
+TEXT_TITLE: Final[str] \
+    = f'Dispersion relation [{TEX_BG_FIELD}] : ' \
+    + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}' \
+    if ((not SWITCH_DISP_ETA) and (E_ETA == 0)) \
+    else f'Dispersion relation [{TEX_BG_FIELD}] : ' \
+    + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, ' \
+    + r'$R=$' + f' {ROSSBY}'
+TEXT_XLABEL: Final[str] \
+    = r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$'
+
+CBAR_LABEL: Final[str] \
+    = 'mean kinetic energy' if SWITCH_COLOR == 'ene' \
+    else ('ohmic dissipation' if SWITCH_COLOR == 'ohm' else '')
 
 MASK_Y1: Final[float] = 10**EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
@@ -228,9 +236,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     for axis in (plotter_real.axes[0], plotter_real.axes[1],
                  plotter_imag.axes[0], plotter_imag.axes[1]):
         axis.set_xlim(alpha_init, alpha_end)
-        axis.set_xlabel(
-            r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-            fontsize=16)
+        axis.set_xlabel(TEXT_XLABEL, fontsize=16)
         axis.tick_params(labelsize=14)
 
     if set_save_fig & {1, 2}:
@@ -249,26 +255,8 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     plotter_imag.axes[0].set_title('Sinuous', fontsize=16)
     plotter_imag.axes[1].set_title('Varicose', fontsize=16)
 
-    if (not SWITCH_DISP_ETA) and (E_ETA == 0):
-        plotter_real.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-        plotter_imag.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-    else:
-        plotter_real.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
-            + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-        plotter_imag.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
-            + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
+    plotter_real.fig.suptitle(TEXT_TITLE, fontsize=16)
+    plotter_imag.fig.suptitle(TEXT_TITLE, fontsize=16)
 
     plotter_real.tight_layout()
     plotter_imag.tight_layout()
@@ -289,6 +277,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
                 (0.88, axpos.y0, 0.01, axpos.height))
 
     cbar: Colorbar
+
     if SWITCH_COLOR == 'ene':
 
         cbar = plotter_real.fig.colorbar(
@@ -546,18 +535,10 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     for axis in (ax_real_all + ax_imag_all):
         axis.set_xscale('log')
 
-    plotter_real.axes[1, 0].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
-    plotter_real.axes[1, 1].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
-    plotter_imag.axes[1, 0].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
-    plotter_imag.axes[1, 1].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
+    plotter_real.axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter_real.axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter_imag.axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter_imag.axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
 
     if set_save_fig & {1, 2, 3, 4}:
         plotter_real.axes[0, 0].set_ylabel(
@@ -615,26 +596,8 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     for axis in (ax_real_all + ax_imag_all):
         axis.tick_params(labelsize=12)
 
-    if (not SWITCH_DISP_ETA) and (E_ETA == 0):
-        plotter_real.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-        plotter_imag.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-    else:
-        plotter_real.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
-            + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
-        plotter_imag.fig.suptitle(
-            f'Dispersion relation [{TEX_BG_FIELD}] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
-            + r'$R=$' + f' {ROSSBY}',
-            fontsize=16)
+    plotter_real.fig.suptitle(TEXT_TITLE, fontsize=16)
+    plotter_imag.fig.suptitle(TEXT_TITLE, fontsize=16)
 
     plotter_real.tight_layout()
     plotter_imag.tight_layout()

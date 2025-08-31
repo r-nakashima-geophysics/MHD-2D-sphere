@@ -119,6 +119,9 @@ LIN_ALPHA: Final[ArrayFloat] = np.linspace(
 LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
     ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
+TEXT_XLABEL: Final[str] \
+    = r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$'
+
 
 def wrapper_eigene() -> tuple[ArrayFloat,
                               ArrayFloat,
@@ -293,9 +296,7 @@ def plot_eig(eig: ArrayFloat) -> None:
     plotter.axes.set_xlim(ALPHA_INIT, ALPHA_END)
     plotter.axes.set_ylim(EIG_INIT, EIG_END)
 
-    plotter.axes.set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
+    plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes.set_ylabel(r'$\lambda=\omega/2\Omega_0$', fontsize=16)
     plotter.axes.set_title(
         r'Dispersion relation [$B_{0\phi}=B_0\sin\theta$] : $m=$'
@@ -363,9 +364,7 @@ def plot_ene(ene: ArrayFloat) -> None:
     plotter.axes.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
     plotter.axes.set_ylim(ENERGY_INIT, ENERGY_END)
 
-    plotter.axes.set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
+    plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes.set_ylabel(
         r'$\mathrm{MKE}/(\mathrm{MKE}+\mathrm{MME})$', fontsize=16)
     plotter.axes.set_title(
@@ -438,12 +437,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.axes[0].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
     plotter.axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
 
-    plotter.axes[0].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
-    plotter.axes[1].set_xlabel(
-        r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$',
-        fontsize=16)
+    plotter.axes[0].set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter.axes[1].set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes[0].set_ylabel(r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
     plotter.axes[0].set_title(r'Retrograde ($\lambda<0$)', fontsize=16)
     plotter.axes[1].set_title(r'Prograde ($\lambda>0$)', fontsize=16)

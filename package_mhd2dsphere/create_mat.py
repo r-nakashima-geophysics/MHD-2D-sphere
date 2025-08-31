@@ -329,8 +329,8 @@ def create_mat(m_order: int,
         if e_eta != 0:
             mat[1*size_submat:2*size_submat,
                 1*size_submat:2*size_submat] = -1j * e_eta * submat_22
-    else:
 
+    else:
         mu_complex: ComplexCoordinate = background_field['MU']
 
         if check_spectral_deform(mu_complex) or (e_eta != 0):
