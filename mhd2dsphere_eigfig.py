@@ -5,7 +5,8 @@ sin(theta).
 
 This script can create up to four figures: linear-linear and log-log
 plots of the dispersion relation with some coloring based on black or
-physical quantity (energy partitioning or ohmic dissipation).
+physical quantity (energy partitioning, or ohmic dissipation, or
+eigenfrequencies).
 
 Parameters
 ----------
@@ -18,10 +19,10 @@ No plotted figures
     If all of the boolean values to switch whether to plot figures or
     not are False.
 Invalid value for 'SWITCH_COLOR'
-    If 'SWITCH_COLOR' is not either 'blk', 'ene', or 'ohm'.
+    If 'SWITCH_COLOR' is not either 'blk', 'ene', 'ohm', or 'qmode'.
 Meaningless figures are plotted
     If figures of the ohmic dissipation are plotted in the ideal MHD
-    case.
+    case, and so on.
 
 Notes
 -----
@@ -47,7 +48,6 @@ Run the script with a specified value (say M_ORDER = 2):
     $ python3 mhd2dsphere_eigfig.py 2
 """
 
-import math
 import sys
 from pathlib import Path
 
@@ -63,9 +63,11 @@ from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
                                             create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import (ComplexCoordinate,
+                                            check_spectral_deform,
                                             init_complex_coordinate)
 from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
+from package_mhd2dsphere.create_mat import calc_collocation_point
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
@@ -85,18 +87,19 @@ SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
 # SWITCH_COLOR == 'blk': black
 # SWITCH_COLOR == 'ene': energy partitioning
 # SWITCH_COLOR == 'ohm': ohmic dissipation
-SWITCH_COLOR: Final[str] = 'ene'
+# SWITCH_COLOR == 'qmode': for finding quasi-modes
+SWITCH_COLOR: Final[str] = 'qmode'
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
-    -1, 1, alpha=0, beta_0=0, beta_1=0)
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate(
+    -1, 1, alpha=0, beta_0=0, beta_1=1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
-# COMPLEX_MU are ignored.
+# MU_COMPLEX are ignored.
 SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
@@ -132,7 +135,7 @@ NAME_FILE: Final[str] \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{COMPLEX_MU.name}'
+    + f'{MU_COMPLEX.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The paths and filenames of outputs
@@ -142,10 +145,10 @@ NAME_FIG: Final[str] \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{COMPLEX_MU.name}'
+    + f'{MU_COMPLEX.name}'
 NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
-NAME_FIG_SUFFIX_2: Final[tuple[str, str, str]] \
-    = ('_blk', '_ene', '_ohm')
+NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str]] \
+    = ('_blk', '_ene', '_ohm', '_qmode')
 NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('_R.png', '_I.png')
 NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('_logR.png', '_logI.png')
 FIG_DPI: Final[int] = 600
@@ -159,7 +162,7 @@ SWITCH_DISP_ETA: Final[bool] = False
 BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
-    'MU': COMPLEX_MU,
+    'MU': MU_COMPLEX,
     'NY24': SWITCH_NY24
 }
 
@@ -196,8 +199,20 @@ TEXT_XLABEL: Final[str] \
     = r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$'
 
 CBAR_LABEL: Final[str] \
-    = 'mean kinetic energy' if SWITCH_COLOR == 'ene' \
-    else ('ohmic dissipation' if SWITCH_COLOR == 'ohm' else '')
+    = 'mean kinetic energy' if SWITCH_COLOR == 'ene' else (
+    'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
+        r'$\min|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
+        if SWITCH_COLOR == 'qmode' else '')
+)
+
+LIN_COLLOCATION_S: Final[ArrayFloat] = np.array(
+    [calc_collocation_point(i_l+1, N_T+2) for i_l in range(N_T)])
+LIN_COLLOCATION_MU: Final[ArrayComplex] = np.array(
+    [MU_COMPLEX.value(LIN_COLLOCATION_S[i_l]) for i_l in range(N_T)])
+LIN_BG_FIELD_B: Final[ArrayComplex] = np.array(
+    [BG_FIELD_B.value(LIN_COLLOCATION_MU[i_l]) for i_l in range(N_T)])
+LIN_BG_FIELD_U: Final[ArrayComplex] = np.array(
+    [BG_FIELD_U.value(LIN_COLLOCATION_MU[i_l]) for i_l in range(N_T)])
 
 MASK_Y1: Final[float] = 10**EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
@@ -265,7 +280,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     cbar_ax_1: Axes
     cbar_ax_2: Axes
 
-    if SWITCH_COLOR in ('ene', 'ohm'):
+    if SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
         axpos = plotter_real.axes[0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
@@ -304,7 +319,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
             cbar.ax.tick_params(labelsize=14)
             cbar.set_label(label=CBAR_LABEL, size=16)
 
-    elif SWITCH_COLOR == 'ohm':
+    elif SWITCH_COLOR in ('ohm', 'qmode'):
 
         cbar = plotter_real.fig.colorbar(
             plotter_real.sc[0], cax=cbar_ax_1)
@@ -367,20 +382,23 @@ def plot_eig(results: tuple[ArrayFloat,
 
     set_save_fig: set[int] = set()
 
-    cmap_min: float = math.nan
-    cmap_max: float = math.nan
+    cmap_min: float = np.nan
+    cmap_max: float = np.nan
     if SWITCH_COLOR == 'ene':
-        cmap_min = math.atan(STRETCH_ATAN * (0-0.5))
-        cmap_max = math.atan(STRETCH_ATAN * (1-0.5))
+        cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
+        cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = ohm_max
+    elif SWITCH_COLOR == 'qmode':
+        cmap_min = 0
+        cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
 
     alpha: float
     ones_alpha: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     dict_eig: dict[str, ArrayComplex]
-    scatter_color: ArrayFloat
+    scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     for i_alpha in range(num_alpha):
         alpha = lin_alpha[i_alpha]
@@ -423,7 +441,7 @@ def plot_eig(results: tuple[ArrayFloat,
                     s=0.1, c='black')
                 set_save_fig.update({1, 2})
 
-        elif SWITCH_COLOR in ('ene', 'ohm'):
+        elif SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
 
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
@@ -432,8 +450,16 @@ def plot_eig(results: tuple[ArrayFloat,
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
+            elif SWITCH_COLOR == 'qmode':
+                if alpha != 0:
+                    for i_mode in range(SIZE_MAT):
+                        scatter_color[i_mode] = np.min(np.abs(
+                            (M_ORDER*ROSSBY*LIN_BG_FIELD_U
+                             - eig[i_alpha, i_mode])**2
+                            / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
+                        ))
 
-            if E_ETA == 0:  # For ene
+            if E_ETA == 0:  # For 'ene'
                 plotter_real.axes[0].scatter(
                     ones_alpha, dict_eig['s_a'].real,
                     s=0.05, c=scatter_color,
@@ -465,7 +491,6 @@ def plot_eig(results: tuple[ArrayFloat,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
-
             else:
                 plotter_real.sc[0] = plotter_real.axes[0].scatter(
                     ones_alpha, dict_eig['s'].real, s=0.1,
@@ -607,7 +632,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     cbar_ax_1: Axes
     cbar_ax_2: Axes
 
-    if SWITCH_COLOR in ('ene', 'ohm'):
+    if SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
         axpos1 = plotter_real.axes[0, 0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
@@ -663,7 +688,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
             cbar2.ax.tick_params(labelsize=14)
             cbar2.set_label(label=CBAR_LABEL, size=16)
 
-    elif SWITCH_COLOR == 'ohm':
+    elif SWITCH_COLOR in ('ohm', 'qmode'):
 
         cbar1 = plotter_real.fig.colorbar(
             plotter_real.sc[0, 0], cax=cbar_ax_1)
@@ -740,20 +765,23 @@ def plot_eig_log(results: tuple[ArrayFloat,
 
     set_save_fig: set[int] = set()
 
-    cmap_min: float = math.nan
-    cmap_max: float = math.nan
+    cmap_min: float = np.nan
+    cmap_max: float = np.nan
     if SWITCH_COLOR == 'ene':
-        cmap_min = math.atan(STRETCH_ATAN * (0-0.5))
-        cmap_max = math.atan(STRETCH_ATAN * (1-0.5))
+        cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
+        cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = ohm_log_max
+    elif SWITCH_COLOR == 'qmode':
+        cmap_min = 0
+        cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
 
     alpha: float
     ones_alpha: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     dict_eig: dict[str, ArrayComplex]
-    scatter_color: ArrayFloat
+    scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     for i_alpha in range(num_alpha_log):
         alpha = 10**lin_alpha[i_alpha]
@@ -830,7 +858,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     ones_alpha, dict_eig['vp'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2, 3, 4})
 
-        elif SWITCH_COLOR in ('ene', 'ohm'):
+        elif SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
 
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
@@ -839,8 +867,15 @@ def plot_eig_log(results: tuple[ArrayFloat,
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
+            elif SWITCH_COLOR == 'qmode':
+                for i_mode in range(SIZE_MAT):
+                    scatter_color[i_mode] = np.min(np.abs(
+                        (M_ORDER*ROSSBY*LIN_BG_FIELD_U
+                         - eig[i_alpha, i_mode])**2
+                        / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
+                    ))
 
-            if E_ETA == 0:  # For ene
+            if E_ETA == 0:  # For 'ene'
                 plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_a'].real, s=0.05,
                     c=scatter_color, cmap='jet',
@@ -906,7 +941,6 @@ def plot_eig_log(results: tuple[ArrayFloat,
                         c=scatter_color, cmap='jet',
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(4)
-
             else:
                 plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
@@ -988,6 +1022,8 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
         name_fig += NAME_FIG_SUFFIX_2[1]
     elif SWITCH_COLOR == 'ohm':
         name_fig += NAME_FIG_SUFFIX_2[2]
+    elif SWITCH_COLOR == 'qmode':
+        name_fig += NAME_FIG_SUFFIX_2[3]
 
     list_name_fig: list[str]
     if not switch_log:
@@ -1017,11 +1053,25 @@ if __name__ == '__main__':
         logger.info('No plotted figures')
         sys.exit(0)
 
-    if SWITCH_COLOR not in ('blk', 'ene', 'ohm'):
+    if SWITCH_COLOR not in ('blk', 'ene', 'ohm', 'qmode'):
         logger.error('Invalid value for \'SWITCH_COLOR\'')
         sys.exit(1)
 
-    if (E_ETA == 0) and (SWITCH_COLOR == 'ohm'):
+    if (SWITCH_COLOR == 'blk') and (
+            check_spectral_deform(MU_COMPLEX) or (E_ETA != 0)):
+        logger.warning('Meaningless figures are plotted')
+        sys.exit(1)
+
+    if (SWITCH_COLOR == 'ene') and check_spectral_deform(MU_COMPLEX):
+        logger.warning('Meaningless figures are plotted')
+        sys.exit(1)
+
+    if (SWITCH_COLOR == 'ohm') and (E_ETA == 0):
+        logger.warning('Meaningless figures are plotted')
+        sys.exit(1)
+
+    if (SWITCH_COLOR == 'qmode') \
+            and (not check_spectral_deform(MU_COMPLEX)):
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
 
@@ -1034,7 +1084,7 @@ if __name__ == '__main__':
     else:
         logger.show_params(f'{BG_FIELD_B.name=}',
                            f'{BG_FIELD_U.name=}',
-                           f'{COMPLEX_MU.name=}',
+                           f'{MU_COMPLEX.name=}',
                            f'{M_ORDER=}',
                            f'{E_ETA=}',
                            f'{ROSSBY=}',

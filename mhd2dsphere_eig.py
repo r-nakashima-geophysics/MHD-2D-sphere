@@ -18,6 +18,8 @@ Warnings
 No saved file
     If all of the boolean values to switch whether to calculate or not
     are False.
+Invalid settings
+    If E_ETA != 0 and the spectral deformation method is used.
 
 Notes
 -----
@@ -56,6 +58,7 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
+                                            check_spectral_deform,
                                             init_complex_coordinate)
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
@@ -79,12 +82,12 @@ SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-COMPLEX_MU: Final[ComplexCoordinate] = init_complex_coordinate(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
-# COMPLEX_MU are ignored.
+# MU_COMPLEX are ignored.
 SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
@@ -123,7 +126,7 @@ NAME_FILE: Final[str] \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{COMPLEX_MU.name}'
+    + f'{MU_COMPLEX.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
@@ -136,7 +139,7 @@ NUM_THREADS: Final[int] = 1
 BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
-    'MU': COMPLEX_MU,
+    'MU': MU_COMPLEX,
     'NY24': SWITCH_NY24,
 }
 
@@ -345,7 +348,7 @@ if __name__ == '__main__':
     else:
         logger.show_params(f'{BG_FIELD_B.name=}',
                            f'{BG_FIELD_U.name=}',
-                           f'{COMPLEX_MU.name=}',
+                           f'{MU_COMPLEX.name=}',
                            f'{M_ORDER=}',
                            f'{E_ETA=}',
                            f'{ROSSBY=}',
@@ -354,6 +357,10 @@ if __name__ == '__main__':
     if not any(SWITCH_CALC):
         logger.warning('No saved file')
         sys.exit(0)
+
+    if (E_ETA != 0) and check_spectral_deform(MU_COMPLEX):
+        logger.warning('Invalid settings')
+        sys.exit(1)
 
     data: tuple[ArrayComplex,
                 ArrayFloat,

@@ -14,14 +14,18 @@ doi: 10.1080/03091929.2024.2384388
 [2] Ryosuke Nakashima (in prep.)
 """
 
+import sys
+
 import numpy as np
 
 from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs, heinrichs_d, heinrichs_d2
 from package_common.common_types import ArrayComplex, ArrayFloat
+from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import (ComplexCoordinate,
                                             check_spectral_deform)
 from package_common.utils_debug import under_construction_log
+from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictBackgroundField
 
 
@@ -155,9 +159,9 @@ def create_submat(m_order: int,
         u_shear_mu: float | complex
         b_shear_mu: float | complex
         for i_l in range(size_submat):
-            s_pos = - np.cos((i_l+1)*np.pi/(n_t+2))
+            s_pos = calc_collocation_point(i_l+1, n_t+2)
 
-            if check_spectral_deform(mu_complex):
+            if check_spectral_deform(mu_complex) or (e_eta != 0):
                 mu = mu_complex.value(s_pos)
                 u_mu = bg_field_u.value(mu)
                 u_shear_mu = (
@@ -202,10 +206,18 @@ def create_submat(m_order: int,
                 submat_b_11[i_l, i_n] = laplacian
                 submat_b_22[i_l, i_n] = h_n
 
-        inv_submat_b_11: ArrayFloat | ArrayComplex \
-            = np.linalg.inv(submat_b_11)
-        inv_submat_b_22: ArrayFloat | ArrayComplex \
-            = np.linalg.inv(submat_b_22)
+        inv_submat_b_11: ArrayFloat | ArrayComplex
+        inv_submat_b_22: ArrayFloat | ArrayComplex
+        if check_spectral_deform(mu_complex) or (e_eta != 0):
+            inv_submat_b_11 \
+                = np.linalg.inv(submat_b_11).astype(np.complex128)
+            inv_submat_b_22 \
+                = np.linalg.inv(submat_b_22).astype(np.complex128)
+        else:
+            inv_submat_b_11 \
+                = np.linalg.inv(submat_b_11).astype(np.float64)
+            inv_submat_b_22 \
+                = np.linalg.inv(submat_b_22).astype(np.float64)
 
         submat_11 = inv_submat_b_11 @ submat_11
         submat_12 = inv_submat_b_11 @ submat_12
@@ -213,6 +225,36 @@ def create_submat(m_order: int,
         submat_22 = inv_submat_b_22 @ submat_22
 
     return submat_11, submat_12, submat_21, submat_22
+
+
+def calc_collocation_point(i_l: int,
+                           num_point: int) -> float:
+    """Calculate the Gauss-Lobatto collocation points.
+
+    Parameters
+    ----------
+    i_l : int
+        The index of the collocation point.
+    num_point : int
+        The number of the collocation points.
+
+    Returns
+    -------
+    float
+        The position of the collocation point.
+
+    Warnings
+    --------
+    Invalid input
+        If the input value is not within [0, num_point].
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+    if 0 <= i_l <= num_point:
+        return -np.cos(i_l*np.pi/num_point)
+
+    logger.error('Invalid input')
+    sys.exit(1)
 
 
 def laplacian_heinrichs(

@@ -298,7 +298,8 @@ def calc_ene(m_order: int,
     Notes
     -----
     This function is based on eq. (24) in Nakashima & Yoshida
-    (2024)[1]_.
+    (2024)[1]_. When SWITCH_NY24 is False, the Chebyshev-Gauss
+    quadrature is used.
     """
 
     size_mat: int = eig_valvec.shape[1]
