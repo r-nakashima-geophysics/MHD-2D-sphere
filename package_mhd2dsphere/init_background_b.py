@@ -40,7 +40,7 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
     logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'hydro'
-    tex: str = r'0'
+    tex: str = r'$0$'
 
     if switch_theta == 'mu':
         def b_hydro_mu(mu_complex: complex) -> complex:
@@ -115,7 +115,7 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
     logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'malkus'
-    tex: str = r'B_0\sin\theta'
+    tex: str = r'$B_{0\phi}=B_0\sin\theta$'
 
     if switch_theta == 'mu':
         def b_malkus_mu(mu_complex: complex) -> complex:
@@ -189,7 +189,7 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
     logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'sincos'
-    tex: str = r'B_0\sin\theta\cos\theta'
+    tex: str = r'$B_{0\phi}=B_0\sin\theta\cos\theta$'
 
     if switch_theta == 'mu':
         def b_sincos_mu(mu_complex: complex) -> complex:
@@ -260,7 +260,7 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
     logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'sin2cos'
-    tex: str = r'B_0\sin^2\theta\cos\theta'
+    tex: str = r'$B_{0\phi}=B_0\sin^2\theta\cos\theta$'
 
     if switch_theta == 'mu':
         def b_sin2cos_mu(mu_complex: complex) -> complex:

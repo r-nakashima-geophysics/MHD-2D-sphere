@@ -163,6 +163,11 @@ BG_FIELD: Final[DictBackgroundField] = {
     'NY24': SWITCH_NY24
 }
 
+TEX_BG_FIELD: Final[str] \
+    = r'$B_{0\phi}=B_0\sin\theta\cos\theta$, $U_{0\phi}=0$' \
+    if SWITCH_NY24 \
+    else f'{BG_FIELD_B.tex}, {BG_FIELD_U.tex}'
+
 INFO_INPUT: Final[DictFileInfo] = {
     'path_dir': PATH_DIR_INPUT,
     'name_file': NAME_FILE,
@@ -246,23 +251,23 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         plotter_real.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}',  fontsize=16)
-        plotter_imag.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}',  fontsize=16)
-    else:
-        plotter_real.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
             fontsize=16)
         plotter_imag.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
+            fontsize=16)
+    else:
+        plotter_real.fig.suptitle(
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
+            + r'$R=$' + f' {ROSSBY}',
+            fontsize=16)
+        plotter_imag.fig.suptitle(
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
+            + r'$R=$' + f' {ROSSBY}',
             fontsize=16)
 
     plotter_real.tight_layout()
@@ -284,7 +289,6 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
                 (0.88, axpos.y0, 0.01, axpos.height))
 
     cbar: Colorbar
-
     if SWITCH_COLOR == 'ene':
 
         cbar = plotter_real.fig.colorbar(
@@ -613,23 +617,23 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
         plotter_real.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}',  fontsize=16)
-        plotter_imag.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}',  fontsize=16)
-    else:
-        plotter_real.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
             fontsize=16)
         plotter_imag.fig.suptitle(
-            r'Dispersion relation '
-            + r'[$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}',
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$R=$' + f' {ROSSBY}',
+            fontsize=16)
+    else:
+        plotter_real.fig.suptitle(
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
+            + r'$R=$' + f' {ROSSBY}',
+            fontsize=16)
+        plotter_imag.fig.suptitle(
+            f'Dispersion relation [{TEX_BG_FIELD}] : '
+            + r'$m=$' + f' {M_ORDER}, ' + r'$E_\eta=$' + f' {E_ETA}, '
+            + r'$R=$' + f' {ROSSBY}',
             fontsize=16)
 
     plotter_real.tight_layout()

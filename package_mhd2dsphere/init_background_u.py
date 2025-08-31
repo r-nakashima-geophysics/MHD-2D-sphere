@@ -39,7 +39,7 @@ def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
     logger: DefaultLogger = create_function_name_logger()
 
     name: str = 'rigid'
-    tex: str = r'0'
+    tex: str = r'$U_{0\phi}=0$'
 
     if switch_theta == 'mu':
         def u_rigid_mu(mu_complex: complex) -> complex:
