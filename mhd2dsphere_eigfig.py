@@ -54,6 +54,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import transforms
+from matplotlib.colors import LogNorm
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
@@ -95,7 +96,7 @@ BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate(
-    -1, 1, alpha=0, beta_0=0, beta_1=1)
+    -1, 1, alpha=0, beta_0=0, beta_1=-1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
@@ -112,7 +113,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 200
+N_T: Final[int] = 500
 # N_T: Final[int] = 2000
 
 # The criterion for plotting, which is based on the quality factor
@@ -201,18 +202,23 @@ TEXT_XLABEL: Final[str] \
 CBAR_LABEL: Final[str] \
     = 'mean kinetic energy' if SWITCH_COLOR == 'ene' else (
     'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
-        r'$\min|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
+        r'$\displaystyle{\min_\theta}|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
         if SWITCH_COLOR == 'qmode' else '')
 )
 
-LIN_COLLOCATION_S: Final[ArrayFloat] = np.array(
-    [calc_collocation_point(i_l+1, N_T+2) for i_l in range(N_T)])
-LIN_COLLOCATION_MU: Final[ArrayComplex] = np.array(
-    [MU_COMPLEX.value(LIN_COLLOCATION_S[i_l]) for i_l in range(N_T)])
-LIN_BG_FIELD_B: Final[ArrayComplex] = np.array(
-    [BG_FIELD_B.value(LIN_COLLOCATION_MU[i_l]) for i_l in range(N_T)])
-LIN_BG_FIELD_U: Final[ArrayComplex] = np.array(
-    [BG_FIELD_U.value(LIN_COLLOCATION_MU[i_l]) for i_l in range(N_T)])
+NUM_POINT: Final[int] = 10 * N_T
+LIN_COLLOCATION_S: Final[ArrayFloat] \
+    = np.array([calc_collocation_point(i_l+1, NUM_POINT+2)
+                for i_l in range(NUM_POINT)])
+LIN_COLLOCATION_MU: Final[ArrayComplex] \
+    = np.array([MU_COMPLEX.value(LIN_COLLOCATION_S[i_l])
+                for i_l in range(NUM_POINT)])
+LIN_BG_FIELD_B: Final[ArrayComplex] \
+    = np.array([BG_FIELD_B.value(LIN_COLLOCATION_MU[i_l])
+                for i_l in range(NUM_POINT)])
+LIN_BG_FIELD_U: Final[ArrayComplex] \
+    = np.array([BG_FIELD_U.value(LIN_COLLOCATION_MU[i_l])
+                for i_l in range(NUM_POINT)])
 
 MASK_Y1: Final[float] = 10**EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
@@ -387,18 +393,22 @@ def plot_eig(results: tuple[ArrayFloat,
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
+        cmap = 'jet'
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = ohm_max
+        cmap = 'jet'
     elif SWITCH_COLOR == 'qmode':
-        cmap_min = 0
+        cmap_min = 10**(-6)
         cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
+        cmap = 'jet'
 
     alpha: float
     ones_alpha: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     dict_eig: dict[str, ArrayComplex]
     scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
+    cmap: str
 
     for i_alpha in range(num_alpha):
         alpha = lin_alpha[i_alpha]
@@ -459,55 +469,74 @@ def plot_eig(results: tuple[ArrayFloat,
                             / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
                         ))
 
-            if E_ETA == 0:  # For 'ene'
+            if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
                 plotter_real.axes[0].scatter(
                     ones_alpha, dict_eig['s_a'].real,
                     s=0.05, c=scatter_color,
-                    cmap='jet', vmin=cmap_min, vmax=cmap_max)
+                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1].scatter(
                     ones_alpha, dict_eig['v_a'].real,
                     s=0.05, c=scatter_color,
-                    cmap='jet', vmin=cmap_min, vmax=cmap_max)
+                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
                 plotter_real.sc[0] = plotter_real.axes[0].scatter(
                     ones_alpha, dict_eig['s_na'].real,
                     s=0.2, c=scatter_color,
-                    cmap='jet', vmin=cmap_min, vmax=cmap_max)
+                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1].scatter(
                     ones_alpha, dict_eig['v_na'].real,
                     s=0.2, c=scatter_color,
-                    cmap='jet', vmin=cmap_min, vmax=cmap_max)
+                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
                 if False in np.isnan(dict_eig['s_u']):
                     plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
                 if False in np.isnan(dict_eig['v_u']):
                     plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
+            elif SWITCH_COLOR == 'qmode':
+                plotter_real.sc[0] = plotter_real.axes[0].scatter(
+                    ones_alpha, dict_eig['s'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_real.axes[1].scatter(
+                    ones_alpha, dict_eig['v'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+
+                plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
+                    ones_alpha, dict_eig['s'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
+                    ones_alpha, dict_eig['v'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                set_save_fig.update({1, 2})
             else:
                 plotter_real.sc[0] = plotter_real.axes[0].scatter(
                     ones_alpha, dict_eig['s'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1].scatter(
                     ones_alpha, dict_eig['v'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
                 plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
                     ones_alpha, dict_eig['s'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
                     ones_alpha, dict_eig['v'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 set_save_fig.update({1, 2})
 
@@ -770,12 +799,15 @@ def plot_eig_log(results: tuple[ArrayFloat,
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
+        cmap = 'jet'
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
         cmap_max = ohm_log_max
+        cmap = 'jet'
     elif SWITCH_COLOR == 'qmode':
-        cmap_min = 0
+        cmap_min = 10**(-6)
         cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
+        cmap = 'jet'
 
     alpha: float
     ones_alpha: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
@@ -846,7 +878,6 @@ def plot_eig_log(results: tuple[ArrayFloat,
                         ones_alpha, dict_eig['vp_u'].imag,
                         s=0.2, c='red')
                     set_save_fig.add(4)
-
             else:
                 plotter_imag.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].imag, s=0.1, c='black')
@@ -875,46 +906,46 @@ def plot_eig_log(results: tuple[ArrayFloat,
                         / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
                     ))
 
-            if E_ETA == 0:  # For 'ene'
+            if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
                 plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_a'].real, s=0.05,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp_a'].real, s=0.05,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr_a'].real, s=0.05,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp_a'].real, s=0.05,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
                 plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_na'].real, s=0.2,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp_na'].real, s=0.2,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr_na'].real, s=0.2,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp_na'].real, s=0.2,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
                 if False in np.isnan(dict_eig['sr_u']):
                     plotter_imag.sc[0, 0] \
                         = plotter_imag.axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
@@ -922,7 +953,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     plotter_imag.sc[0, 1] \
                         = plotter_imag.axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
 
@@ -930,7 +961,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     plotter_imag.sc[1, 0] \
                         = plotter_imag.axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(3)
 
@@ -938,42 +969,77 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     plotter_imag.sc[1, 1] \
                         = plotter_imag.axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag, s=0.1,
-                        c=scatter_color, cmap='jet',
+                        c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(4)
+            elif SWITCH_COLOR == 'qmode':
+                plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
+                    ones_alpha, dict_eig['sr'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_real.axes[0, 1].scatter(
+                    ones_alpha, dict_eig['sp'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_real.axes[1, 0].scatter(
+                    ones_alpha, dict_eig['vr'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_real.axes[1, 1].scatter(
+                    ones_alpha, dict_eig['vp'].real, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+
+                plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
+                    ones_alpha, dict_eig['sr'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
+                    ones_alpha, dict_eig['sp'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
+                    ones_alpha, dict_eig['vr'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
+                    ones_alpha, dict_eig['vp'].imag, s=0.1,
+                    c=scatter_color, cmap=cmap,
+                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                set_save_fig.update({1, 2, 3, 4})
             else:
                 plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].real, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
                 plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].imag, s=0.1,
-                    c=scatter_color, cmap='jet',
+                    c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
                 set_save_fig.update({1, 2, 3, 4})
 
