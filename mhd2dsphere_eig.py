@@ -100,7 +100,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 200
+N_T: Final[int] = 500
 # N_T: Final[int] = 2000
 
 # The criterion for convergence
@@ -161,8 +161,8 @@ SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 
-def wrapper_solve_eig_for_alpha(*,
-                                switch_log: bool = False) \
+def wrapper_solve_eig_for_lin_alpha(*,
+                                    switch_log: bool = False) \
     -> tuple[ArrayComplex,
              ArrayFloat,
              ArrayFloat,
@@ -369,10 +369,10 @@ if __name__ == '__main__':
                 ArrayStr] | None = None
 
     if SWITCH_CALC[0]:
-        data = wrapper_solve_eig_for_alpha()
+        data = wrapper_solve_eig_for_lin_alpha()
         save_results(data)
     if SWITCH_CALC[1]:
-        data = wrapper_solve_eig_for_alpha(switch_log=True)
+        data = wrapper_solve_eig_for_lin_alpha(switch_log=True)
         save_results(data, switch_log=True)
 
     timer.end()
