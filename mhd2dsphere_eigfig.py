@@ -6,7 +6,8 @@ sin(theta).
 This script can create up to four figures: linear-linear and log-log
 plots of the dispersion relation with some coloring based on black or
 physical quantity (energy partitioning, or ohmic dissipation, or
-eigenfrequencies).
+eigenfrequencies). The script can also create a plot of the dispersion
+diagram for a chosen alpha.
 
 Parameters
 ----------
@@ -61,7 +62,7 @@ from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
                                          Final)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
-                                            create_plotter)
+                                            DefaultPlotter, create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import (ComplexCoordinate,
                                             check_spectral_deform,
@@ -82,7 +83,9 @@ type Bbox = transforms.Bbox
 # The boolean values to switch whether to plot figures or not
 # SWITCH_PLOT[0]: The dispersion diagram for the linear-linear plot
 # SWITCH_PLOT[1]: The dispersion diagram for the log-log plot
-SWITCH_PLOT: Final[tuple[bool, bool]] = (True, True)
+# SWITCH_PLOT[2]: The dispersion diagram for a chosen alpha
+SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (False, False, True)
+ALPHA_CHOSEN: Final[float] = 1
 
 # The coloring rule
 # SWITCH_COLOR == 'blk': black
@@ -152,6 +155,7 @@ NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str]] \
     = ('_blk', '_ene', '_ohm', '_qmode')
 NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('_R.png', '_I.png')
 NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('_logR.png', '_logI.png')
+NAME_FIG_SUFFIX_5: Final[str] = f'_alpha{ALPHA_CHOSEN}.png'
 FIG_DPI: Final[int] = 600
 
 # The boolean value to switch whether to display the value of the
@@ -239,6 +243,8 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr]
         The tuple of results.
+    dict_params : DictParams
+        The dictionary of parameters.
     """
 
     plotter_real: DefaultGridPlotter
@@ -360,6 +366,8 @@ def plot_eig(results: tuple[ArrayFloat,
     results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr]
         The tuple of results.
+    dict_params : DictParams
+        The dictionary of parameters.
 
     Returns
     -------
@@ -558,6 +566,8 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
     results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr]
         The tuple of results.
+    dict_params : DictParams
+        The dictionary of parameters.
     """
 
     plotter_real: DefaultGridPlotter
@@ -766,6 +776,8 @@ def plot_eig_log(results: tuple[ArrayFloat,
     results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
     ArrayFloat, ArrayStr]
         The tuple of results.
+    dict_params : DictParams
+        The dictionary of parameters.
 
     Returns
     -------
@@ -1109,6 +1121,49 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
                           switch_tight_layout=False)
 
 
+def plot_eig_for_an_alpha(results: tuple[ArrayFloat,
+                                         ArrayComplex,
+                                         ArrayFloat,
+                                         ArrayFloat,
+                                         ArrayFloat,
+                                         ArrayStr]) -> None:
+    """Plot the dispersion diagram for a chosen alpha.
+
+    Parameters
+    ----------
+    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
+    ArrayFloat, ArrayStr]
+        The tuple of results.
+    """
+
+    lin_alpha: ArrayFloat
+    eig: ArrayComplex
+    lin_alpha, eig, _, _, _, _ = results
+
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 5))
+
+    i_alpha: int = np.argmin(np.abs(lin_alpha - ALPHA_CHOSEN))
+    alpha: float = lin_alpha[i_alpha]
+
+    plotter.axes.scatter(
+        eig[i_alpha, :].real, eig[i_alpha, :].imag, s=2, c='black')
+
+    plotter.axes.set_xlabel(
+        r'$\mathrm{Re}(\lambda)=\mathrm{Re}(\omega)/2\Omega_0$',
+        fontsize=16)
+    plotter.axes.set_ylabel(
+        r'$\mathrm{Im}(\lambda)=\mathrm{Im}(\omega)/2\Omega_0$',
+        fontsize=16)
+    plotter.axes.set_title(
+        TEXT_TITLE + f'\n'
+        + r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|=$'
+        + f' {alpha}', fontsize=16)
+
+    plotter.axes.tick_params(labelsize=14)
+
+    plotter.save(PATH_DIR_FIG, NAME_FIG + NAME_FIG_SUFFIX_5, FIG_DPI)
+
+
 if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
@@ -1191,6 +1246,16 @@ if __name__ == '__main__':
         params_log = pickup_param(data_log)
 
         wrapper_plot_eig_log(data_log, dict_params=params_log)
+
+    if SWITCH_PLOT[2] and (data is not None):
+
+        if (E_ETA != 0) and (CRITERION_Q > 0):
+            data = screening_eig_q(
+                data, criterion_q=CRITERION_Q)
+
+        params = pickup_param(data)
+
+        plot_eig_for_an_alpha(data)
 
     timer.end()
 

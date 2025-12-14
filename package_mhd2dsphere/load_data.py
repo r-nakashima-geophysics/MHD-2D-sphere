@@ -15,7 +15,7 @@ from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictFileInfo
 
 
-def wrapper_load_results(switch_plot: tuple[bool, bool],
+def wrapper_load_results(switch_plot: tuple[bool, bool, bool],
                          *,
                          info_load: DictFileInfo) \
     -> tuple[tuple[ArrayFloat,
@@ -64,7 +64,7 @@ def wrapper_load_results(switch_plot: tuple[bool, bool],
 
     name_file: str
 
-    if switch_plot[0]:
+    if switch_plot[0] or switch_plot[2]:
 
         name_file \
             = info_load['name_file'] + info_load['name_file_suffix'][0]
