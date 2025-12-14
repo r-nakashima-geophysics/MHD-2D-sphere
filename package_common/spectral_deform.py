@@ -139,7 +139,7 @@ def init_complex_coordinate(
 
 def check_spectral_deform(complex_coordinate: ComplexCoordinate) \
         -> bool:
-    """Check the spectral deformation method is used.
+    """Check whether the spectral deformation method is used or not.
 
     Parameters
     ----------
