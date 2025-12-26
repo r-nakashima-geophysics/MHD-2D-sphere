@@ -40,7 +40,7 @@ git clone https://github.com/r-nakashima-geophysics/common-package.git
 cp -r common-package/package_common .
 ```
 
-The recommended version is v.1.0.0 or later.
+The recommended version is v1.0.0 or later.
 
 ## Usage
 
