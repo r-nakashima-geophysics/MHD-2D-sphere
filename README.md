@@ -27,11 +27,20 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 
 ## Setup
 
-These scripts are recommended to run with Python 3.13 or later.
+These scripts are recommended to run with Python 3.14 or later.
 
 ```sh
 pip3 install -r requirements.txt
 ```
+
+In addition, the scripts require the common package, r-nakashima-geophysics/common-package ([https://github.com/r-nakashima-geophysics/common-package.git](https://github.com/r-nakashima-geophysics/common-package.git)). For example,
+
+```sh
+git clone https://github.com/r-nakashima-geophysics/common-package.git
+cp -r common-package/package_common .
+```
+
+The recommended version is v.1.0.0 or later.
 
 ## Usage
 
