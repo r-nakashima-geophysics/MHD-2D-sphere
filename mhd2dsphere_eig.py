@@ -1,6 +1,6 @@
 """A Python script to calculate the dispersion relation of
-two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
-sphere under a toroidal background field, B_phi = B_0 B(theta)
+two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
+rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
 
 This script outputs up to two npz files of results, which include alpha,

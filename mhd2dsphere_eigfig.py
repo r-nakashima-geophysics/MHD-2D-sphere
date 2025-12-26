@@ -1,6 +1,6 @@
 """A Python script to plot the dispersion diagram of
-two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
-sphere under a toroidal background field, B_phi = B_0 B(theta)
+two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
+rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
 
 This script can create up to four figures: linear-linear and log-log
@@ -84,7 +84,7 @@ type Bbox = transforms.Bbox
 # SWITCH_PLOT[0]: The dispersion diagram for the linear-linear plot
 # SWITCH_PLOT[1]: The dispersion diagram for the log-log plot
 # SWITCH_PLOT[2]: The dispersion diagram for a chosen alpha
-SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (False, False, True)
+SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, False)
 ALPHA_CHOSEN: Final[float] = 1
 
 # The coloring rule
@@ -92,7 +92,7 @@ ALPHA_CHOSEN: Final[float] = 1
 # SWITCH_COLOR == 'ene': energy partitioning
 # SWITCH_COLOR == 'ohm': ohmic dissipation
 # SWITCH_COLOR == 'qmode': for finding quasi-modes
-SWITCH_COLOR: Final[str] = 'qmode'
+SWITCH_COLOR: Final[str] = 'ene'
 
 # Background field
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
@@ -206,7 +206,8 @@ TEXT_XLABEL: Final[str] \
 CBAR_LABEL: Final[str] \
     = 'mean kinetic energy' if SWITCH_COLOR == 'ene' else (
     'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
-        r'$\displaystyle{\min_\theta}|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
+        r'$\displaystyle{\min_\theta}$'
+        + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
         if SWITCH_COLOR == 'qmode' else '')
 )
 
@@ -398,6 +399,7 @@ def plot_eig(results: tuple[ArrayFloat,
 
     cmap_min: float = np.nan
     cmap_max: float = np.nan
+    cmap: str
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
@@ -416,7 +418,6 @@ def plot_eig(results: tuple[ArrayFloat,
 
     dict_eig: dict[str, ArrayComplex]
     scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
-    cmap: str
 
     for i_alpha in range(num_alpha):
         alpha = lin_alpha[i_alpha]
@@ -1155,7 +1156,7 @@ def plot_eig_for_an_alpha(results: tuple[ArrayFloat,
         r'$\mathrm{Im}(\lambda)=\mathrm{Im}(\omega)/2\Omega_0$',
         fontsize=16)
     plotter.axes.set_title(
-        TEXT_TITLE + f'\n'
+        TEXT_TITLE + '\n'
         + r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|=$'
         + f' {alpha}', fontsize=16)
 

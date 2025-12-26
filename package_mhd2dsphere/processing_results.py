@@ -1,9 +1,9 @@
 """A Python module to process obtained data from the eigenvalue problem
-of two-dimensional (2D) magnetohydrodynamic (MHD) waves on a rotating
-sphere under a toroidal background field, B_phi = B_0 B(theta)
-sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta).
+of two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves
+on a rotating sphere under a toroidal background field, B_phi = B_0
+B(theta) sin(theta), and background zonal flows, U_phi = U_0 U(theta)
+sin(theta).
 """
-
 
 import numpy as np
 

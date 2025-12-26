@@ -1,9 +1,10 @@
 """A Python script to calculate the dispersion relation of
-two-dimensional (2D) ideal magnetohydrodynamic (MHD) waves on a rotating
-sphere under the Malkus background field, B_phi = B_0 sin(theta).
+two-dimensional (2D) ideal incompressible magnetohydrodynamic (MHD)
+waves on a rotating sphere under the Malkus background field, B_phi =
+B_0 sin(theta).
 
-This script can create up to three figures: a linear-linear plot of
-the dispersion relation, a plot showing energy partitioning for various
+This script can create up to three figures: a linear-linear plot of the
+dispersion relation, a plot showing energy partitioning for various
 eigenmodes, and a log-log plot of the dispersion relation.
 
 Parameters
