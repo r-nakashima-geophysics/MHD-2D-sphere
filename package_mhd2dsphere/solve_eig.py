@@ -23,8 +23,8 @@ from package_common.spectral_deform import (ComplexCoordinate,
                                             check_spectral_deform)
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
-from package_mhd2dsphere.create_mat import (create_mat, create_submat,
-                                            laplacian_heinrichs)
+from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
+                                            create_submat, laplacian_heinrichs)
 from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
 
 
@@ -333,7 +333,7 @@ def calc_ene(m_order: int,
             laplacian_psi: ArrayComplex
             laplacian_vpa: ArrayComplex
             for i_k in range(1, num_point+1):
-                x_pos = np.cos((2*i_k-1)*np.pi/(2*num_point))
+                x_pos = calc_collocation_point(2*i_k-1, 2*num_point)
 
                 heinrichs_x = np.array(
                     [heinrichs(i_n, x_pos)
