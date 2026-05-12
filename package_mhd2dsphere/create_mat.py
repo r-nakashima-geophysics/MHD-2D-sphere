@@ -23,7 +23,6 @@ from package_common.calc_heinrichs import heinrichs, heinrichs_d, heinrichs_d2
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
-from package_common.utils_debug import under_construction_log
 from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictBackgroundField
 
@@ -117,9 +116,6 @@ def create_submat(m_order: int,
     else:
         n_t = size_submat - 1
 
-        if e_eta != 0:
-            under_construction_log()
-
         bg_field_b: BackgroundField = background_field['B']
         bg_field_u: BackgroundField = background_field['U']
         mu_complex: ComplexCoordinate = background_field['MU']
@@ -200,7 +196,8 @@ def create_submat(m_order: int,
                     - rossby*u_shear_mu*h_n
                 submat_12[i_l, i_n] = b_mu*laplacian - b_shear_mu*h_n
                 submat_21[i_l, i_n] = b_mu * h_n
-                submat_22[i_l, i_n] = m_order*rossby*u_mu*h_n
+                submat_22[i_l, i_n] \
+                    = m_order*rossby*u_mu*h_n + 1j*e_eta*laplacian
 
                 submat_b_11[i_l, i_n] = laplacian
                 submat_b_22[i_l, i_n] = h_n
