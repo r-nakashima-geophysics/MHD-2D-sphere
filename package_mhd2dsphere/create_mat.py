@@ -22,8 +22,7 @@ from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs, heinrichs_d, heinrichs_d2
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.default_logger import DefaultLogger
-from package_common.spectral_deform import (ComplexCoordinate,
-                                            check_spectral_deform)
+from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_debug import under_construction_log
 from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictBackgroundField
@@ -125,7 +124,7 @@ def create_submat(m_order: int,
         bg_field_u: BackgroundField = background_field['U']
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        if check_spectral_deform(mu_complex) or (e_eta != 0):
+        if mu_complex.check_spectral_deform() or (e_eta != 0):
             submat_11 = np.zeros(
                 (size_submat, size_submat), dtype=np.complex128)
             submat_12 = np.zeros(
@@ -161,7 +160,7 @@ def create_submat(m_order: int,
         for i_l in range(size_submat):
             s_pos = calc_collocation_point(i_l+1, n_t+2)
 
-            if check_spectral_deform(mu_complex) or (e_eta != 0):
+            if mu_complex.check_spectral_deform() or (e_eta != 0):
                 mu = mu_complex.value(s_pos)
                 u_mu = bg_field_u.value(mu)
                 u_shear_mu = (
@@ -208,7 +207,7 @@ def create_submat(m_order: int,
 
         inv_submat_b_11: ArrayFloat | ArrayComplex
         inv_submat_b_22: ArrayFloat | ArrayComplex
-        if check_spectral_deform(mu_complex) or (e_eta != 0):
+        if mu_complex.check_spectral_deform() or (e_eta != 0):
             inv_submat_b_11 \
                 = np.linalg.inv(submat_b_11).astype(np.complex128)
             inv_submat_b_22 \
@@ -289,7 +288,7 @@ def laplacian_heinrichs(
     mu: float | complex
     mu_d: float | complex
     mu_d2: float | complex
-    if check_spectral_deform(mu_complex):
+    if mu_complex.check_spectral_deform():
         mu = mu_complex.value(s_pos)
         mu_d = mu_complex.value_d(s_pos)
         mu_d2 = mu_complex.value_d2(s_pos)
@@ -375,7 +374,7 @@ def create_mat(m_order: int,
     else:
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        if check_spectral_deform(mu_complex) or (e_eta != 0):
+        if mu_complex.check_spectral_deform() or (e_eta != 0):
             mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
         else:
             mat = np.zeros((size_mat, size_mat), dtype=np.float64)
