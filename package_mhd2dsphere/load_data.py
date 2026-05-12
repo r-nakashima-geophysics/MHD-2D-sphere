@@ -115,10 +115,10 @@ def load_results(name_file: str,
         The sequence of alpha.
     eig : ArrayComplex
         The eigenvalues.
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
     ohm : ArrayFloat
         The ohmic dissipation.
     sym : ArrayStr
@@ -147,11 +147,11 @@ def load_results(name_file: str,
 
     lin_alpha: ArrayFloat = npz_kw['lin_alpha']
     eig: ArrayComplex = npz_kw['eig']
-    mke: ArrayFloat = npz_kw['mke']
-    mme: ArrayFloat = npz_kw['mme']
+    pke: ArrayFloat = npz_kw['pke']
+    pme: ArrayFloat = npz_kw['pme']
     ohm: ArrayFloat = npz_kw['ohm']
     sym: ArrayStr = npz_kw['sym']
 
     file_logger.info('Loaded')
 
-    return lin_alpha, eig, mke, mme, ohm, sym
+    return lin_alpha, eig, pke, pme, ohm, sym

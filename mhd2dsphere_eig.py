@@ -4,7 +4,7 @@ rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
 
 This script outputs up to two npz files of results, which include alpha,
-eigenvalue, mean kinetic energy, mean magnetic energy, ohmic
+eigenvalue, perturbation kinetic energy, perturbation magnetic energy, ohmic
 dissipation, and the symmetry of eigenmodes. In addition, the script
 uses multiprocessing to speed up the calculations.
 
@@ -34,7 +34,7 @@ I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
-[2] Ryosuke Nakashima (in prep.)
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 
 Examples
 --------
@@ -58,8 +58,7 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
-                                            check_spectral_deform,
-                                            init_complex_coordinate)
+                                            init_complex_coordinate_simple)
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
 from package_common.utils_parallel import (attach_shared_arrays,
@@ -82,7 +81,7 @@ SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
@@ -122,11 +121,11 @@ ALPHA_LOG_END: Final[float] = 2
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    = f'MHD2Dsphere_eig_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{MU_COMPLEX.name}'
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+    + f'_{MU_COMPLEX.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The number of processes for multiprocessing
@@ -180,10 +179,10 @@ def wrapper_solve_eig_for_lin_alpha(*,
     -------
     eig : ArrayComplex
         The eigenvalues.
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
     ohm : ArrayFloat
         The ohmic dissipation.
     sym : ArrayStr
@@ -215,8 +214,8 @@ def wrapper_solve_eig_for_lin_alpha(*,
 
     eig: ArrayComplex \
         = np.empty((num_alpha, SIZE_MAT), dtype=np.complex128)
-    mke: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
-    mme: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
+    pke: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
+    pme: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
     ohm: ArrayFloat = np.empty((num_alpha, SIZE_MAT), dtype=np.float64)
     sym: ArrayStr = np.empty((num_alpha, SIZE_MAT), dtype=np.str_)
 
@@ -229,8 +228,8 @@ def wrapper_solve_eig_for_lin_alpha(*,
         for i_alpha, result in enumerate(pool.imap(worker, args_list)):
 
             eig[i_alpha, :] = result[0][SIZE_MAT, :]
-            mke[i_alpha, :] = result[1][0]
-            mme[i_alpha, :] = result[1][1]
+            pke[i_alpha, :] = result[1][0]
+            pme[i_alpha, :] = result[1][1]
             ohm[i_alpha, :] = result[1][2]
             sym[i_alpha, :] = result[1][3]
 
@@ -238,7 +237,7 @@ def wrapper_solve_eig_for_lin_alpha(*,
 
     detach_shared_arrays(*shared_memories, unlink=True)
 
-    return eig, mke, mme, ohm, sym
+    return eig, pke, pme, ohm, sym
 
 
 def worker(args: tuple[float,
@@ -308,14 +307,14 @@ def save_results(results: tuple[ArrayComplex,
     """
 
     eig: ArrayComplex
-    mke: ArrayFloat
-    mme: ArrayFloat
+    pke: ArrayFloat
+    pme: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
 
     os.makedirs(PATH_DIR, exist_ok=True)
 
-    eig, mke, mme, ohm, sym = results
+    eig, pke, pme, ohm, sym = results
 
     name_file: str
     if not switch_log:
@@ -328,7 +327,7 @@ def save_results(results: tuple[ArrayComplex,
 
     np.savez_compressed(path_file,
                         lin_alpha=lin_alpha, eig=eig,
-                        mke=mke, mme=mme, ohm=ohm, sym=sym)
+                        pke=pke, pme=pme, ohm=ohm, sym=sym)
 
     DefaultLogger(name_file).info('Saved')
 
@@ -358,7 +357,7 @@ if __name__ == '__main__':
         logger.warning('No saved file')
         sys.exit(0)
 
-    if (E_ETA != 0) and check_spectral_deform(MU_COMPLEX):
+    if (E_ETA != 0) and MU_COMPLEX.check_spectral_deform():
         logger.warning('Invalid settings')
         sys.exit(1)
 

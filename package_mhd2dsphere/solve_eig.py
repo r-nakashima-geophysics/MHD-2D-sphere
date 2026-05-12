@@ -69,10 +69,10 @@ def wrapper_solve_eig(
         The eigenvector for the vector potential.
     eig : ArrayComplex
         The eigenvalue.
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
     ohm : ArrayFloat
         The Ohmic dissipation.
     sym : ArrayStr
@@ -143,7 +143,7 @@ def solve_eig(m_order: int,
     eig_valvec : ArrayComplex
         The eigenvalues and normalized eigenvectors.
     phys_qtys : tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayStr]
-        The mean kinetic energy, mean magnetic energy, Ohmic
+        The perturbation kinetic energy, perturbation magnetic energy, Ohmic
         dissipation, and symmetry of the eigenmodes.
     """
 
@@ -190,11 +190,11 @@ def normalize_eigvec(
 
     size_mat: int = eig_valvec.shape[1]
 
-    mke: ArrayFloat
-    mme: ArrayFloat
-    mke, mme = calc_ene(m_order, eig_valvec,
+    pke: ArrayFloat
+    pme: ArrayFloat
+    pke, pme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
-    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(mke+mme)
+    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(pke+pme)
 
     return eig_valvec
 
@@ -223,10 +223,10 @@ def calc_qty(m_order: int,
 
     Returns
     -------
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
     ohm : ArrayFloat
         The ohmic dissipation.
     sym : ArrayStr
@@ -236,9 +236,9 @@ def calc_qty(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
-    mke: ArrayFloat
-    mme: ArrayFloat
-    mke, mme = calc_ene(m_order, eig_valvec,
+    pke: ArrayFloat
+    pme: ArrayFloat
+    pke, pme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
 
     ohm: ArrayFloat = np.zeros(size_mat)
@@ -267,7 +267,7 @@ def calc_qty(m_order: int,
         else:
             sym[i_mode] = 'varicose'
 
-    return mke, mme, ohm, sym
+    return pke, pme, ohm, sym
 
 
 def calc_ene(m_order: int,
@@ -276,7 +276,7 @@ def calc_ene(m_order: int,
              background_field: DictBackgroundField) \
     -> tuple[ArrayFloat,
              ArrayFloat]:
-    """Calculate the mean kinetic and magnetic energies.
+    """Calculate the perturbation kinetic and magnetic energies.
 
     Parameters
     ----------
@@ -289,10 +289,10 @@ def calc_ene(m_order: int,
 
     Returns
     -------
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
 
     Notes
     -----
@@ -304,8 +304,8 @@ def calc_ene(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
-    mke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
-    mme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
+    pke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
+    pme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
 
     if background_field['NY24']:
         n_degree: int
@@ -314,8 +314,8 @@ def calc_ene(m_order: int,
             n_degree = m_order + i_n
             nn1 = n_degree * (n_degree+1)
 
-            mke += nn1 * (np.abs(eig_valvec[i_n, :])**2)
-            mme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
+            pke += nn1 * (np.abs(eig_valvec[i_n, :])**2)
+            pme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
     else:
         mu_complex: ComplexCoordinate = background_field['MU']
 
@@ -350,17 +350,17 @@ def calc_ene(m_order: int,
                 laplacian_psi = laplacian_heinrichs_x @ psi_vec
                 laplacian_vpa = laplacian_heinrichs_x @ vpa_vec
 
-                mke += np.real(
+                pke += np.real(
                     np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x_pos**2))
-                mme += np.real(
+                pme += np.real(
                     np.conj(vpa) * (-laplacian_vpa)) * np.sqrt(1-(x_pos**2))
-            mke *= (np.pi/num_point)
-            mme *= (np.pi/num_point)
+            pke *= (np.pi/num_point)
+            pme *= (np.pi/num_point)
         else:
-            mke = np.full(size_mat, 0.5, dtype=np.float64)
-            mme = np.full(size_mat, 0.5, dtype=np.float64)
+            pke = np.full(size_mat, 0.5, dtype=np.float64)
+            pme = np.full(size_mat, 0.5, dtype=np.float64)
 
-    return mke, mme
+    return pke, pme
 
 
 def check_eig(m_order: int,

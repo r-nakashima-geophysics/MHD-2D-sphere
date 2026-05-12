@@ -40,10 +40,10 @@ def screening_eig_q(results: tuple[ArrayFloat,
         The sequence of alpha.
     eig : ArrayComplex
         The eigenvalues.
-    mke : ArrayFloat
-        The mean kinetic energy.
-    mme : ArrayFloat
-        The mean magnetic energy.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
     ohm : ArrayFloat
         The ohmic dissipation.
     sym : ArrayStr
@@ -52,11 +52,11 @@ def screening_eig_q(results: tuple[ArrayFloat,
 
     lin_alpha: ArrayFloat
     eig: ArrayComplex
-    mke: ArrayFloat
-    mme: ArrayFloat
+    pke: ArrayFloat
+    pme: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
-    lin_alpha, eig, mke, mme, ohm, sym = results
+    lin_alpha, eig, pke, pme, ohm, sym = results
 
     size_mat: int = len(eig)
 
@@ -74,12 +74,12 @@ def screening_eig_q(results: tuple[ArrayFloat,
         for i_mode in range(size_mat):
             if check_q[i_mode] <= 0:
                 eig[i_alpha, i_mode] = np.nan
-                mke[i_alpha, i_mode] = np.nan
-                mme[i_alpha, i_mode] = np.nan
+                pke[i_alpha, i_mode] = np.nan
+                pme[i_alpha, i_mode] = np.nan
                 ohm[i_alpha, i_mode] = np.nan
                 sym[i_alpha, i_mode] = np.nan
 
-    return lin_alpha, eig, mke, mme, ohm, sym
+    return lin_alpha, eig, pke, pme, ohm, sym
 
 
 def pickup_param(results: tuple[ArrayFloat,
@@ -122,7 +122,7 @@ def pickup_param(results: tuple[ArrayFloat,
 
 
 def pickup_eig(eig: ArrayComplex,
-               mke: ArrayFloat,
+               pke: ArrayFloat,
                sym: ArrayStr) -> dict[str, ArrayComplex]:
     """Pick up the eigenvalues of various modes.
 
@@ -130,8 +130,8 @@ def pickup_eig(eig: ArrayComplex,
     ----------
     eig : ArrayComplex
         The eigenvalues for a given alpha.
-    mke : ArrayFloat
-        The mean kinetic energies for a given alpha.
+    pke : ArrayFloat
+        The perturbation kinetic energies for a given alpha.
     sym : ArrayStr
         The symmetry of the eigenmodes for a given alpha.
 
@@ -151,7 +151,7 @@ def pickup_eig(eig: ArrayComplex,
 
     unstable: ArrayFloat = pickup_unstable(eig)
 
-    alfvenic, non_alfvenic = sort_alfvenic(mke)
+    alfvenic, non_alfvenic = sort_alfvenic(pke)
 
     dict_eig: dict[str, ArrayComplex] = {
         's': eig * sinuous,
@@ -274,14 +274,14 @@ def pickup_unstable(eig: ArrayComplex) -> ArrayFloat:
     return unstable
 
 
-def sort_alfvenic(mke: ArrayFloat) -> tuple[ArrayFloat,
+def sort_alfvenic(pke: ArrayFloat) -> tuple[ArrayFloat,
                                             ArrayFloat]:
     """Sort into alfvenic and non-alfvenic modes.
 
     Parameters
     ----------
-    mke : ArrayFloat
-        The mean kinetic energy for a given alpha.
+    pke : ArrayFloat
+        The perturbation kinetic energy for a given alpha.
 
     Returns
     ----------
@@ -291,13 +291,13 @@ def sort_alfvenic(mke: ArrayFloat) -> tuple[ArrayFloat,
         The identifier of non-alfvenic modes
     """
 
-    size_mat: int = len(mke)
+    size_mat: int = len(pke)
 
     alfvenic: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
     non_alfvenic: ArrayFloat \
         = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
-        if 0.49 < mke[i_mode] < 0.51:
+        if 0.49 < pke[i_mode] < 0.51:
             alfvenic[i_mode] = 1
         else:
             non_alfvenic[i_mode] = 1

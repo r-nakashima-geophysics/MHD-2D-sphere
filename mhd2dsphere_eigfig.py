@@ -39,7 +39,7 @@ I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
-[2] Ryosuke Nakashima (in prep.)
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 
 Examples
 --------
@@ -65,8 +65,7 @@ from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
                                             DefaultPlotter, create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import (ComplexCoordinate,
-                                            check_spectral_deform,
-                                            init_complex_coordinate)
+                                            init_complex_coordinate_simple)
 from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.create_mat import calc_collocation_point
@@ -98,7 +97,7 @@ SWITCH_COLOR: Final[str] = 'ene'
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
@@ -135,21 +134,21 @@ EIG_IM_LOG_MIN: Final[float] = -10
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
 NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    = f'MHD2Dsphere_eig_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{MU_COMPLEX.name}'
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+    + f'_{MU_COMPLEX.name}'
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The paths and filenames of outputs
 PATH_DIR_FIG: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_eigfig'
 NAME_FIG: Final[str] \
-    = f'MHD2Dsphere_eigfig_NY24_m{M_ORDER}E{E_ETA}N{N_T}' \
+    = f'MHD2Dsphere_eigfig_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m{M_ORDER}E{E_ETA}R{ROSSBY}N{N_T}' \
-    + f'{MU_COMPLEX.name}'
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+    + f'_{MU_COMPLEX.name}'
 NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
 NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str]] \
     = ('_blk', '_ene', '_ohm', '_qmode')
@@ -204,7 +203,7 @@ TEXT_XLABEL: Final[str] \
     = r'$|\alpha|=|B_0/2\Omega_0R_0\sqrt{\rho_0\mu_\mathrm{m}}|$'
 
 CBAR_LABEL: Final[str] \
-    = 'mean kinetic energy' if SWITCH_COLOR == 'ene' else (
+    = 'perturbation kinetic energy' if SWITCH_COLOR == 'ene' else (
     'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
         r'$\displaystyle{\min_\theta}$'
         + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
@@ -382,10 +381,10 @@ def plot_eig(results: tuple[ArrayFloat,
 
     lin_alpha: ArrayFloat
     eig: ArrayComplex
-    mke: ArrayFloat
+    pke: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
-    lin_alpha, eig, mke, _, ohm, sym = results
+    lin_alpha, eig, pke, _, ohm, sym = results
 
     num_alpha: int = dict_params['num_alpha']
     ohm_max: float = dict_params['ohm_max']
@@ -424,7 +423,7 @@ def plot_eig(results: tuple[ArrayFloat,
         ones_alpha = np.full(SIZE_MAT, alpha)
 
         dict_eig = pickup_eig(
-            eig[i_alpha, :], mke[i_alpha, :], sym[i_alpha, :])
+            eig[i_alpha, :], pke[i_alpha, :], sym[i_alpha, :])
 
         if SWITCH_COLOR == 'blk':
 
@@ -465,7 +464,7 @@ def plot_eig(results: tuple[ArrayFloat,
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
                     STRETCH_ATAN
-                    * (mke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
+                    * (pke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
@@ -792,10 +791,10 @@ def plot_eig_log(results: tuple[ArrayFloat,
 
     lin_alpha: ArrayFloat
     eig: ArrayComplex
-    mke: ArrayFloat
+    pke: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
-    lin_alpha, eig, mke, _, ohm, sym = results
+    lin_alpha, eig, pke, _, ohm, sym = results
 
     num_alpha_log: int = dict_params['num_alpha']
     ohm_log_max: float = dict_params['ohm_max']
@@ -833,7 +832,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
         ones_alpha = np.full(SIZE_MAT, alpha)
 
         dict_eig = pickup_eig(
-            eig[i_alpha, :], mke[i_alpha, :], sym[i_alpha, :])
+            eig[i_alpha, :], pke[i_alpha, :], sym[i_alpha, :])
 
         dict_eig['sr'] = -np.conjugate(dict_eig['sr'])
         dict_eig['vr'] = -np.conjugate(dict_eig['vr'])
@@ -907,7 +906,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
                     STRETCH_ATAN
-                    * (mke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
+                    * (pke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
@@ -1180,11 +1179,11 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if (SWITCH_COLOR == 'blk') and (
-            check_spectral_deform(MU_COMPLEX) or (E_ETA != 0)):
+            MU_COMPLEX.check_spectral_deform() or (E_ETA != 0)):
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
 
-    if (SWITCH_COLOR == 'ene') and check_spectral_deform(MU_COMPLEX):
+    if (SWITCH_COLOR == 'ene') and MU_COMPLEX.check_spectral_deform():
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
 
@@ -1193,7 +1192,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     if (SWITCH_COLOR == 'qmode') \
-            and (not check_spectral_deform(MU_COMPLEX)):
+            and (not MU_COMPLEX.check_spectral_deform()):
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
 

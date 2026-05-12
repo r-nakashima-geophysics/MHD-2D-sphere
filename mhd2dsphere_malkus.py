@@ -98,9 +98,9 @@ ENERGY_END: Final[float] = 1
 
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
-NAME_FIG_1: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eig.png'
-NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_ene.png'
-NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m{M_ORDER}_eiglog.png'
+NAME_FIG_1: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_eig.png'
+NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_ene.png'
+NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_eiglog.png'
 FIG_DPI: Final[int] = 600
 
 # ================================ #
@@ -368,7 +368,7 @@ def plot_ene(ene: ArrayFloat) -> None:
 
     plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes.set_ylabel(
-        r'$\mathrm{MKE}/(\mathrm{MKE}+\mathrm{MME})$', fontsize=16)
+        r'$\mathrm{PKE}/(\mathrm{PKE}+\mathrm{PME})$', fontsize=16)
     plotter.axes.set_title(
         r'Energy partitioning [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=16)
