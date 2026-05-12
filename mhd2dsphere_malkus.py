@@ -306,9 +306,10 @@ def plot_eig(eig: ArrayFloat) -> None:
     handles: list[Artist]
     labels: list[str]
     [handles, labels] = plotter.axes.get_legend_handles_labels()
-    order_leg: list[int] = [3, 1, 2, 0]
-    handles = [handles[i_handle] for i_handle in order_leg]
-    labels = [labels[i_label] for i_label in order_leg]
+    if NUM_N >= 2:
+        order_leg: list[int] = [3, 1, 2, 0]
+        handles = [handles[i_handle] for i_handle in order_leg]
+        labels = [labels[i_label] for i_label in order_leg]
 
     if M_ORDER >= 3:
         plotter.leg = plotter.axes.legend(
@@ -375,9 +376,10 @@ def plot_ene(ene: ArrayFloat) -> None:
     handles: list[Artist]
     labels: list[str]
     [handles, labels] = plotter.axes.get_legend_handles_labels()
-    order_leg: list[int] = [2, 0, 3, 1]
-    handles = [handles[i_handle] for i_handle in order_leg]
-    labels = [labels[i_label] for i_label in order_leg]
+    if NUM_N >= 2:
+        order_leg: list[int] = [2, 0, 3, 1]
+        handles = [handles[i_handle] for i_handle in order_leg]
+        labels = [labels[i_label] for i_label in order_leg]
 
     plotter.leg = plotter.axes.legend(
         handles=handles, labels=labels,
