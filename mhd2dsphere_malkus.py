@@ -69,8 +69,8 @@ SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
 
-# Degrees
-N_INIT: Final[int] = M_ORDER  # M_ORDER <= N_INIT
+# Degrees (>= M_ORDER)
+N_INIT: Final[int] = M_ORDER
 N_STEP: Final[int] = 1
 N_END: Final[int] = 10
 
