@@ -3,11 +3,11 @@ two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta).
 
-This script can create up to four figures: linear-linear and log-log
-plots of the dispersion relation with some coloring based on black or
-physical quantity (energy partitioning, or ohmic dissipation, or
-eigenfrequencies). The script can also create a plot of the dispersion
-diagram for a chosen alpha.
+This script can create up to four figures: linear-linear and log-log plots of
+the dispersion relation with some coloring based on black or physical quantity
+(energy partitioning, ohmic dissipation, pseudomomentum, pseudoenergy, or
+eigenfrequencies). The script can also create a plot of the dispersion diagram
+for a chosen alpha.
 
 Parameters
 ----------
@@ -17,27 +17,28 @@ M_ORDER : int
 Warnings
 --------
 No plotted figures
-    If all of the boolean values to switch whether to plot figures or
-    not are False.
+    If all of the boolean values to switch whether to plot figures or not are
+    False.
 Invalid value for 'SWITCH_COLOR'
-    If 'SWITCH_COLOR' is not either 'blk', 'ene', 'ohm', or 'qmode'.
+    If 'SWITCH_COLOR' is not either 'blk', 'ene', 'ohm', 'psm', 'pse', or
+    'qmode'.
 Meaningless figures are plotted
-    If figures of the ohmic dissipation are plotted in the ideal MHD
-    case, and so on.
+    If figures of the ohmic dissipation are plotted in the ideal MHD case, and
+    so on.
 
 Notes
 -----
-All other parameters aside from command line arguments are described
-within the script. Before executing this code, mhd2dsphere_eig.py with
-the same parameters must be run.
+All other parameters aside from command line arguments are described within the
+script. Before executing this code, mhd2dsphere_eig.py with the same parameters
+must be run.
 
 References
 ----------
 [1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
-magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
-I. Continuous spectrum and its ray-theoretical interpretation.
-Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
 
 [2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 
@@ -73,7 +74,7 @@ from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
 from package_mhd2dsphere.typed_dict import (DictBackgroundField, DictFileInfo,
-                                            DictParams)
+                                            DictParams, DictResult)
 
 type Bbox = transforms.Bbox
 
@@ -90,6 +91,8 @@ ALPHA_CHOSEN: Final[float] = 1
 # SWITCH_COLOR == 'blk': black
 # SWITCH_COLOR == 'ene': energy partitioning
 # SWITCH_COLOR == 'ohm': ohmic dissipation
+# SWITCH_COLOR == 'psm': pseudomomentum
+# SWITCH_COLOR == 'pse': pseudoenergy
 # SWITCH_COLOR == 'qmode': for finding quasi-modes
 SWITCH_COLOR: Final[str] = 'ene'
 
@@ -126,10 +129,10 @@ CRITERION_Q: Final[float] = 0
 EIG_RE_INIT: Final[float] = -2
 EIG_RE_END: Final[float] = 2
 # log, real part
-EIG_RE_LOG_INIT: Final[float] = -6
-EIG_RE_LOG_END: Final[float] = 2
+EIG_RE_LOG_INIT: Final[float] = 10**(-6)
+EIG_RE_LOG_END: Final[float] = 10**2
 # linear & log, imaginary part
-EIG_IM_LOG_MIN: Final[float] = -10
+EIG_IM_LOG_MIN: Final[float] = 10**(-10)
 
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
@@ -149,12 +152,12 @@ NAME_FIG: Final[str] \
     else f'MHD2Dsphere_eigfig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
     + f'_{MU_COMPLEX.name}'
-NAME_FIG_SUFFIX_1: Final[str] = f'q{CRITERION_Q}'
-NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str]] \
-    = ('_blk', '_ene', '_ohm', '_qmode')
+NAME_FIG_SUFFIX_1: Final[str] = f'_q={CRITERION_Q}'
+NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str, str, str]] \
+    = ('_blk', '_ene', '_ohm', '_psm', '_pse', '_qmode')
 NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('_R.png', '_I.png')
 NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('_logR.png', '_logI.png')
-NAME_FIG_SUFFIX_5: Final[str] = f'_alpha{ALPHA_CHOSEN}.png'
+NAME_FIG_SUFFIX_5: Final[str] = f'_a={ALPHA_CHOSEN}.png'
 FIG_DPI: Final[int] = 600
 
 # The boolean value to switch whether to display the value of the
@@ -224,25 +227,19 @@ LIN_BG_FIELD_U: Final[ArrayComplex] \
     = np.array([BG_FIELD_U.value(LIN_COLLOCATION_MU[i_l])
                 for i_l in range(NUM_POINT)])
 
-MASK_Y1: Final[float] = 10**EIG_IM_LOG_MIN
+MASK_Y1: Final[float] = EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
 
 
-def wrapper_plot_eig(result: tuple[ArrayFloat,
-                                   ArrayComplex,
-                                   ArrayFloat,
-                                   ArrayFloat,
-                                   ArrayFloat,
-                                   ArrayStr],
+def wrapper_plot_eig(results: DictResult,
                      *,
                      dict_params: DictParams) -> None:
     """Edit the dispersion diagram for the linear-linear plot.
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results of the eigenvalue problem.
     dict_params : DictParams
         The dictionary of parameters.
     """
@@ -252,7 +249,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     set_save_fig: set[int]
 
     plotter_real, plotter_imag, set_save_fig \
-        = plot_eig(result, dict_params=dict_params)
+        = plot_eig(results, dict_params=dict_params)
 
     alpha_init: float = dict_params['alpha_init']
     alpha_end: float = dict_params['alpha_end']
@@ -292,7 +289,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     cbar_ax_1: Axes
     cbar_ax_2: Axes
 
-    if SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
+    if SWITCH_COLOR in ('ene', 'ohm', 'psm', 'pse', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
         axpos = plotter_real.axes[0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
@@ -331,7 +328,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
             cbar.ax.tick_params(labelsize=14)
             cbar.set_label(label=CBAR_LABEL, size=16)
 
-    elif SWITCH_COLOR in ('ohm', 'qmode'):
+    elif SWITCH_COLOR in ('ohm', 'psm', 'pse', 'qmode'):
 
         cbar = plotter_real.fig.colorbar(
             plotter_real.sc[0], cax=cbar_ax_1)
@@ -349,12 +346,7 @@ def wrapper_plot_eig(result: tuple[ArrayFloat,
     save_plot_eig(plotter_real, plotter_imag, set_save_fig)
 
 
-def plot_eig(results: tuple[ArrayFloat,
-                            ArrayComplex,
-                            ArrayFloat,
-                            ArrayFloat,
-                            ArrayFloat,
-                            ArrayStr],
+def plot_eig(results: DictResult,
              *,
              dict_params: DictParams) -> tuple[DefaultGridPlotter,
                                                DefaultGridPlotter,
@@ -363,9 +355,8 @@ def plot_eig(results: tuple[ArrayFloat,
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results of the eigenvalue problem.
     dict_params : DictParams
         The dictionary of parameters.
 
@@ -379,12 +370,13 @@ def plot_eig(results: tuple[ArrayFloat,
         The set storing the IDs of figures to save.
     """
 
-    lin_alpha: ArrayFloat
-    eig: ArrayComplex
-    pke: ArrayFloat
-    ohm: ArrayFloat
-    sym: ArrayStr
-    lin_alpha, eig, pke, _, ohm, sym = results
+    lin_alpha: ArrayFloat = results['lin_alpha']
+    eig: ArrayComplex = results['eig']
+    pke: ArrayFloat = results['phys_qtys']['pke']
+    psm: ArrayFloat = results['phys_qtys']['psm']
+    pse: ArrayFloat = results['phys_qtys']['pse']
+    ohm: ArrayFloat = results['phys_qtys']['ohm']
+    sym: ArrayStr = results['phys_qtys']['sym']
 
     num_alpha: int = dict_params['num_alpha']
     ohm_max: float = dict_params['ohm_max']
@@ -435,36 +427,29 @@ def plot_eig(results: tuple[ArrayFloat,
             if E_ETA == 0:
                 if False in np.isnan(dict_eig['s_u']):
                     plotter_real.axes[0].scatter(
-                        ones_alpha, dict_eig['s_u'].real,
-                        s=0.2, c='red')
+                        ones_alpha, dict_eig['s_u'].real, s=0.2, c='red')
                     plotter_imag.axes[0].scatter(
-                        ones_alpha, dict_eig['s_u'].imag,
-                        s=0.2, c='red')
+                        ones_alpha, dict_eig['s_u'].imag, s=0.2, c='red')
                     set_save_fig.add(1)
 
                 if False in np.isnan(dict_eig['v_u']):
                     plotter_real.axes[1].scatter(
-                        ones_alpha, dict_eig['v_u'].real,
-                        s=0.2, c='red')
+                        ones_alpha, dict_eig['v_u'].real, s=0.2, c='red')
                     plotter_imag.axes[1].scatter(
-                        ones_alpha, dict_eig['v_u'].imag,
-                        s=0.2, c='red')
+                        ones_alpha, dict_eig['v_u'].imag, s=0.2, c='red')
                     set_save_fig.add(2)
             else:
                 plotter_imag.axes[0].scatter(
-                    ones_alpha, dict_eig['s'].imag,
-                    s=0.1, c='black')
+                    ones_alpha, dict_eig['s'].imag, s=0.1, c='black')
                 plotter_imag.axes[1].scatter(
-                    ones_alpha, dict_eig['v'].imag,
-                    s=0.1, c='black')
+                    ones_alpha, dict_eig['v'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2})
 
         elif SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
 
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
-                    STRETCH_ATAN
-                    * (pke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
+                    STRETCH_ATAN * (pke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
@@ -479,22 +464,18 @@ def plot_eig(results: tuple[ArrayFloat,
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
                 plotter_real.axes[0].scatter(
-                    ones_alpha, dict_eig['s_a'].real,
-                    s=0.05, c=scatter_color,
-                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
+                    ones_alpha, dict_eig['s_a'].real, s=0.05,
+                    c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1].scatter(
-                    ones_alpha, dict_eig['v_a'].real,
-                    s=0.05, c=scatter_color,
-                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
+                    ones_alpha, dict_eig['v_a'].real, s=0.05,
+                    c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
                 plotter_real.sc[0] = plotter_real.axes[0].scatter(
-                    ones_alpha, dict_eig['s_na'].real,
-                    s=0.2, c=scatter_color,
-                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
+                    ones_alpha, dict_eig['s_na'].real, s=0.2,
+                    c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
                 plotter_real.axes[1].scatter(
-                    ones_alpha, dict_eig['v_na'].real,
-                    s=0.2, c=scatter_color,
-                    cmap=cmap, vmin=cmap_min, vmax=cmap_max)
+                    ones_alpha, dict_eig['v_na'].real, s=0.2,
+                    c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
                 if False in np.isnan(dict_eig['s_u']):
                     plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
@@ -551,21 +532,15 @@ def plot_eig(results: tuple[ArrayFloat,
     return plotter_real, plotter_imag, set_save_fig
 
 
-def wrapper_plot_eig_log(results: tuple[ArrayFloat,
-                                        ArrayComplex,
-                                        ArrayFloat,
-                                        ArrayFloat,
-                                        ArrayFloat,
-                                        ArrayStr],
+def wrapper_plot_eig_log(results: DictResult,
                          *,
                          dict_params: DictParams) -> None:
     """Edit the dispersion diagram for the log-log plot.
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results of the eigenvalue problem.
     dict_params : DictParams
         The dictionary of parameters.
     """
@@ -588,13 +563,13 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
            plotter_imag.axes[1, 0], plotter_imag.axes[1, 1])
 
     for axis in ax_real_all:
-        axis.set_xlim(10**alpha_log_init, 10**alpha_log_end)
-        axis.set_ylim(10**EIG_RE_LOG_INIT, 10**EIG_RE_LOG_END)
+        axis.set_xlim(alpha_log_init, alpha_log_end)
+        axis.set_ylim(EIG_RE_LOG_INIT, EIG_RE_LOG_END)
         axis.set_yscale('log')
 
     for axis in ax_imag_all:
-        axis.set_xlim(10**alpha_log_init, 10**alpha_log_end)
-        axis.set_yscale('symlog', linthresh=10**EIG_IM_LOG_MIN)
+        axis.set_xlim(alpha_log_init, alpha_log_end)
+        axis.set_yscale('symlog', linthresh=EIG_IM_LOG_MIN)
 
     for axis in (ax_real_all + ax_imag_all):
         axis.set_xscale('log')
@@ -759,12 +734,7 @@ def wrapper_plot_eig_log(results: tuple[ArrayFloat,
                   switch_log=True)
 
 
-def plot_eig_log(results: tuple[ArrayFloat,
-                                ArrayComplex,
-                                ArrayFloat,
-                                ArrayFloat,
-                                ArrayFloat,
-                                ArrayStr],
+def plot_eig_log(results: DictResult,
                  *,
                  dict_params: DictParams) -> tuple[DefaultGridPlotter,
                                                    DefaultGridPlotter,
@@ -773,9 +743,8 @@ def plot_eig_log(results: tuple[ArrayFloat,
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results of the eigenvalue problem.
     dict_params : DictParams
         The dictionary of parameters.
 
@@ -789,12 +758,13 @@ def plot_eig_log(results: tuple[ArrayFloat,
         The set storing the IDs of figures to save.
     """
 
-    lin_alpha: ArrayFloat
-    eig: ArrayComplex
-    pke: ArrayFloat
-    ohm: ArrayFloat
-    sym: ArrayStr
-    lin_alpha, eig, pke, _, ohm, sym = results
+    lin_alpha: ArrayFloat = results['lin_alpha']
+    eig: ArrayComplex = results['eig']
+    pke: ArrayFloat = results['phys_qtys']['pke']
+    psm: ArrayFloat = results['phys_qtys']['psm']
+    pse: ArrayFloat = results['phys_qtys']['pse']
+    ohm: ArrayFloat = results['phys_qtys']['ohm']
+    sym: ArrayStr = results['phys_qtys']['sym']
 
     num_alpha_log: int = dict_params['num_alpha']
     ohm_log_max: float = dict_params['ohm_max']
@@ -828,7 +798,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
     scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     for i_alpha in range(num_alpha_log):
-        alpha = 10**lin_alpha[i_alpha]
+        alpha = lin_alpha[i_alpha]
         ones_alpha = np.full(SIZE_MAT, alpha)
 
         dict_eig = pickup_eig(
@@ -1055,7 +1025,7 @@ def plot_eig_log(results: tuple[ArrayFloat,
                     vmin=cmap_min, vmax=cmap_max)
                 set_save_fig.update({1, 2, 3, 4})
 
-    mask_x: np.ndarray = 10**lin_alpha
+    mask_x: np.ndarray = lin_alpha
     plotter_imag.axes[0, 0].fill_between(
         mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     plotter_imag.axes[0, 1].fill_between(
@@ -1084,8 +1054,7 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
     set_save_fig : set[int]
         The set storing the IDs of figures to save.
     switch_log : bool, optional, default False
-        The boolean value for the dispersion diagram of the log-log
-        plot.
+        The boolean value for the dispersion diagram of the log-log plot.
     """
 
     name_fig: str
@@ -1121,24 +1090,17 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
                           switch_tight_layout=False)
 
 
-def plot_eig_for_an_alpha(results: tuple[ArrayFloat,
-                                         ArrayComplex,
-                                         ArrayFloat,
-                                         ArrayFloat,
-                                         ArrayFloat,
-                                         ArrayStr]) -> None:
+def plot_eig_for_an_alpha(results: DictResult) -> None:
     """Plot the dispersion diagram for a chosen alpha.
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results of the eigenvalue problem.
     """
 
-    lin_alpha: ArrayFloat
-    eig: ArrayComplex
-    lin_alpha, eig, _, _, _, _ = results
+    lin_alpha: ArrayFloat = results['lin_alpha']
+    eig: ArrayComplex = results['eig']
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 5))
 
@@ -1174,7 +1136,7 @@ if __name__ == '__main__':
         logger.info('No plotted figures')
         sys.exit(0)
 
-    if SWITCH_COLOR not in ('blk', 'ene', 'ohm', 'qmode'):
+    if SWITCH_COLOR not in ('blk', 'ene', 'ohm', 'psm', 'pse', 'qmode'):
         logger.error('Invalid value for \'SWITCH_COLOR\'')
         sys.exit(1)
 
@@ -1211,20 +1173,9 @@ if __name__ == '__main__':
                            f'{ROSSBY=}',
                            f'{N_T=}')
 
-    data: tuple[ArrayFloat,
-                ArrayComplex,
-                ArrayFloat,
-                ArrayFloat,
-                ArrayFloat,
-                ArrayStr] | None
-    data_log: tuple[ArrayFloat,
-                    ArrayComplex,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayStr] | None
-    data, data_log = wrapper_load_results(
-        SWITCH_PLOT, info_load=INFO_INPUT)
+    data: DictResult | None
+    data_log: DictResult | None
+    data, data_log = wrapper_load_results(SWITCH_PLOT, info_load=INFO_INPUT)
 
     params: DictParams
     if SWITCH_PLOT[0] and (data is not None):

@@ -1,35 +1,24 @@
 """A Python module to load the files of the results of the eigenvalue
-problem of two-dimensional (2D) incompressible magnetohydrodynamic (MHD)
-waves on a rotating sphere under a toroidal background field, B_phi =
-B_0 B(theta) sin(theta), and background zonal flows, U_phi = U_0
-U(theta) sin(theta)."""
+problem of two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves
+on a rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta)."""
 
 import sys
 from pathlib import Path
 
 import numpy as np
 
-from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger
-from package_mhd2dsphere.typed_dict import DictFileInfo
+from package_mhd2dsphere.typed_dict import (DictFileInfo, DictPhysQtys,
+                                            DictResult)
 
 
 def wrapper_load_results(switch_plot: tuple[bool, bool, bool],
                          *,
                          info_load: DictFileInfo) \
-    -> tuple[tuple[ArrayFloat,
-                   ArrayComplex,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayStr] | None,
-             tuple[ArrayFloat,
-                   ArrayComplex,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayFloat,
-                   ArrayStr] | None]:
+        -> tuple[DictResult | None,
+                 DictResult | None]:
     """Load npz files of the results.
 
     Parameters
@@ -41,65 +30,34 @@ def wrapper_load_results(switch_plot: tuple[bool, bool, bool],
 
     Returns
     -------
-    data : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr] | None
-        The tuple of results (linear-linear).
-    data_log : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr] | None
-        The tuple of results (log-log).
+    data : DictResult | None
+        The dictionary of the results of the eigenvalue problem
+        (linear-linear).
+    data_log : DictResult | None
+        The dictionary of the results of the eigenvalue problem (log-log).
     """
 
-    data: tuple[ArrayFloat,
-                ArrayComplex,
-                ArrayFloat,
-                ArrayFloat,
-                ArrayFloat,
-                ArrayStr] | None = None
-    data_log: tuple[ArrayFloat,
-                    ArrayComplex,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayFloat,
-                    ArrayStr] | None = None
+    data: DictResult | None = None
+    data_log: DictResult | None = None
 
     name_file: str
 
     if switch_plot[0] or switch_plot[2]:
 
-        name_file \
-            = info_load['name_file'] + info_load['name_file_suffix'][0]
-
+        name_file = info_load['name_file'] + info_load['name_file_suffix'][0]
         data = load_results(name_file, info_load=info_load)
 
     if switch_plot[1]:
 
-        name_file \
-            = info_load['name_file'] + info_load['name_file_suffix'][1]
-
-        tmp_tuple: tuple[ArrayFloat,
-                         ArrayComplex,
-                         ArrayFloat,
-                         ArrayFloat,
-                         ArrayFloat,
-                         ArrayStr] \
-            = load_results(name_file, info_load=info_load)
-
-        lin_alpha = np.log10(tmp_tuple[0])
-
-        data_log = (lin_alpha, tmp_tuple[1], tmp_tuple[2],
-                    tmp_tuple[3], tmp_tuple[4], tmp_tuple[5])
+        name_file = info_load['name_file'] + info_load['name_file_suffix'][1]
+        data_log = load_results(name_file, info_load=info_load)
 
     return data, data_log
 
 
 def load_results(name_file: str,
                  *,
-                 info_load: DictFileInfo) -> tuple[ArrayFloat,
-                                                   ArrayComplex,
-                                                   ArrayFloat,
-                                                   ArrayFloat,
-                                                   ArrayFloat,
-                                                   ArrayStr]:
+                 info_load: DictFileInfo) -> DictResult:
     """Load a npz file of the results.
 
     Parameters
@@ -111,24 +69,14 @@ def load_results(name_file: str,
 
     Returns
     -------
-    lin_alpha : ArrayFloat
-        The sequence of alpha.
-    eig : ArrayComplex
-        The eigenvalues.
-    pke : ArrayFloat
-        The perturbation kinetic energy.
-    pme : ArrayFloat
-        The perturbation magnetic energy.
-    ohm : ArrayFloat
-        The ohmic dissipation.
-    sym : ArrayStr
-        The symmetry of eigenmodes.
+    result : DictResult
+        The dictionary of the results of the eigenvalue problem.
 
     Warnings
     --------
     File not found
-        If there are no output files of mhd2dsphere_eig.py with the
-        same parameters.
+        If there are no output files of mhd2dsphere_eig.py with the same
+        parameters.
     """
 
     logger: DefaultLogger = create_function_name_logger()
@@ -145,13 +93,23 @@ def load_results(name_file: str,
 
     npz_kw = np.load(path_file, allow_pickle=True)
 
-    lin_alpha: ArrayFloat = npz_kw['lin_alpha']
-    eig: ArrayComplex = npz_kw['eig']
-    pke: ArrayFloat = npz_kw['pke']
-    pme: ArrayFloat = npz_kw['pme']
-    ohm: ArrayFloat = npz_kw['ohm']
-    sym: ArrayStr = npz_kw['sym']
-
     file_logger.info('Loaded')
 
-    return lin_alpha, eig, pke, pme, ohm, sym
+    phys_qtys: DictPhysQtys = {
+        'pke': npz_kw['pke'],
+        'pme': npz_kw['pme'],
+        'psm': npz_kw['psm'],
+        'pse': npz_kw['pse'],
+        'ohm': npz_kw['ohm'],
+        'sym': npz_kw['sym']
+    }
+
+    results: DictResult = {
+        'lin_alpha': npz_kw['lin_alpha'],
+        'eig': npz_kw['eig'],
+        'vec_psi': None,
+        'vec_vpa': None,
+        'phys_qtys': phys_qtys
+    }
+
+    return results

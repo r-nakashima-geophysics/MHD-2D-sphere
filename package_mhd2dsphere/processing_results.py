@@ -1,62 +1,41 @@
 """A Python module to process obtained data from the eigenvalue problem
-of two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves
-on a rotating sphere under a toroidal background field, B_phi = B_0
-B(theta) sin(theta), and background zonal flows, U_phi = U_0 U(theta)
-sin(theta).
+of two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
+rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta).
 """
 
 import numpy as np
 
 from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
-from package_mhd2dsphere.typed_dict import DictParams
+from package_mhd2dsphere.typed_dict import DictParams, DictPhysQtys, DictResult
 
 
-def screening_eig_q(results: tuple[ArrayFloat,
-                                   ArrayComplex,
-                                   ArrayFloat,
-                                   ArrayFloat,
-                                   ArrayFloat,
-                                   ArrayStr],
+def screening_eig_q(results: DictResult,
                     *,
-                    criterion_q: float) -> tuple[ArrayFloat,
-                                                 ArrayComplex,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayFloat,
-                                                 ArrayStr]:
+                    criterion_q: float) -> DictResult:
     """Check the quality factors of eigenmodes.
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of the results of the eigenvalue problem.
     criterion_q : float
         A criterion for plotted eigenvalues based on the quality factor.
 
     Returns
     -------
-    lin_alpha : ArrayFloat
-        The sequence of alpha.
-    eig : ArrayComplex
-        The eigenvalues.
-    pke : ArrayFloat
-        The perturbation kinetic energy.
-    pme : ArrayFloat
-        The perturbation magnetic energy.
-    ohm : ArrayFloat
-        The ohmic dissipation.
-    sym : ArrayStr
-        The symmetry of eigenmodes.
+    results : DictResult
+        The dictionary of the results of the eigenvalue problem.
     """
 
-    lin_alpha: ArrayFloat
-    eig: ArrayComplex
-    pke: ArrayFloat
-    pme: ArrayFloat
-    ohm: ArrayFloat
-    sym: ArrayStr
-    lin_alpha, eig, pke, pme, ohm, sym = results
+    lin_alpha: ArrayFloat = results['lin_alpha']
+    eig: ArrayComplex = results['eig']
+    pke: ArrayFloat = results['phys_qtys']['pke']
+    pme: ArrayFloat = results['phys_qtys']['pme']
+    psm: ArrayFloat = results['phys_qtys']['psm']
+    pse: ArrayFloat = results['phys_qtys']['pse']
+    ohm: ArrayFloat = results['phys_qtys']['ohm']
+    sym: ArrayStr = results['phys_qtys']['sym']
 
     size_mat: int = len(eig)
 
@@ -76,25 +55,38 @@ def screening_eig_q(results: tuple[ArrayFloat,
                 eig[i_alpha, i_mode] = np.nan
                 pke[i_alpha, i_mode] = np.nan
                 pme[i_alpha, i_mode] = np.nan
+                psm[i_alpha, i_mode] = np.nan
+                pse[i_alpha, i_mode] = np.nan
                 ohm[i_alpha, i_mode] = np.nan
                 sym[i_alpha, i_mode] = np.nan
 
-    return lin_alpha, eig, pke, pme, ohm, sym
+    phys_qtys: DictPhysQtys = {
+        'pke': pke,
+        'pme': pme,
+        'psm': psm,
+        'pse': pse,
+        'ohm': ohm,
+        'sym': sym
+    }
+
+    results = {
+        'lin_alpha': lin_alpha,
+        'eig': eig,
+        'vec_psi': None,
+        'vec_vpa': None,
+        'phys_qtys': phys_qtys
+    }
+
+    return results
 
 
-def pickup_param(results: tuple[ArrayFloat,
-                                ArrayComplex,
-                                ArrayFloat,
-                                ArrayFloat,
-                                ArrayFloat,
-                                ArrayStr]) -> DictParams:
+def pickup_param(results: DictResult) -> DictParams:
     """Pick up some parameters from results.
 
     Parameters
     ----------
-    results : tuple[ArrayFloat, ArrayComplex, ArrayFloat, ArrayFloat,
-    ArrayFloat, ArrayStr]
-        The tuple of results.
+    results : DictResult
+        The dictionary of results.
 
     Returns
     -------
@@ -102,14 +94,12 @@ def pickup_param(results: tuple[ArrayFloat,
         The dictionary of the parameters.
     """
 
-    lin_alpha: ArrayFloat
-    ohm: ArrayFloat
-    lin_alpha, _, _, _, ohm, _ = results
-
+    lin_alpha: ArrayFloat = results['lin_alpha']
     alpha_init: float = lin_alpha[0]
     alpha_end: float = lin_alpha[-1]
     num_alpha: int = len(lin_alpha)
-    ohm_max: float = np.nanmax(ohm)
+
+    ohm_max: float = np.nanmax(results['phys_qtys']['ohm'])
 
     params: DictParams = {
         'alpha_init': alpha_init,
@@ -294,8 +284,7 @@ def sort_alfvenic(pke: ArrayFloat) -> tuple[ArrayFloat,
     size_mat: int = len(pke)
 
     alfvenic: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
-    non_alfvenic: ArrayFloat \
-        = np.full(size_mat, np.nan, dtype=np.float64)
+    non_alfvenic: ArrayFloat = np.full(size_mat, np.nan, dtype=np.float64)
     for i_mode in range(size_mat):
         if 0.49 < pke[i_mode] < 0.51:
             alfvenic[i_mode] = 1
