@@ -11,20 +11,17 @@ I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
-[2] Ryosuke Nakashima (in prep.)
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 """
-
-import sys
 
 import numpy as np
 
 from package_common.background_field import BackgroundField
-from package_common.calc_heinrichs import heinrichs, heinrichs_d, heinrichs_d2
+from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import ArrayComplex, ArrayFloat
-from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
-from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.typed_dict import DictBackgroundField
+from package_common.utils_collocation import calc_collocation_point, spherical_laplacian_heinrichs
 
 
 def create_submat(m_order: int,
@@ -187,9 +184,8 @@ def create_submat(m_order: int,
 
             for i_n in range(size_submat):
                 h_n: float = heinrichs(i_n, s_pos)
-                laplacian: float | complex = laplacian_heinrichs(
-                    m_order, i_n, s_pos,
-                    background_field=background_field)
+                laplacian: float | complex = spherical_laplacian_heinrichs(
+                    m_order, i_n, s_pos, mu_complex)
 
                 submat_11[i_l, i_n] \
                     = rossby*u_mu*laplacian + h_n \
@@ -221,87 +217,6 @@ def create_submat(m_order: int,
         submat_22 = inv_submat_b_22 @ submat_22
 
     return submat_11, submat_12, submat_21, submat_22
-
-
-def calc_collocation_point(i_l: int,
-                           num_point: int) -> float:
-    """Calculate the Gauss-Lobatto collocation points.
-
-    Parameters
-    ----------
-    i_l : int
-        The index of the collocation point.
-    num_point : int
-        The number of the collocation points.
-
-    Returns
-    -------
-    float
-        The position of the collocation point.
-
-    Warnings
-    --------
-    Invalid input
-        If the input value is not within [0, num_point].
-    """
-
-    logger: DefaultLogger = create_function_name_logger()
-    if 0 <= i_l <= num_point:
-        return -np.cos(i_l*np.pi/num_point)
-
-    logger.error('Invalid input')
-    sys.exit(1)
-
-
-def laplacian_heinrichs(
-        m_order: int,
-        n_degree: int,
-        s_pos: float,
-        *,
-        background_field: DictBackgroundField) -> float | complex:
-    """Calculate the spherical horizontal Laplacian of the Heinrichs
-    basis at a given point.
-
-    Parameters
-    ----------
-    m_order : int
-        The zonal wavenumber (order).
-    n_degree : int
-        The degree of the Heinrichs basis.
-    s_pos : float
-        The position of the point.
-    background_field : DictBackgroundField
-        The background field.
-
-    Returns
-    -------
-    TypeVarFloatComplex
-        The value of the spherical horizontal Laplacian of the Heinrichs
-        basis at the point.
-    """
-
-    mu_complex: ComplexCoordinate = background_field['MU']
-
-    mu: float | complex
-    mu_d: float | complex
-    mu_d2: float | complex
-    if mu_complex.check_spectral_deform():
-        mu = mu_complex.value(s_pos)
-        mu_d = mu_complex.value_d(s_pos)
-        mu_d2 = mu_complex.value_d2(s_pos)
-    else:
-        mu = mu_complex.r_value(s_pos)
-        mu_d = mu_complex.r_value_d(s_pos)
-        mu_d2 = mu_complex.r_value_d2(s_pos)
-
-    sin2: float | complex = 1 - (mu**2)
-
-    return (
-        sin2 * heinrichs_d2(n_degree, s_pos) / (mu_d**2)
-        - (2*mu/mu_d + sin2*mu_d2/(mu_d**3))
-        * heinrichs_d(n_degree, s_pos)
-        - (m_order**2) * heinrichs(n_degree, s_pos) / sin2
-    )
 
 
 def create_mat(m_order: int,
