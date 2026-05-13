@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import TypedDict
 
 from package_common.background_field import BackgroundField
+from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
 from package_common.spectral_deform import ComplexCoordinate
 
 
@@ -21,6 +22,20 @@ class DictCriterionC(TypedDict):
 
     degree: int
     ratio: float
+
+
+class DictResult(TypedDict):
+    """Typed dictionary for the results of the eigenvalue problem."""
+
+    lin_alpha: ArrayFloat | None
+    eig_val: ArrayComplex | None
+    eig_vec: ArrayComplex | None
+    pke: ArrayFloat | None
+    pme: ArrayFloat | None
+    psm: ArrayFloat | None
+    pse: ArrayFloat | None
+    ohm: ArrayFloat | None
+    sym: ArrayStr | None
 
 
 class DictFileInfo(TypedDict):
