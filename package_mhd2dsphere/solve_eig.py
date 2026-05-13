@@ -115,8 +115,6 @@ def solve_eig(m_order: int,
     eig_val, eig_vec = np.linalg.eig(mat)
 
     eig_valvec: ArrayComplex = sort_eig(eig_val, eig_vec)
-    eig_valvec = normalize_eigvec(m_order, eig_valvec,
-                                  background_field=background_field)
     phys_qtys: DictPhysQtys = calc_qty(m_order, e_eta, eig_valvec,
                                        background_field=background_field)
     check: ArrayBool \
@@ -144,39 +142,6 @@ def solve_eig(m_order: int,
     }
 
     return result
-
-
-def normalize_eigvec(
-        m_order: int,
-        eig_valvec: ArrayComplex,
-        *,
-        background_field: DictBackgroundField) -> ArrayComplex:
-    """Normalize the eigenvectors.
-
-    Parameters
-    ----------
-    m_order : int
-        The zonal wavenumber (order).
-    eig_valvec : ArrayComplex
-        The matrix storing the eigenvalues and eigenvectors.
-    background_field : DictBackgroundField
-        The background field.
-
-    Returns
-    -------
-    eig_valvec : ArrayComplex
-        The matrix storing the eigenvalues and eigenvectors.
-    """
-
-    size_mat: int = eig_valvec.shape[1]
-
-    pke: ArrayFloat
-    pme: ArrayFloat
-    pke, pme = calc_ene(m_order, eig_valvec,
-                        background_field=background_field)
-    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(pke+pme)
-
-    return eig_valvec
 
 
 def calc_qty(m_order: int,
@@ -208,8 +173,8 @@ def calc_qty(m_order: int,
 
     pke: ArrayFloat
     pme: ArrayFloat
-    pke, pme = calc_ene(m_order, eig_valvec,
-                        background_field=background_field)
+    eig_valvec, pke, pme = normalize_eigvec(m_order, eig_valvec,
+                                            background_field=background_field)
 
     psm: ArrayFloat = np.zeros(size_mat)
     pse: ArrayFloat = np.zeros(size_mat)
@@ -250,6 +215,46 @@ def calc_qty(m_order: int,
     }
 
     return phys_qtys
+
+
+def normalize_eigvec(
+        m_order: int,
+        eig_valvec: ArrayComplex,
+        *,
+        background_field: DictBackgroundField) -> tuple[ArrayComplex, ArrayFloat, ArrayFloat]:
+    """Normalize the eigenvectors.
+
+    Parameters
+    ----------
+    m_order : int
+        The zonal wavenumber (order).
+    eig_valvec : ArrayComplex
+        The matrix storing the eigenvalues and eigenvectors.
+    background_field : DictBackgroundField
+        The background field.
+
+    Returns
+    -------
+    eig_valvec : ArrayComplex
+        The matrix storing the eigenvalues and eigenvectors.
+    pke : ArrayFloat
+        The perturbation kinetic energy.
+    pme : ArrayFloat
+        The perturbation magnetic energy.
+    """
+
+    size_mat: int = eig_valvec.shape[1]
+
+    pke: ArrayFloat
+    pme: ArrayFloat
+    pke, pme = calc_ene(m_order, eig_valvec,
+                        background_field=background_field)
+    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(pke+pme)
+
+    pke /= (pke + pme)
+    pme /= (pke + pme)
+
+    return eig_valvec, pke, pme
 
 
 def calc_ene(m_order: int,
