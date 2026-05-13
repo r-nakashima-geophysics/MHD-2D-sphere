@@ -297,3 +297,77 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
 
     logger.error('Invalid argument')
     sys.exit(1)
+
+
+def b_malkussc(strength_malkus: float, switch_theta: str = 'mu') \
+        -> BackgroundField:
+    """Construct an instance of the BackgroundField class for B =
+    const + cos(theta).
+
+    Parameters
+    ----------
+    strength_malkus : float
+        The strength of the malkus part of the background field.
+    switch_theta : str, default 'mu'
+        The string to switch whether either mu (= cos(theta)) or theta
+        is used.
+
+    Returns
+    -------
+    BackgroundField
+        The instance of the BackgroundField class for B = const + cos(theta).
+
+    Warnings
+    --------
+    Invalid argument
+        If the argument is neither 'mu' nor 'theta'.
+
+    Examples
+    --------
+    >>> from package_mhd2dsphere import init_background_b
+    >>> b_malkussc = init_background_b.b_malkussc(1.0, 'mu')
+    >>> b_malkussc = init_background_b.b_malkussc(1.0, 'theta')
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    name: str = 'malkussc'
+    tex: str = r'$B_{0\phi}=B_0\sin\theta(' \
+        + str(strength_malkus) + r'+\cos\theta)$'
+
+    if switch_theta == 'mu':
+        def b_malkussc_mu(mu_complex: complex) -> complex:
+            return strength_malkus + mu_complex
+
+        def b_malkussc_d_mu(mu_complex: complex) -> complex:
+            _ = mu_complex
+            return 1
+
+        def b_malkussc_d2_mu(mu_complex: complex) -> complex:
+            _ = mu_complex
+            return 0
+
+        return BackgroundField(name,
+                               value=b_malkussc_mu,
+                               value_d=b_malkussc_d_mu,
+                               value_d2=b_malkussc_d2_mu,
+                               tex=tex)
+
+    if switch_theta == 'theta':
+        def b_malkussc_theta(theta_complex: complex) -> complex:
+            return strength_malkus + cmath.cos(theta_complex)
+
+        def b_malkussc_d_theta(theta_complex: complex) -> complex:
+            return -cmath.sin(theta_complex)
+
+        def b_malkussc_d2_theta(theta_complex: complex) -> complex:
+            return -cmath.cos(theta_complex)
+
+        return BackgroundField(name,
+                               value=b_malkussc_theta,
+                               value_d=b_malkussc_d_theta,
+                               value_d2=b_malkussc_d2_theta,
+                               tex=tex)
+
+    logger.error('Invalid argument')
+    sys.exit(1)
