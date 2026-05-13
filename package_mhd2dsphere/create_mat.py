@@ -193,8 +193,9 @@ def create_submat(m_order: int,
                     - rossby*u_shear_mu*h_n
                 submat_12[i_l, i_n] = b_mu*laplacian - b_shear_mu*h_n
                 submat_21[i_l, i_n] = b_mu * h_n
-                submat_22[i_l, i_n] \
-                    = m_order*rossby*u_mu*h_n + 1j*e_eta*laplacian
+                submat_22[i_l, i_n] = m_order*rossby*u_mu*h_n
+                if e_eta != 0:
+                    submat_22[i_l, i_n] += 1j*e_eta*laplacian
 
                 submat_b_11[i_l, i_n] = laplacian
                 submat_b_22[i_l, i_n] = h_n

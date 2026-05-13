@@ -20,7 +20,7 @@ from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
 from package_common.spectral_deform import ComplexCoordinate
-from package_common.utils_collocation import (calc_collocation_point,
+from package_common.utils_collocation import (chebyshev_gauss_quad,
                                               spherical_laplacian_heinrichs)
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
@@ -122,15 +122,15 @@ def solve_eig(m_order: int,
     check: ArrayBool \
         = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c)
 
-    list_phys_qtys: tuple[ArrayFloat,
-                          ArrayFloat,
-                          ArrayFloat,
-                          ArrayFloat,
-                          ArrayFloat,
-                          ArrayStr]
-    eig_valvec, list_phys_qtys \
+    tuple_phys_qtys: tuple[ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat,
+                           ArrayFloat,
+                           ArrayStr]
+    eig_valvec, tuple_phys_qtys \
         = screening_eig(eig_valvec, check, *phys_qtys.values())
-    for key, value in zip(phys_qtys.keys(), list_phys_qtys):
+    for key, value in zip(phys_qtys.keys(), tuple_phys_qtys):
         phys_qtys[key] = value
 
     size_mat: int = eig_valvec.shape[1]
@@ -286,6 +286,9 @@ def calc_ene(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
+    vec_psi: ArrayComplex = eig_valvec[:size_submat, :]
+    vec_vpa: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+
     pke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
 
@@ -296,50 +299,30 @@ def calc_ene(m_order: int,
             n_degree = m_order + i_n
             nn1 = n_degree * (n_degree+1)
 
-            pke += nn1 * (np.abs(eig_valvec[i_n, :])**2)
-            pme += nn1 * (np.abs(eig_valvec[size_submat+i_n, :])**2)
+            pke += nn1 * (np.abs(vec_psi[i_n, :])**2)
+            pme += nn1 * (np.abs(vec_vpa[i_n, :])**2)
     else:
+
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        if not mu_complex.check_spectral_deform():
-            psi_vec: ArrayComplex = eig_valvec[:size_submat, :]
-            vpa_vec: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+        def _minus_spherical_laplacian_heinrichs(
+                n_degree: int,
+                s_pos: float | complex) -> float | complex:
+            return (-1) * spherical_laplacian_heinrichs(
+                m_order, n_degree, s_pos, mu_complex=mu_complex)
 
-            num_point: int = 3 * size_submat
-            x_pos: float
-            heinrichs_x: ArrayFloat
-            laplacian_heinrichs_x: ArrayFloat
-            psi: ArrayComplex
-            vpa: ArrayComplex
-            laplacian_psi: ArrayComplex
-            laplacian_vpa: ArrayComplex
-            for i_k in range(1, num_point+1):
-                x_pos = calc_collocation_point(2*i_k-1, 2*num_point)
-
-                heinrichs_x = np.array(
-                    [heinrichs(i_n, x_pos)
-                     for i_n in range(size_submat)]
-                )
-                laplacian_heinrichs_x = np.array(
-                    [spherical_laplacian_heinrichs(
-                        m_order, i_n, x_pos, mu_complex)
-                        for i_n in range(size_submat)]
-                )
-
-                psi = heinrichs_x @ psi_vec
-                vpa = heinrichs_x @ vpa_vec
-                laplacian_psi = laplacian_heinrichs_x @ psi_vec
-                laplacian_vpa = laplacian_heinrichs_x @ vpa_vec
-
-                pke += np.real(
-                    np.conj(psi) * (-laplacian_psi)) * np.sqrt(1-(x_pos**2))
-                pme += np.real(
-                    np.conj(vpa) * (-laplacian_vpa)) * np.sqrt(1-(x_pos**2))
-            pke *= (np.pi/num_point)
-            pme *= (np.pi/num_point)
-        else:
-            pke = np.full(size_mat, 0.5, dtype=np.float64)
-            pme = np.full(size_mat, 0.5, dtype=np.float64)
+        pke = np.real(chebyshev_gauss_quad(
+            size_mat,
+            vec_1=vec_psi, func_1=heinrichs,
+            vec_2=vec_psi, func_2=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex
+        ))
+        pme = np.real(chebyshev_gauss_quad(
+            size_mat,
+            vec_1=vec_vpa, func_1=heinrichs,
+            vec_2=vec_vpa, func_2=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex
+        ))
 
     return pke, pme
 
