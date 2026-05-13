@@ -13,7 +13,7 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 | Figure                 |  mhd2dsphere\_\*.py |
 | :--------------------- | ------------------: |
 | 2, 3                   |              malkus |
-| 4, 6                   |     eig, sincos_fig |
+| 4, 6                   |         eig, eigfig |
 | 5                      |       sincos_degree |
 | 7, 8, A4               |         sincos_eigf |
 | 9, 10, 11              |      sincos_alleigf |
@@ -36,7 +36,7 @@ git clone https://github.com/r-nakashima-geophysics/common-package.git
 cp -r common-package/package_common .
 ```
 
-The recommended version of the common package is v1.0.2 or later.
+The recommended version of the common package is v1.0.3 or later.
 
 ## Usage
 
