@@ -20,8 +20,9 @@ from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.spectral_deform import ComplexCoordinate
+from package_common.utils_collocation import (calc_collocation_point,
+                                              spherical_laplacian_heinrichs)
 from package_mhd2dsphere.typed_dict import DictBackgroundField
-from package_common.utils_collocation import calc_collocation_point, spherical_laplacian_heinrichs
 
 
 def create_submat(m_order: int,
