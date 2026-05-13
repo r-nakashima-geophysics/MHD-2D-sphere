@@ -198,23 +198,24 @@ def create_submat(m_order: int,
                 submat_b_11[i_l, i_n] = laplacian
                 submat_b_22[i_l, i_n] = h_n
 
-        inv_submat_b_11: ArrayFloat | ArrayComplex
-        inv_submat_b_22: ArrayFloat | ArrayComplex
         if mu_complex.check_spectral_deform() or (e_eta != 0):
-            inv_submat_b_11 \
-                = np.linalg.inv(submat_b_11).astype(np.complex128)
-            inv_submat_b_22 \
-                = np.linalg.inv(submat_b_22).astype(np.complex128)
+            submat_11 = np.linalg.solve(
+                submat_b_11, submat_11).astype(np.complex128)
+            submat_12 = np.linalg.solve(
+                submat_b_11, submat_12).astype(np.complex128)
+            submat_21 = np.linalg.solve(
+                submat_b_22, submat_21).astype(np.complex128)
+            submat_22 = np.linalg.solve(
+                submat_b_22, submat_22).astype(np.complex128)
         else:
-            inv_submat_b_11 \
-                = np.linalg.inv(submat_b_11).astype(np.float64)
-            inv_submat_b_22 \
-                = np.linalg.inv(submat_b_22).astype(np.float64)
-
-        submat_11 = inv_submat_b_11 @ submat_11
-        submat_12 = inv_submat_b_11 @ submat_12
-        submat_21 = inv_submat_b_22 @ submat_21
-        submat_22 = inv_submat_b_22 @ submat_22
+            submat_11 = np.linalg.solve(
+                submat_b_11, submat_11).astype(np.float64)
+            submat_12 = np.linalg.solve(
+                submat_b_11, submat_12).astype(np.float64)
+            submat_21 = np.linalg.solve(
+                submat_b_22, submat_21).astype(np.float64)
+            submat_22 = np.linalg.solve(
+                submat_b_22, submat_22).astype(np.float64)
 
     return submat_11, submat_12, submat_21, submat_22
 
