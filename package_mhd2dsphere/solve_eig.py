@@ -11,39 +11,34 @@ I. Continuous spectrum and its ray-theoretical interpretation.
 Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
 doi: 10.1080/03091929.2024.2384388
 
-[2] Ryosuke Nakashima (in prep.)
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 """
-
-import sys
 
 import numpy as np
 
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
-from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
-from package_common.utils_collocation import spherical_laplacian_heinrichs
+from package_common.utils_collocation import (calc_collocation_point,
+                                              spherical_laplacian_heinrichs)
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
-from package_common.utils_name import create_function_name_logger
-from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
-                                            create_submat)
+from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
-                                            DictCriterionC, DictResult)
+                                            DictCriterionC, DictPhysQtys,
+                                            DictResult)
 
 
 def wrapper_solve_eig(
-    m_order: int,
-    alpha: float,
-    e_eta: float,
-    rossby: float,
-    size_submat: int,
-    *,
-    criterion_c: DictCriterionC,
-    background_field: DictBackgroundField) -> tuple[ArrayComplex,
-                                                    ArrayComplex,
-                                                    DictResult]:
+        m_order: int,
+        alpha: float,
+        e_eta: float,
+        rossby: float,
+        size_submat: int,
+        *,
+        criterion_c: DictCriterionC,
+        background_field: DictBackgroundField) -> DictResult:
     """Solve the eigenvalue problem for a given alpha.
 
     Parameters
@@ -65,22 +60,9 @@ def wrapper_solve_eig(
 
     Returns
     -------
-    psi_vec : ArrayComplex
-        The eigenvector for the stream function.
-    vpa_vec : ArrayComplex
-        The eigenvector for the vector potential.
-    result : DictResult
+    DictResult
         The dictionary of the result of the eigenvalue problem.
-
-    Warnings
-    --------
-    Invalid data
-        If the eigenvectors is None.
     """
-
-    logger: DefaultLogger = create_function_name_logger()
-
-    size_mat: int = 2 * size_submat
 
     submatrices: tuple[ArrayFloat | ArrayComplex,
                        ArrayFloat | ArrayComplex,
@@ -93,18 +75,9 @@ def wrapper_solve_eig(
         m_order, alpha, e_eta, submatrices,
         background_field=background_field)
 
-    result: DictResult = solve_eig(m_order, alpha, e_eta, mat,
-                                   criterion_c=criterion_c,
-                                   background_field=background_field)
-
-    if result['eig_vec'] is None:
-        logger.error('Invalid data')
-        sys.exit(1)
-
-    psi_vec: ArrayComplex = result['eig_vec'][:size_submat, :]
-    vpa_vec: ArrayComplex = result['eig_vec'][size_submat:size_mat, :]
-
-    return psi_vec, vpa_vec, result
+    return solve_eig(m_order, alpha, e_eta, mat,
+                     criterion_c=criterion_c,
+                     background_field=background_field)
 
 
 def solve_eig(m_order: int,
@@ -144,32 +117,30 @@ def solve_eig(m_order: int,
     eig_valvec: ArrayComplex = sort_eig(eig_val, eig_vec)
     eig_valvec = normalize_eigvec(m_order, eig_valvec,
                                   background_field=background_field)
-    phys_qtys: DictResult = calc_qty(m_order, e_eta, eig_valvec,
-                                     background_field=background_field)
+    phys_qtys: DictPhysQtys = calc_qty(m_order, e_eta, eig_valvec,
+                                       background_field=background_field)
     check: ArrayBool \
         = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c)
 
-    list_phys_qtys: list[ArrayFloat | ArrayStr] = [
-        phys_qtys['pke'],
-        phys_qtys['pme'],
-        phys_qtys['psm'],
-        phys_qtys['pse'],
-        phys_qtys['ohm'],
-        phys_qtys['sym']
-    ]
-    eig_valvec, phys_qtys = screening_eig(eig_valvec, check, *list_phys_qtys)
+    list_phys_qtys: tuple[ArrayFloat,
+                          ArrayFloat,
+                          ArrayFloat,
+                          ArrayFloat,
+                          ArrayFloat,
+                          ArrayStr]
+    eig_valvec, list_phys_qtys \
+        = screening_eig(eig_valvec, check, *phys_qtys.values())
+    for key, value in zip(phys_qtys.keys(), list_phys_qtys):
+        phys_qtys[key] = value
 
     size_mat: int = eig_valvec.shape[1]
+    size_submat: int = int(size_mat/2)
     result: DictResult = {
         'lin_alpha': None,
-        'eig_val': eig_valvec[size_mat, :],
-        'eig_vec': eig_valvec[:size_mat, :],
-        'pke': phys_qtys['pke'],
-        'pme': phys_qtys['pme'],
-        'psm': phys_qtys['psm'],
-        'pse': phys_qtys['pse'],
-        'ohm': phys_qtys['ohm'],
-        'sym': phys_qtys['sym']
+        'eig': eig_valvec[size_mat, :],
+        'vec_psi': eig_valvec[:size_submat, :],
+        'vec_vpa': eig_valvec[size_submat:size_mat, :],
+        'phys_qtys': phys_qtys
     }
 
     return result
@@ -212,7 +183,7 @@ def calc_qty(m_order: int,
              e_eta: float,
              eig_valvec: ArrayComplex,
              *,
-             background_field: DictBackgroundField) -> DictResult:
+             background_field: DictBackgroundField) -> DictPhysQtys:
     """Calculate various physical quantities from the eigenvectors.
 
     Parameters
@@ -228,7 +199,7 @@ def calc_qty(m_order: int,
 
     Returns
     -------
-    phys_qtys : DictResult
+    phys_qtys : DictPhysQtys
         The dictionary of the physical quantities.
     """
 
@@ -269,10 +240,7 @@ def calc_qty(m_order: int,
         else:
             sym[i_mode] = 'varicose'
 
-    phys_qtys: DictResult = {
-        'lin_alpha': None,
-        'eig_val': None,
-        'eig_vec': None,
+    phys_qtys: DictPhysQtys = {
         'pke': pke,
         'pme': pme,
         'psm': psm,
