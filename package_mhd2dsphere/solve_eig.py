@@ -14,17 +14,23 @@ doi: 10.1080/03091929.2024.2384388
 [2] Ryosuke Nakashima (in prep.)
 """
 
+import sys
+
 import numpy as np
 
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
+from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
+from package_common.utils_collocation import spherical_laplacian_heinrichs
 from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
+from package_common.utils_name import create_function_name_logger
 from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
-                                            create_submat, laplacian_heinrichs)
-from package_mhd2dsphere.typed_dict import DictBackgroundField, DictCriterionC
+                                            create_submat)
+from package_mhd2dsphere.typed_dict import (DictBackgroundField,
+                                            DictCriterionC, DictResult)
 
 
 def wrapper_solve_eig(
@@ -37,11 +43,7 @@ def wrapper_solve_eig(
     criterion_c: DictCriterionC,
     background_field: DictBackgroundField) -> tuple[ArrayComplex,
                                                     ArrayComplex,
-                                                    ArrayComplex,
-                                                    ArrayFloat,
-                                                    ArrayFloat,
-                                                    ArrayFloat,
-                                                    ArrayStr]:
+                                                    DictResult]:
     """Solve the eigenvalue problem for a given alpha.
 
     Parameters
@@ -67,17 +69,16 @@ def wrapper_solve_eig(
         The eigenvector for the stream function.
     vpa_vec : ArrayComplex
         The eigenvector for the vector potential.
-    eig : ArrayComplex
-        The eigenvalue.
-    pke : ArrayFloat
-        The perturbation kinetic energy.
-    pme : ArrayFloat
-        The perturbation magnetic energy.
-    ohm : ArrayFloat
-        The Ohmic dissipation.
-    sym : ArrayStr
-        The symmetry of the eigenmodes.
+    result : DictResult
+        The dictionary of the result of the eigenvalue problem.
+
+    Warnings
+    --------
+    Invalid data
+        If the eigenvectors is None.
     """
+
+    logger: DefaultLogger = create_function_name_logger()
 
     size_mat: int = 2 * size_submat
 
@@ -92,21 +93,18 @@ def wrapper_solve_eig(
         m_order, alpha, e_eta, submatrices,
         background_field=background_field)
 
-    eig_valvec: ArrayComplex
-    phys_qtys: tuple[ArrayFloat,
-                     ArrayFloat,
-                     ArrayFloat,
-                     ArrayStr]
-    eig_valvec, phys_qtys = solve_eig(m_order, alpha, e_eta, mat,
-                                      criterion_c=criterion_c,
-                                      background_field=background_field)
+    result: DictResult = solve_eig(m_order, alpha, e_eta, mat,
+                                   criterion_c=criterion_c,
+                                   background_field=background_field)
 
-    psi_vec: ArrayComplex = eig_valvec[:size_submat, :]
-    vpa_vec: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+    if result['eig_vec'] is None:
+        logger.error('Invalid data')
+        sys.exit(1)
 
-    eig: ArrayComplex = eig_valvec[size_mat, :]
+    psi_vec: ArrayComplex = result['eig_vec'][:size_submat, :]
+    vpa_vec: ArrayComplex = result['eig_vec'][size_submat:size_mat, :]
 
-    return psi_vec, vpa_vec, eig, *phys_qtys
+    return psi_vec, vpa_vec, result
 
 
 def solve_eig(m_order: int,
@@ -115,12 +113,7 @@ def solve_eig(m_order: int,
               mat: ArrayFloat | ArrayComplex,
               *,
               criterion_c: DictCriterionC,
-              background_field: DictBackgroundField) \
-        -> tuple[ArrayComplex,
-                 tuple[ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayStr]]:
+              background_field: DictBackgroundField) -> DictResult:
     """Solves the eigenvalue problem.
 
     Parameters
@@ -131,7 +124,7 @@ def solve_eig(m_order: int,
         The Lehnert number.
     e_eta : float
         The magnetic Ekman number.
-    mat: ArrayComplex
+    mat: ArrayFloat | ArrayComplex
         The total matrix.
     criterion_c : DictCriterionC
         The criterion for convergence.
@@ -140,11 +133,8 @@ def solve_eig(m_order: int,
 
     Returns
     -------
-    eig_valvec : ArrayComplex
-        The eigenvalues and normalized eigenvectors.
-    phys_qtys : tuple[ArrayFloat, ArrayFloat, ArrayFloat, ArrayStr]
-        The perturbation kinetic energy, perturbation magnetic energy, Ohmic
-        dissipation, and symmetry of the eigenmodes.
+    result : DictResult
+        The dictionary of the result of the eigenvalue problem.
     """
 
     eig_val: ArrayComplex
@@ -154,16 +144,35 @@ def solve_eig(m_order: int,
     eig_valvec: ArrayComplex = sort_eig(eig_val, eig_vec)
     eig_valvec = normalize_eigvec(m_order, eig_valvec,
                                   background_field=background_field)
-    phys_qtys: tuple[ArrayFloat,
-                     ArrayFloat,
-                     ArrayFloat,
-                     ArrayStr] = calc_qty(m_order, e_eta, eig_valvec,
-                                          background_field=background_field)
+    phys_qtys: DictResult = calc_qty(m_order, e_eta, eig_valvec,
+                                     background_field=background_field)
     check: ArrayBool \
         = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c)
-    eig_valvec, phys_qtys = screening_eig(eig_valvec, check, *phys_qtys)
 
-    return eig_valvec, phys_qtys
+    list_phys_qtys: list[ArrayFloat | ArrayStr] = [
+        phys_qtys['pke'],
+        phys_qtys['pme'],
+        phys_qtys['psm'],
+        phys_qtys['pse'],
+        phys_qtys['ohm'],
+        phys_qtys['sym']
+    ]
+    eig_valvec, phys_qtys = screening_eig(eig_valvec, check, *list_phys_qtys)
+
+    size_mat: int = eig_valvec.shape[1]
+    result: DictResult = {
+        'lin_alpha': None,
+        'eig_val': eig_valvec[size_mat, :],
+        'eig_vec': eig_valvec[:size_mat, :],
+        'pke': phys_qtys['pke'],
+        'pme': phys_qtys['pme'],
+        'psm': phys_qtys['psm'],
+        'pse': phys_qtys['pse'],
+        'ohm': phys_qtys['ohm'],
+        'sym': phys_qtys['sym']
+    }
+
+    return result
 
 
 def normalize_eigvec(
@@ -203,11 +212,7 @@ def calc_qty(m_order: int,
              e_eta: float,
              eig_valvec: ArrayComplex,
              *,
-             background_field: DictBackgroundField) \
-    -> tuple[ArrayFloat,
-             ArrayFloat,
-             ArrayFloat,
-             ArrayStr]:
+             background_field: DictBackgroundField) -> DictResult:
     """Calculate various physical quantities from the eigenvectors.
 
     Parameters
@@ -223,14 +228,8 @@ def calc_qty(m_order: int,
 
     Returns
     -------
-    pke : ArrayFloat
-        The perturbation kinetic energy.
-    pme : ArrayFloat
-        The perturbation magnetic energy.
-    ohm : ArrayFloat
-        The ohmic dissipation.
-    sym : ArrayStr
-        The symmetry of eigenmodes.
+    phys_qtys : DictResult
+        The dictionary of the physical quantities.
     """
 
     size_mat: int = eig_valvec.shape[1]
@@ -240,6 +239,9 @@ def calc_qty(m_order: int,
     pme: ArrayFloat
     pke, pme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
+
+    psm: ArrayFloat = np.zeros(size_mat)
+    pse: ArrayFloat = np.zeros(size_mat)
 
     ohm: ArrayFloat = np.zeros(size_mat)
     if e_eta != 0:
@@ -267,7 +269,19 @@ def calc_qty(m_order: int,
         else:
             sym[i_mode] = 'varicose'
 
-    return pke, pme, ohm, sym
+    phys_qtys: DictResult = {
+        'lin_alpha': None,
+        'eig_val': None,
+        'eig_vec': None,
+        'pke': pke,
+        'pme': pme,
+        'psm': psm,
+        'pse': pse,
+        'ohm': ohm,
+        'sym': sym
+    }
+
+    return phys_qtys
 
 
 def calc_ene(m_order: int,
@@ -339,9 +353,8 @@ def calc_ene(m_order: int,
                      for i_n in range(size_submat)]
                 )
                 laplacian_heinrichs_x = np.array(
-                    [laplacian_heinrichs(
-                        m_order, i_n, x_pos,
-                        background_field=background_field)
+                    [spherical_laplacian_heinrichs(
+                        m_order, i_n, x_pos, mu_complex)
                         for i_n in range(size_submat)]
                 )
 

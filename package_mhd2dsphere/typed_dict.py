@@ -28,14 +28,21 @@ class DictResult(TypedDict):
     """Typed dictionary for the results of the eigenvalue problem."""
 
     lin_alpha: ArrayFloat | None
-    eig_val: ArrayComplex | None
-    eig_vec: ArrayComplex | None
-    pke: ArrayFloat | None
-    pme: ArrayFloat | None
-    psm: ArrayFloat | None
-    pse: ArrayFloat | None
-    ohm: ArrayFloat | None
-    sym: ArrayStr | None
+    eig: ArrayComplex
+    vec_psi: ArrayComplex | None
+    vec_vpa: ArrayComplex | None
+    phys_qtys: DictPhysQtys
+
+
+class DictPhysQtys(TypedDict):
+    """Typed dictionary for physical quantities."""
+
+    pke: ArrayFloat
+    pme: ArrayFloat
+    psm: ArrayFloat
+    pse: ArrayFloat
+    ohm: ArrayFloat
+    sym: ArrayStr
 
 
 class DictFileInfo(TypedDict):
