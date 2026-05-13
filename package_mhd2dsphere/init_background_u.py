@@ -15,14 +15,13 @@ def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
     Parameters
     ----------
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------
     BackgroundField
-        The instance of the BackgroundField class for the rigid body
-        rotation (U=0).
+        The instance of the BackgroundField class for the rigid body rotation
+        (U=0).
 
     Warnings
     --------

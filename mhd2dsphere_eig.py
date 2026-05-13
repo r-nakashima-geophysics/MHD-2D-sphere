@@ -280,8 +280,7 @@ def worker(args: tuple[float, SharedInfo]) -> DictResult:
     shared_memories, submatrices = attach_shared_arrays(shared_info)
 
     mat: ArrayFloat | ArrayComplex = create_mat(
-        M_ORDER, alpha, E_ETA, submatrices,
-        background_field=BG_FIELD)
+        M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)
 
     detach_shared_arrays(*shared_memories)
 

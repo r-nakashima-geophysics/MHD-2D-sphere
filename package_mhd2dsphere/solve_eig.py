@@ -6,10 +6,10 @@ sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta).
 References
 ----------
 [1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
-magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
-I. Continuous spectrum and its ray-theoretical interpretation.
-Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
 
 [2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 """
@@ -218,10 +218,11 @@ def calc_qty(m_order: int,
 
 
 def normalize_eigvec(
-        m_order: int,
-        eig_valvec: ArrayComplex,
-        *,
-        background_field: DictBackgroundField) -> tuple[ArrayComplex, ArrayFloat, ArrayFloat]:
+    m_order: int,
+    eig_valvec: ArrayComplex,
+    *,
+    background_field: DictBackgroundField) \
+        -> tuple[ArrayComplex, ArrayFloat, ArrayFloat]:
     """Normalize the eigenvectors.
 
     Parameters
@@ -249,10 +250,13 @@ def normalize_eigvec(
     pme: ArrayFloat
     pke, pme = calc_ene(m_order, eig_valvec,
                         background_field=background_field)
-    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(pke+pme)
 
-    pke /= (pke + pme)
-    pme /= (pke + pme)
+    total_energy: ArrayFloat = pke + pme
+
+    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(total_energy)
+
+    pke /= total_energy
+    pme /= total_energy
 
     return eig_valvec, pke, pme
 
@@ -283,9 +287,8 @@ def calc_ene(m_order: int,
 
     Notes
     -----
-    This function is based on eq. (24) in Nakashima & Yoshida
-    (2024)[1]_. When SWITCH_NY24 is False, the Chebyshev-Gauss
-    quadrature is used.
+    This function is based on eq. (24) in Nakashima & Yoshida (2024)[1]_. When
+    SWITCH_NY24 is False, the Chebyshev-Gauss quadrature is used.
     """
 
     size_mat: int = eig_valvec.shape[1]
@@ -357,8 +360,7 @@ def check_eig(m_order: int,
 
     Notes
     -----
-    This function is based on eq. (23) in Nakashima & Yoshida
-    (2024)[1]_.
+    This function is based on eq. (23) in Nakashima & Yoshida (2024)[1]_.
     """
 
     n_c: int = int(criterion_c['degree'])

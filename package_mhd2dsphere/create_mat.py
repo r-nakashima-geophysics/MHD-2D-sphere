@@ -6,10 +6,10 @@ sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta).
 References
 ----------
 [1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
-magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
-I. Continuous spectrum and its ray-theoretical interpretation.
-Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
 
 [2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
 """
@@ -63,8 +63,7 @@ def create_submat(m_order: int,
 
     Notes
     -----
-    This function is based on eq. (22) in Nakashima & Yoshida
-    (2024)[1]_.
+    This function is based on eq. (22) in Nakashima & Yoshida (2024)[1]_.
     """
 
     submat_11: ArrayFloat | ArrayComplex
@@ -242,8 +241,8 @@ def create_mat(m_order: int,
         The Lehnert number.
     e_eta: float
         The magnetic Ekman number.
-    submatrices: tuple[ArrayFloat | ArrayComplex, ArrayFloat |
-    ArrayComplex, ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex]
+    submatrices: tuple[ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex,
+    ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex]
         The(1, 1)th, (1, 2)th, (2, 1)th, and (2, 2)th block matrices.
     background_field: DictBackgroundField
         The background field.
@@ -255,8 +254,7 @@ def create_mat(m_order: int,
 
     Notes
     -----
-    This function is based on eq. (22) in Nakashima & Yoshida
-    (2024)[1]_.
+    This function is based on eq. (22) in Nakashima & Yoshida (2024)[1]_.
     """
 
     submat_11: ArrayFloat | ArrayComplex

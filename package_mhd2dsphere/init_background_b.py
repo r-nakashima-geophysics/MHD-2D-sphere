@@ -16,14 +16,13 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
     Parameters
     ----------
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------
     BackgroundField
-        The instance of the BackgroundField class for the hydrodynamic
-        case (B=0).
+        The instance of the BackgroundField class for the hydrodynamic case
+        (B=0).
 
     Warnings
     --------
@@ -91,14 +90,12 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
     Parameters
     ----------
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------
     BackgroundField
-        The instance of the BackgroundField class for the Malkus field
-        (B=1).
+        The instance of the BackgroundField class for the Malkus field (B=1).
 
     Warnings
     --------
@@ -166,8 +163,7 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
     Parameters
     ----------
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------
@@ -236,8 +232,7 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
     Parameters
     ----------
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------
@@ -309,8 +304,7 @@ def b_malkussc(strength_malkus: float, switch_theta: str = 'mu') \
     strength_malkus : float
         The strength of the malkus part of the background field.
     switch_theta : str, default 'mu'
-        The string to switch whether either mu (= cos(theta)) or theta
-        is used.
+        The string to switch whether either mu (= cos(theta)) or theta is used.
 
     Returns
     -------

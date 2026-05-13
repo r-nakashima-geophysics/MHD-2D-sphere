@@ -1,11 +1,10 @@
 """A Python script to calculate the dispersion relation of
-two-dimensional (2D) ideal incompressible magnetohydrodynamic (MHD)
-waves on a rotating sphere under the Malkus background field, B_phi =
-B_0 sin(theta).
+two-dimensional (2D) ideal incompressible magnetohydrodynamic (MHD) waves on a
+rotating sphere under the Malkus background field, B_phi = B_0 sin(theta).
 
 This script can create up to three figures: a linear-linear plot of the
-dispersion relation, a plot showing energy partitioning for various
-eigenmodes, and a log-log plot of the dispersion relation.
+dispersion relation, a plot showing energy partitioning for various eigenmodes,
+and a log-log plot of the dispersion relation.
 
 Parameters
 ----------
@@ -15,21 +14,21 @@ M_ORDER : int
 Warnings
 --------
 No plotted figures
-    If all of the boolean values to switch whether to plot figures or
-    not are False.
+    If all of the boolean values to switch whether to plot figures or not are
+    False.
 
 Notes
 -----
-All other parameters aside from command line arguments are described
-within the script.
+All other parameters aside from command line arguments are described within the
+script.
 
 References
 ----------
 [1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
-magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
-I. Continuous spectrum and its ray-theoretical interpretation.
-Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
 
 Examples
 --------
@@ -203,8 +202,8 @@ def calc_eig(n_degree: int,
 
     Notes
     -----
-    If n_degree = 0, eig is set to 0. This function is based on eq. (1)
-    in Nakashima & Yoshida (2024)[1]_.
+    If n_degree = 0, eig is set to 0. This function is based on eq. (1) in
+    Nakashima & Yoshida (2024)[1]_.
     """
 
     if n_degree == 0:
@@ -243,9 +242,9 @@ def calc_ene(n_degree: int,
 
     Notes
     -----
-    If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for
-    fast MR waves and 1 for slow MR waves. This function is based on the
-    equation in the caption of Fig. 3 in Nakashima & Yoshida (2024)[1]_.
+    If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for fast MR
+    waves and 1 for slow MR waves. This function is based on the equation in
+    the caption of Fig. 3 in Nakashima & Yoshida (2024)[1]_.
     """
 
     if n_degree == 0:
