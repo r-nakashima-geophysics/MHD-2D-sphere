@@ -57,7 +57,7 @@ def prepare_chebyshev_gauss_quad(
 
     mu_complex: ComplexCoordinate = background_field['MU']
 
-    ChebyshevGaussQuad.set_class_variable(size_submat, 2*size_submat)
+    ChebyshevGaussQuad.set_class_variable(2*size_submat, size_submat)
 
     def _minus_spherical_laplacian_heinrichs(
             n_degree: int,
