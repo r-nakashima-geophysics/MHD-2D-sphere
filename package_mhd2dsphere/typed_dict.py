@@ -6,6 +6,7 @@ from typing import TypedDict
 from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
 from package_common.spectral_deform import ComplexCoordinate
+from package_common.utils_collocation import ChebyshevGaussQuad
 
 
 class DictBackgroundField(TypedDict):
@@ -43,6 +44,16 @@ class DictPhysQtys(TypedDict):
     pse: ArrayFloat
     ohm: ArrayFloat
     sym: ArrayStr
+
+
+class DictChebyshevGaussQuad(TypedDict):
+    """Typed dictionary for Chebyshev-Gauss quadrature."""
+
+    quad_pke: ChebyshevGaussQuad
+    quad_pme: ChebyshevGaussQuad
+    quad_psm: ChebyshevGaussQuad
+    quad_pse: ChebyshevGaussQuad
+    quad_ohm: ChebyshevGaussQuad
 
 
 class DictFileInfo(TypedDict):
