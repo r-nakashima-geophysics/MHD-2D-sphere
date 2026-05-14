@@ -19,15 +19,80 @@ import numpy as np
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
+from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import ComplexCoordinate
-from package_common.utils_collocation import (chebyshev_gauss_quad,
+from package_common.utils_collocation import (ChebyshevGaussQuad,
                                               spherical_laplacian_heinrichs)
-from package_common.utils_debug import under_construction_log
 from package_common.utils_eig import screening_eig, sort_eig
+from package_common.utils_name import create_function_name_timer
 from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
+                                            DictChebyshevGaussQuad,
                                             DictCriterionC, DictPhysQtys,
                                             DictResult)
+
+
+def prepare_chebyshev_gauss_quad(
+        m_order: int,
+        size_submat: int,
+        *,
+        background_field: DictBackgroundField) -> DictChebyshevGaussQuad:
+    """Prepare the Chebyshev-Gauss quadrature.
+
+    Parameters
+    ----------
+    size_submat : int
+        The size of submatrices.
+    background_field : DictBackgroundField
+        The background field.
+
+    Returns
+    -------
+    quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
+    """
+
+    timer: DefaultTimer = create_function_name_timer()
+    timer.start()
+
+    mu_complex: ComplexCoordinate = background_field['MU']
+
+    ChebyshevGaussQuad.set_class_variable(size_submat, 2*size_submat)
+
+    def _minus_spherical_laplacian_heinrichs(
+            n_degree: int,
+            s_pos: float | complex) -> float | complex:
+        return (-1) * spherical_laplacian_heinrichs(
+            m_order, n_degree, s_pos, mu_complex=mu_complex)
+
+    quad: DictChebyshevGaussQuad = {
+        'quad_pke': ChebyshevGaussQuad(
+            func_1=heinrichs,
+            func_2=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex),
+        'quad_pme': ChebyshevGaussQuad(
+            func_1=heinrichs,
+            func_2=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex
+        ),
+        'quad_psm': ChebyshevGaussQuad(
+            func_1=lambda n_degree, s_pos: 1,
+            y_complex=mu_complex
+        ),
+        'quad_pse': ChebyshevGaussQuad(
+            func_1=lambda n_degree, s_pos: 1,
+            y_complex=mu_complex
+        ),
+        'quad_ohm': ChebyshevGaussQuad(
+            func_1=_minus_spherical_laplacian_heinrichs,
+            func_2=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex
+        ),
+    }
+
+    timer.end()
+
+    return quad
 
 
 def wrapper_solve_eig(
@@ -38,7 +103,8 @@ def wrapper_solve_eig(
         size_submat: int,
         *,
         criterion_c: DictCriterionC,
-        background_field: DictBackgroundField) -> DictResult:
+        background_field: DictBackgroundField,
+        dict_quad: DictChebyshevGaussQuad) -> DictResult:
     """Solve the eigenvalue problem for a given alpha.
 
     Parameters
@@ -57,6 +123,8 @@ def wrapper_solve_eig(
         The criterion for convergence.
     background_field : DictBackgroundField
         The background field.
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
 
     Returns
     -------
@@ -77,7 +145,8 @@ def wrapper_solve_eig(
 
     return solve_eig(m_order, alpha, e_eta, mat,
                      criterion_c=criterion_c,
-                     background_field=background_field)
+                     background_field=background_field,
+                     dict_quad=dict_quad)
 
 
 def solve_eig(m_order: int,
@@ -86,7 +155,8 @@ def solve_eig(m_order: int,
               mat: ArrayFloat | ArrayComplex,
               *,
               criterion_c: DictCriterionC,
-              background_field: DictBackgroundField) -> DictResult:
+              background_field: DictBackgroundField,
+              dict_quad: DictChebyshevGaussQuad) -> DictResult:
     """Solves the eigenvalue problem.
 
     Parameters
@@ -103,6 +173,8 @@ def solve_eig(m_order: int,
         The criterion for convergence.
     background_field : DictBackgroundField
         The background field.
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
 
     Returns
     -------
@@ -115,8 +187,12 @@ def solve_eig(m_order: int,
     eig_val, eig_vec = np.linalg.eig(mat)
 
     eig_valvec: ArrayComplex = sort_eig(eig_val, eig_vec)
+    eig_valvec = normalize_eigvec(m_order, eig_valvec,
+                                  background_field=background_field,
+                                  dict_quad=dict_quad)
     phys_qtys: DictPhysQtys = calc_qty(m_order, e_eta, eig_valvec,
-                                       background_field=background_field)
+                                       background_field=background_field,
+                                       dict_quad=dict_quad)
     check: ArrayBool \
         = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c)
 
@@ -144,11 +220,49 @@ def solve_eig(m_order: int,
     return result
 
 
+def normalize_eigvec(
+        m_order: int,
+        eig_valvec: ArrayComplex,
+        *,
+        background_field: DictBackgroundField,
+        dict_quad: DictChebyshevGaussQuad) -> ArrayComplex:
+    """Normalize the eigenvectors.
+
+    Parameters
+    ----------
+    m_order : int
+        The zonal wavenumber (order).
+    eig_valvec : ArrayComplex
+        The matrix storing the eigenvalues and eigenvectors.
+    background_field : DictBackgroundField
+        The background field.
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
+
+    Returns
+    -------
+    eig_valvec : ArrayComplex
+        The matrix storing the eigenvalues and eigenvectors.
+    """
+
+    size_mat: int = eig_valvec.shape[1]
+
+    pke: ArrayFloat
+    pme: ArrayFloat
+    pke, pme = calc_ene(m_order, eig_valvec,
+                        background_field=background_field,
+                        dict_quad=dict_quad)
+    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(pke+pme)
+
+    return eig_valvec
+
+
 def calc_qty(m_order: int,
              e_eta: float,
              eig_valvec: ArrayComplex,
              *,
-             background_field: DictBackgroundField) -> DictPhysQtys:
+             background_field: DictBackgroundField,
+             dict_quad: DictChebyshevGaussQuad) -> DictPhysQtys:
     """Calculate various physical quantities from the eigenvectors.
 
     Parameters
@@ -161,6 +275,8 @@ def calc_qty(m_order: int,
         The matrix storing the eigenvalues and eigenvectors.
     background_field : DictBackgroundField
         The background field.
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
 
     Returns
     -------
@@ -171,13 +287,19 @@ def calc_qty(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
 
+    vec_psi: ArrayComplex = eig_valvec[:size_submat, :]
+    vec_vpa: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+
     pke: ArrayFloat
     pme: ArrayFloat
-    eig_valvec, pke, pme = normalize_eigvec(m_order, eig_valvec,
-                                            background_field=background_field)
+    pke, pme = calc_ene(m_order, eig_valvec,
+                        background_field=background_field,
+                        dict_quad=dict_quad)
 
-    psm: ArrayFloat = np.zeros(size_mat)
-    pse: ArrayFloat = np.zeros(size_mat)
+    psm: ArrayFloat = np.real(dict_quad['quad_psm']
+                              .quadrature(vec_psi, vec_vpa))
+    pse: ArrayFloat = pke + pme + np.real(dict_quad['quad_psm']
+                                          .quadrature(vec_psi, vec_vpa))
 
     ohm: ArrayFloat = np.zeros(size_mat)
     if e_eta != 0:
@@ -190,7 +312,8 @@ def calc_qty(m_order: int,
                     np.abs(eig_valvec[size_submat+i_n, :])**2)
             ohm *= e_eta
         else:
-            under_construction_log()
+            ohm = np.real(dict_quad['quad_ohm']
+                          .quadrature(vec_vpa, vec_vpa))
 
     even: ArrayFloat = np.zeros(size_mat)
     odd: ArrayFloat = np.zeros(size_mat)
@@ -217,54 +340,11 @@ def calc_qty(m_order: int,
     return phys_qtys
 
 
-def normalize_eigvec(
-    m_order: int,
-    eig_valvec: ArrayComplex,
-    *,
-    background_field: DictBackgroundField) \
-        -> tuple[ArrayComplex, ArrayFloat, ArrayFloat]:
-    """Normalize the eigenvectors.
-
-    Parameters
-    ----------
-    m_order : int
-        The zonal wavenumber (order).
-    eig_valvec : ArrayComplex
-        The matrix storing the eigenvalues and eigenvectors.
-    background_field : DictBackgroundField
-        The background field.
-
-    Returns
-    -------
-    eig_valvec : ArrayComplex
-        The matrix storing the eigenvalues and eigenvectors.
-    pke : ArrayFloat
-        The perturbation kinetic energy.
-    pme : ArrayFloat
-        The perturbation magnetic energy.
-    """
-
-    size_mat: int = eig_valvec.shape[1]
-
-    pke: ArrayFloat
-    pme: ArrayFloat
-    pke, pme = calc_ene(m_order, eig_valvec,
-                        background_field=background_field)
-
-    total_energy: ArrayFloat = pke + pme
-
-    eig_valvec[0*size_mat:1*size_mat, :] /= np.sqrt(total_energy)
-
-    pke /= total_energy
-    pme /= total_energy
-
-    return eig_valvec, pke, pme
-
-
 def calc_ene(m_order: int,
              eig_valvec: ArrayComplex,
              *,
-             background_field: DictBackgroundField) \
+             background_field: DictBackgroundField,
+             dict_quad: DictChebyshevGaussQuad) \
     -> tuple[ArrayFloat,
              ArrayFloat]:
     """Calculate the perturbation kinetic and magnetic energies.
@@ -277,6 +357,8 @@ def calc_ene(m_order: int,
         The matrix storing the eigenvalues and eigenvectors.
     background_field : DictBackgroundField
         The background field.
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
 
     Returns
     -------
@@ -310,27 +392,8 @@ def calc_ene(m_order: int,
             pke += nn1 * (np.abs(vec_psi[i_n, :])**2)
             pme += nn1 * (np.abs(vec_vpa[i_n, :])**2)
     else:
-
-        mu_complex: ComplexCoordinate = background_field['MU']
-
-        def _minus_spherical_laplacian_heinrichs(
-                n_degree: int,
-                s_pos: float | complex) -> float | complex:
-            return (-1) * spherical_laplacian_heinrichs(
-                m_order, n_degree, s_pos, mu_complex=mu_complex)
-
-        pke = np.real(chebyshev_gauss_quad(
-            size_mat,
-            vec_1=vec_psi, func_1=heinrichs,
-            vec_2=vec_psi, func_2=_minus_spherical_laplacian_heinrichs,
-            y_complex=mu_complex
-        ))
-        pme = np.real(chebyshev_gauss_quad(
-            size_mat,
-            vec_1=vec_vpa, func_1=heinrichs,
-            vec_2=vec_vpa, func_2=_minus_spherical_laplacian_heinrichs,
-            y_complex=mu_complex
-        ))
+        pke = np.real(dict_quad['quad_pke'].quadrature(vec_psi, vec_psi))
+        pme = np.real(dict_quad['quad_pme'].quadrature(vec_vpa, vec_vpa))
 
     return pke, pme
 

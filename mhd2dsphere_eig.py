@@ -68,8 +68,10 @@ from package_common.utils_parallel import (attach_shared_arrays,
                                            set_num_process, set_num_threads)
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.create_mat import create_mat, create_submat
-from package_mhd2dsphere.solve_eig import solve_eig
+from package_mhd2dsphere.solve_eig import (prepare_chebyshev_gauss_quad,
+                                           solve_eig)
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
+                                            DictChebyshevGaussQuad,
                                             DictCriterionC, DictPhysQtys,
                                             DictResult)
 
@@ -163,11 +165,16 @@ SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 
-def wrapper_solve_eig_for_lin_alpha(*, switch_log: bool = False) -> DictResult:
+def wrapper_solve_eig_for_lin_alpha(
+        *,
+        dict_quad: DictChebyshevGaussQuad,
+        switch_log: bool = False) -> DictResult:
     """Solve the eigenvalue problem for given sequences of alpha.
 
     Parameters
     ----------
+    dict_quad : DictChebyshevGaussQuad
+        The dictionary for the Chebyshev-Gauss quadrature.
     switch_log : bool, optional, default False
         The boolean value for the dispersion problem of the log-log
         plot.
@@ -191,14 +198,14 @@ def wrapper_solve_eig_for_lin_alpha(*, switch_log: bool = False) -> DictResult:
 
     try:
         num_alpha: int
-        args_list: list[tuple[float, SharedInfo]]
+        args_list: list[tuple[float, DictChebyshevGaussQuad, SharedInfo]]
         if not switch_log:
             num_alpha = NUM_ALPHA
-            args_list = [(LIN_ALPHA[i_alpha], shared_info)
+            args_list = [(LIN_ALPHA[i_alpha], dict_quad, shared_info)
                          for i_alpha in range(NUM_ALPHA)]
         else:
             num_alpha = NUM_ALPHA_LOG
-            args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
+            args_list = [(10**LIN_ALPHA_LOG[i_alpha], dict_quad, shared_info)
                          for i_alpha in range(NUM_ALPHA_LOG)]
 
         eig: ArrayComplex \
@@ -251,12 +258,12 @@ def wrapper_solve_eig_for_lin_alpha(*, switch_log: bool = False) -> DictResult:
     return results
 
 
-def worker(args: tuple[float, SharedInfo]) -> DictResult:
+def worker(args: tuple[float, DictChebyshevGaussQuad, SharedInfo]) -> DictResult:
     """Set the task for multiprocessing.
 
     Parameters
     ----------
-    args : tuple[float, SharedInfo]
+    args : tuple[float, DictChebyshevGaussQuad, SharedInfo]
         The arguments for the task.
 
     Returns
@@ -266,8 +273,9 @@ def worker(args: tuple[float, SharedInfo]) -> DictResult:
     """
 
     alpha: float
+    dict_quad: DictChebyshevGaussQuad
     shared_info: SharedInfo
-    alpha, shared_info = args
+    alpha, dict_quad, shared_info = args
 
     shared_memories: tuple[SharedMemory,
                            SharedMemory,
@@ -286,7 +294,8 @@ def worker(args: tuple[float, SharedInfo]) -> DictResult:
 
     return solve_eig(M_ORDER, alpha, E_ETA, mat,
                      criterion_c=CRITERION_C,
-                     background_field=BG_FIELD)
+                     background_field=BG_FIELD,
+                     dict_quad=dict_quad)
 
 
 def save_results(results: DictResult,
@@ -358,13 +367,16 @@ if __name__ == '__main__':
         logger.warning('Invalid settings')
         sys.exit(1)
 
+    quad: DictChebyshevGaussQuad = prepare_chebyshev_gauss_quad(
+        M_ORDER, SIZE_SUBMAT, background_field=BG_FIELD)
+
     data: DictResult
 
     if SWITCH_CALC[0]:
-        data = wrapper_solve_eig_for_lin_alpha()
+        data = wrapper_solve_eig_for_lin_alpha(dict_quad=quad)
         save_results(data)
     if SWITCH_CALC[1]:
-        data = wrapper_solve_eig_for_lin_alpha(switch_log=True)
+        data = wrapper_solve_eig_for_lin_alpha(dict_quad=quad, switch_log=True)
         save_results(data, switch_log=True)
 
     timer.end()
