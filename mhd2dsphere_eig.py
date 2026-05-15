@@ -167,13 +167,13 @@ SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
 def wrapper_solve_eig_for_lin_alpha(
         *,
-        dict_quad: DictChebyshevGaussQuad,
+        dict_quad: DictChebyshevGaussQuad | None,
         switch_log: bool = False) -> DictResult:
     """Solve the eigenvalue problem for given sequences of alpha.
 
     Parameters
     ----------
-    dict_quad : DictChebyshevGaussQuad
+    dict_quad : DictChebyshevGaussQuad | None
         The dictionary for the Chebyshev-Gauss quadrature.
     switch_log : bool, optional, default False
         The boolean value for the dispersion problem of the log-log
@@ -198,7 +198,8 @@ def wrapper_solve_eig_for_lin_alpha(
 
     try:
         num_alpha: int
-        args_list: list[tuple[float, DictChebyshevGaussQuad, SharedInfo]]
+        args_list: list[tuple[float,
+                              DictChebyshevGaussQuad | None, SharedInfo]]
         if not switch_log:
             num_alpha = NUM_ALPHA
             args_list = [(LIN_ALPHA[i_alpha], dict_quad, shared_info)
@@ -258,12 +259,12 @@ def wrapper_solve_eig_for_lin_alpha(
     return results
 
 
-def worker(args: tuple[float, DictChebyshevGaussQuad, SharedInfo]) -> DictResult:
+def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> DictResult:
     """Set the task for multiprocessing.
 
     Parameters
     ----------
-    args : tuple[float, DictChebyshevGaussQuad, SharedInfo]
+    args : tuple[float, DictChebyshevGaussQuad | None, SharedInfo]
         The arguments for the task.
 
     Returns
@@ -273,7 +274,7 @@ def worker(args: tuple[float, DictChebyshevGaussQuad, SharedInfo]) -> DictResult
     """
 
     alpha: float
-    dict_quad: DictChebyshevGaussQuad
+    dict_quad: DictChebyshevGaussQuad | None
     shared_info: SharedInfo
     alpha, dict_quad, shared_info = args
 
@@ -367,8 +368,14 @@ if __name__ == '__main__':
         logger.warning('Invalid settings')
         sys.exit(1)
 
-    quad: DictChebyshevGaussQuad = prepare_chebyshev_gauss_quad(
-        M_ORDER, SIZE_SUBMAT, background_field=BG_FIELD)
+    quad: DictChebyshevGaussQuad | None
+    if SWITCH_NY24:
+        quad = None
+        logger.info(
+            'psm and pse are not calculated when SWITCH_NY24 == True.')
+    else:
+        quad = prepare_chebyshev_gauss_quad(
+            M_ORDER, SIZE_SUBMAT, background_field=BG_FIELD)
 
     data: DictResult
 

@@ -52,7 +52,8 @@ class DictChebyshevGaussQuad(TypedDict):
     quad_pke: ChebyshevGaussQuad
     quad_pme: ChebyshevGaussQuad
     quad_psm: ChebyshevGaussQuad
-    quad_pse: ChebyshevGaussQuad
+    quad_pse_u: ChebyshevGaussQuad
+    quad_pse_b: ChebyshevGaussQuad
     quad_ohm: ChebyshevGaussQuad
 
 
