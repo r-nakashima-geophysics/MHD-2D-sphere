@@ -16,10 +16,10 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 
 import numpy as np
 
+from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
-from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_collocation import (ChebyshevGaussQuad,
@@ -36,6 +36,7 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 
 def prepare_chebyshev_gauss_quad(
         m_order: int,
+        rossby: float,
         size_submat: int,
         *,
         background_field: DictBackgroundField) -> DictChebyshevGaussQuad:
@@ -45,6 +46,8 @@ def prepare_chebyshev_gauss_quad(
     ----------
     size_submat : int
         The size of submatrices.
+    rossby : float
+        The Rossby number.
     background_field : DictBackgroundField
         The background field.
 
@@ -58,8 +61,8 @@ def prepare_chebyshev_gauss_quad(
     timer.start()
 
     mu_complex: ComplexCoordinate = background_field['MU']
-    bg_field_u: ComplexCoordinate = background_field['U']
-    bg_field_b: ComplexCoordinate = background_field['B']
+    bg_field_u: BackgroundField = background_field['U']
+    bg_field_b: BackgroundField = background_field['B']
 
     ChebyshevGaussQuad.set_class_variable(2*size_submat, size_submat)
 
@@ -69,21 +72,40 @@ def prepare_chebyshev_gauss_quad(
         return (-1) * spherical_laplacian_heinrichs(
             m_order, n_degree, s_pos, mu_complex=mu_complex)
 
-    def psm_1st_term(n_degree: int, s_pos: float | complex) -> float | complex:
-        mu = mu_complex.value(s_pos)
-        u_mu = bg_field_u.value(mu)
+    def weight_psm_1(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        b_mu = bg_field_b.r_value(mu)
+        return (-1) / (4 * b_mu)
+
+    def weight_psm_2(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        b_mu = bg_field_b.r_value(mu)
         u_shear_mu = (
-            bg_field_u.value_d2(mu) * (1-(mu**2))
-            - 4 * mu * bg_field_u.value_d(mu)
-            - 2 * bg_field_u.value(mu)
+            bg_field_u.r_value_d2(mu) * (1-(mu**2))
+            - 4 * mu * bg_field_u.r_value_d(mu)
+            - 2 * bg_field_u.r_value(mu)
         )
-        b_mu = bg_field_b.value(mu)
+        return (-1) * (rossby*u_shear_mu-1) / (4 * (b_mu**2))
+
+    def weight_pse_u1(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        u_mu = bg_field_u.r_value(mu)
+        return 4 * rossby * u_mu * weight_psm_1(s_pos)
+
+    def weight_pse_u2(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        u_mu = bg_field_u.r_value(mu)
+        return 4 * rossby * u_mu * weight_psm_2(s_pos)
+
+    def weight_pse_b(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        b_mu = bg_field_b.r_value(mu)
         b_shear_mu = (
-            bg_field_b.value_d2(mu) * (1-(mu**2))
-            - 4 * mu * bg_field_b.value_d(mu)
-            - 2 * bg_field_b.value(mu)
+            bg_field_b.r_value_d2(mu) * (1-(mu**2))
+            - 4 * mu * bg_field_b.r_value_d(mu)
+            - 2 * bg_field_b.r_value(mu)
         )
-        return 1 / (4 * )
+        return b_shear_mu / b_mu
 
     quad: DictChebyshevGaussQuad = {
         'quad_pke': ChebyshevGaussQuad(
@@ -95,16 +117,34 @@ def prepare_chebyshev_gauss_quad(
             func_1b=_minus_spherical_laplacian_heinrichs,
             y_complex=mu_complex
         ),
-        'quad_psm': ChebyshevGaussQuad(
-            func_1a=lambda n_degree, s_pos: 1,
+        'quad_psm_1': ChebyshevGaussQuad(
+            func_1a=_minus_spherical_laplacian_heinrichs,
+            func_1b=heinrichs,
+            weight_1=weight_psm_1,
             y_complex=mu_complex
         ),
-        'quad_pse_u': ChebyshevGaussQuad(
-            func_1a=lambda n_degree, s_pos: 1,
+        'quad_psm_2': ChebyshevGaussQuad(
+            func_1a=heinrichs,
+            func_1b=heinrichs,
+            weight_1=weight_psm_2,
+            y_complex=mu_complex
+        ),
+        'quad_pse_u1': ChebyshevGaussQuad(
+            func_1a=_minus_spherical_laplacian_heinrichs,
+            func_1b=heinrichs,
+            weight_1=weight_pse_u1,
+            y_complex=mu_complex
+        ),
+        'quad_pse_u2': ChebyshevGaussQuad(
+            func_1a=heinrichs,
+            func_1b=heinrichs,
+            weight_1=weight_pse_u2,
             y_complex=mu_complex
         ),
         'quad_pse_b': ChebyshevGaussQuad(
-            func_1a=lambda n_degree, s_pos: 1,
+            func_1a=heinrichs,
+            func_1b=heinrichs,
+            weight_1=weight_pse_b,
             y_complex=mu_complex
         ),
         'quad_ohm': ChebyshevGaussQuad(
@@ -214,7 +254,7 @@ def solve_eig(m_order: int,
     eig_valvec = normalize_eigvec(m_order, eig_valvec,
                                   background_field=background_field,
                                   dict_quad=dict_quad)
-    phys_qtys: DictPhysQtys = calc_qty(m_order, e_eta, eig_valvec,
+    phys_qtys: DictPhysQtys = calc_qty(m_order, alpha, e_eta, eig_valvec,
                                        background_field=background_field,
                                        dict_quad=dict_quad)
     check: ArrayBool \
@@ -282,6 +322,7 @@ def normalize_eigvec(
 
 
 def calc_qty(m_order: int,
+             alpha: float,
              e_eta: float,
              eig_valvec: ArrayComplex,
              *,
@@ -293,6 +334,8 @@ def calc_qty(m_order: int,
     ----------
     m_order : int
         The zonal wavenumber (order).
+    alpha : float
+        The Lehnert number.
     e_eta : float
         The magnetic Ekman number.
     eig_valvec : ArrayComplex
@@ -323,15 +366,19 @@ def calc_qty(m_order: int,
     psm: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pse: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     if not background_field['NY24']:
-        tmp: ArrayComplex = dict_quad['quad_psm'].quadrature(
-            vec_1a=vec_psi, vec_1b=vec_vpa, vec_2a=vec_vpa, vec_2b=vec_vpa)
-        psm: ArrayFloat = np.real(tmp + np.conj(tmp))
+        psm_1: ArrayComplex = dict_quad['quad_psm_1'].quadrature(
+            vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
+        psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
+            vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
+        psm: ArrayFloat = np.real(psm_1 + np.conj(psm_1) + psm_2)
 
-        tmp = dict_quad['quad_pse_u'].quadrature(
-            vec_1a=vec_psi, vec_1b=vec_vpa, vec_2a=vec_vpa, vec_2b=vec_vpa)
-        pse = np.real(tmp + np.conj(tmp)) \
-            + np.real(dict_quad['quad_pse_b'].quadrature(
-                vec_1a=vec_vpa, vec_1b=vec_vpa)) \
+        pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
+            vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
+        pse_u2: ArrayComplex = dict_quad['quad_pse_u2'].quadrature(
+            vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
+        pse_b: ArrayComplex = dict_quad['quad_pse_b'].quadrature(
+            vec_1a=vec_vpa, vec_1b=vec_vpa)
+        pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
             + pke + pme
 
     ohm: ArrayFloat = np.zeros(size_mat)

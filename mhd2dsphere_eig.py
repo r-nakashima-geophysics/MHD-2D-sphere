@@ -375,7 +375,7 @@ if __name__ == '__main__':
             'psm and pse are not calculated when SWITCH_NY24 == True.')
     else:
         quad = prepare_chebyshev_gauss_quad(
-            M_ORDER, SIZE_SUBMAT, background_field=BG_FIELD)
+            M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
 
     data: DictResult
 
