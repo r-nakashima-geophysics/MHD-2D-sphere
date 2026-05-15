@@ -107,6 +107,20 @@ def prepare_chebyshev_gauss_quad(
         )
         return b_shear_mu / b_mu
 
+    def weight_psm_hd(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        u_shear_mu = (
+            bg_field_u.r_value_d2(mu) * (1-(mu**2))
+            - 4 * mu * bg_field_u.r_value_d(mu)
+            - 2 * bg_field_u.r_value(mu)
+        )
+        return 1 / (4 * (rossby*u_shear_mu-1))
+
+    def weight_pse_hd(s_pos: float) -> float:
+        mu = mu_complex.r_value(s_pos)
+        u_mu = bg_field_u.r_value(mu)
+        return 4 * rossby * u_mu * weight_psm_hd(s_pos)
+
     quad: DictChebyshevGaussQuad = {
         'quad_pke': ChebyshevGaussQuad(
             func_1a=heinrichs,
@@ -150,6 +164,18 @@ def prepare_chebyshev_gauss_quad(
         'quad_ohm': ChebyshevGaussQuad(
             func_1a=_minus_spherical_laplacian_heinrichs,
             func_1b=_minus_spherical_laplacian_heinrichs,
+            y_complex=mu_complex
+        ),
+        'quad_psm_hd': ChebyshevGaussQuad(
+            func_1a=_minus_spherical_laplacian_heinrichs,
+            func_1b=_minus_spherical_laplacian_heinrichs,
+            weight_1=weight_psm_hd,
+            y_complex=mu_complex
+        ),
+        'quad_pse_hd': ChebyshevGaussQuad(
+            func_1a=_minus_spherical_laplacian_heinrichs,
+            func_1b=_minus_spherical_laplacian_heinrichs,
+            weight_1=weight_pse_hd,
             y_complex=mu_complex
         ),
     }
@@ -366,20 +392,26 @@ def calc_qty(m_order: int,
     psm: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pse: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     if not background_field['NY24']:
-        psm_1: ArrayComplex = dict_quad['quad_psm_1'].quadrature(
-            vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
-        psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
-            vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
-        psm: ArrayFloat = np.real(psm_1 + np.conj(psm_1) + psm_2)
+        if alpha == 0:
+            psm = np.real(dict_quad['quad_psm_hd'].quadrature(
+                vec_1a=vec_psi, vec_1b=vec_psi))
+            pse = np.real(dict_quad['quad_pse_hd'].quadrature(
+                vec_1a=vec_psi, vec_1b=vec_psi)) + pke + pme
+        else:
+            psm_1: ArrayComplex = dict_quad['quad_psm_1'].quadrature(
+                vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
+            psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
+                vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
+            psm: ArrayFloat = np.real(psm_1 + np.conj(psm_1) + psm_2)
 
-        pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
-            vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
-        pse_u2: ArrayComplex = dict_quad['quad_pse_u2'].quadrature(
-            vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
-        pse_b: ArrayComplex = dict_quad['quad_pse_b'].quadrature(
-            vec_1a=vec_vpa, vec_1b=vec_vpa)
-        pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
-            + pke + pme
+            pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
+                vec_1a=vec_psi, vec_1b=vec_vpa) / alpha
+            pse_u2: ArrayComplex = dict_quad['quad_pse_u2'].quadrature(
+                vec_1a=vec_vpa, vec_1b=vec_vpa) / (alpha**2)
+            pse_b: ArrayComplex = dict_quad['quad_pse_b'].quadrature(
+                vec_1a=vec_vpa, vec_1b=vec_vpa)
+            pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
+                + pke + pme
 
     ohm: ArrayFloat = np.zeros(size_mat)
     if e_eta != 0:

@@ -57,6 +57,8 @@ class DictChebyshevGaussQuad(TypedDict):
     quad_pse_u2: ChebyshevGaussQuad
     quad_pse_b: ChebyshevGaussQuad
     quad_ohm: ChebyshevGaussQuad
+    quad_psm_hd: ChebyshevGaussQuad
+    quad_pse_hd: ChebyshevGaussQuad
 
 
 class DictFileInfo(TypedDict):
