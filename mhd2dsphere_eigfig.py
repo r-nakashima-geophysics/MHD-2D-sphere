@@ -90,9 +90,9 @@ ALPHA_CHOSEN: Final[float] = 1
 # The coloring rule
 # SWITCH_COLOR == 'blk': black
 # SWITCH_COLOR == 'ene': energy partitioning
-# SWITCH_COLOR == 'ohm': ohmic dissipation
 # SWITCH_COLOR == 'psm': pseudomomentum
 # SWITCH_COLOR == 'pse': pseudoenergy
+# SWITCH_COLOR == 'ohm': ohmic dissipation
 # SWITCH_COLOR == 'qmode': for finding quasi-modes
 SWITCH_COLOR: Final[str] = 'ene'
 
@@ -154,7 +154,7 @@ NAME_FIG: Final[str] \
     + f'_{MU_COMPLEX.name}'
 NAME_FIG_SUFFIX_1: Final[str] = f'_q={CRITERION_Q}'
 NAME_FIG_SUFFIX_2: Final[tuple[str, str, str, str, str, str]] \
-    = ('_blk', '_ene', '_ohm', '_psm', '_pse', '_qmode')
+    = ('_blk', '_ene', '_psm', '_pse', '_ohm', '_qmode')
 NAME_FIG_SUFFIX_3: Final[tuple[str, str]] = ('_R.png', '_I.png')
 NAME_FIG_SUFFIX_4: Final[tuple[str, str]] = ('_logR.png', '_logI.png')
 NAME_FIG_SUFFIX_5: Final[str] = f'_a={ALPHA_CHOSEN}.png'
@@ -207,10 +207,14 @@ TEXT_XLABEL: Final[str] \
 
 CBAR_LABEL: Final[str] \
     = 'perturbation kinetic energy' if SWITCH_COLOR == 'ene' else (
-    'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
-        r'$\displaystyle{\min_\theta}$'
-        + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
-        if SWITCH_COLOR == 'qmode' else '')
+        'angular pseudomomentum' if SWITCH_COLOR == 'psm' else (
+            'pseudoenergy' if SWITCH_COLOR == 'pse' else (
+                'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
+                    r'$\displaystyle{\min_\theta}$'
+                    + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
+                    if SWITCH_COLOR == 'qmode' else '')
+            )
+        )
 )
 
 NUM_POINT: Final[int] = 10 * N_T
@@ -328,7 +332,7 @@ def wrapper_plot_eig(results: DictResult,
             cbar.ax.tick_params(labelsize=14)
             cbar.set_label(label=CBAR_LABEL, size=16)
 
-    elif SWITCH_COLOR in ('ohm', 'psm', 'pse', 'qmode'):
+    elif SWITCH_COLOR in ('psm', 'pse', 'ohm', 'qmode'):
 
         cbar = plotter_real.fig.colorbar(
             plotter_real.sc[0], cax=cbar_ax_1)
@@ -379,6 +383,10 @@ def plot_eig(results: DictResult,
     sym: ArrayStr = results['phys_qtys']['sym']
 
     num_alpha: int = dict_params['num_alpha']
+    psm_min: float = dict_params['psm_min']
+    psm_max: float = dict_params['psm_max']
+    pse_min: float = dict_params['pse_min']
+    pse_max: float = dict_params['pse_max']
     ohm_max: float = dict_params['ohm_max']
 
     plotter_real: DefaultGridPlotter \
@@ -394,6 +402,14 @@ def plot_eig(results: DictResult,
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
+        cmap = 'jet'
+    elif SWITCH_COLOR == 'psm':
+        cmap_min = psm_min
+        cmap_max = psm_max
+        cmap = 'jet'
+    elif SWITCH_COLOR == 'pse':
+        cmap_min = pse_min
+        cmap_max = pse_max
         cmap = 'jet'
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
@@ -445,12 +461,16 @@ def plot_eig(results: DictResult,
                     ones_alpha, dict_eig['v'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2})
 
-        elif SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
+        elif SWITCH_COLOR in ('ene', 'psm', 'pse', 'ohm', 'qmode'):
 
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
                     STRETCH_ATAN * (pke[i_alpha, :]-0.5*np.ones(SIZE_MAT))
                 )
+            elif SWITCH_COLOR == 'psm':
+                scatter_color = psm[i_alpha, :]
+            elif SWITCH_COLOR == 'pse':
+                scatter_color = pse[i_alpha, :]
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
             elif SWITCH_COLOR == 'qmode':
@@ -646,7 +666,7 @@ def wrapper_plot_eig_log(results: DictResult,
     cbar_ax_1: Axes
     cbar_ax_2: Axes
 
-    if SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
+    if SWITCH_COLOR in ('ene', 'ohm', 'psm', 'pse', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
         axpos1 = plotter_real.axes[0, 0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
@@ -702,7 +722,7 @@ def wrapper_plot_eig_log(results: DictResult,
             cbar2.ax.tick_params(labelsize=14)
             cbar2.set_label(label=CBAR_LABEL, size=16)
 
-    elif SWITCH_COLOR in ('ohm', 'qmode'):
+    elif SWITCH_COLOR in ('ohm', 'psm', 'pse', 'qmode'):
 
         cbar1 = plotter_real.fig.colorbar(
             plotter_real.sc[0, 0], cax=cbar_ax_1)
@@ -767,6 +787,10 @@ def plot_eig_log(results: DictResult,
     sym: ArrayStr = results['phys_qtys']['sym']
 
     num_alpha_log: int = dict_params['num_alpha']
+    psm_min: float = dict_params['psm_min']
+    psm_max: float = dict_params['psm_max']
+    pse_min: float = dict_params['pse_min']
+    pse_max: float = dict_params['pse_max']
     ohm_log_max: float = dict_params['ohm_max']
 
     plotter_real: DefaultGridPlotter \
@@ -781,6 +805,14 @@ def plot_eig_log(results: DictResult,
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
+        cmap = 'jet'
+    elif SWITCH_COLOR == 'psm':
+        cmap_min = psm_min
+        cmap_max = psm_max
+        cmap = 'jet'
+    elif SWITCH_COLOR == 'pse':
+        cmap_min = pse_min
+        cmap_max = pse_max
         cmap = 'jet'
     elif SWITCH_COLOR == 'ohm':
         cmap_min = 0
@@ -871,7 +903,7 @@ def plot_eig_log(results: DictResult,
                     ones_alpha, dict_eig['vp'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2, 3, 4})
 
-        elif SWITCH_COLOR in ('ene', 'ohm', 'qmode'):
+        elif SWITCH_COLOR in ('ene', 'ohm', 'psm', 'pse', 'qmode'):
 
             if SWITCH_COLOR == 'ene':
                 scatter_color = np.arctan(
@@ -880,6 +912,10 @@ def plot_eig_log(results: DictResult,
                 )
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
+            elif SWITCH_COLOR == 'psm':
+                scatter_color = psm[i_alpha, :]
+            elif SWITCH_COLOR == 'pse':
+                scatter_color = pse[i_alpha, :]
             elif SWITCH_COLOR == 'qmode':
                 for i_mode in range(SIZE_MAT):
                     scatter_color[i_mode] = np.min(np.abs(
@@ -954,6 +990,7 @@ def plot_eig_log(results: DictResult,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(4)
+
             elif SWITCH_COLOR == 'qmode':
                 plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
@@ -972,23 +1009,30 @@ def plot_eig_log(results: DictResult,
                     c=scatter_color, cmap=cmap,
                     norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
 
-                plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
-                    ones_alpha, dict_eig['sr'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
-                plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
-                    ones_alpha, dict_eig['sp'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
-                plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
-                    ones_alpha, dict_eig['vr'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
-                plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
-                    ones_alpha, dict_eig['vp'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
-                set_save_fig.update({1, 2, 3, 4})
+                if False in np.isnan(dict_eig['sr_u']):
+                    plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
+                        ones_alpha, dict_eig['sr'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                    set_save_fig.add(1)
+                if False in np.isnan(dict_eig['sp_u']):
+                    plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
+                        ones_alpha, dict_eig['sp'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                    set_save_fig.add(2)
+                if False in np.isnan(dict_eig['vr_u']):
+                    plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
+                        ones_alpha, dict_eig['vr'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                    set_save_fig.add(3)
+                if False in np.isnan(dict_eig['vp_u']):
+                    plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
+                        ones_alpha, dict_eig['vp'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        norm=LogNorm(vmin=cmap_min, vmax=cmap_max))
+                    set_save_fig.add(4)
             else:
                 plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
@@ -1007,23 +1051,30 @@ def plot_eig_log(results: DictResult,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
-                plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
-                    ones_alpha, dict_eig['sr'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
-                    ones_alpha, dict_eig['sp'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
-                    ones_alpha, dict_eig['vr'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    vmin=cmap_min, vmax=cmap_max)
-                plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
-                    ones_alpha, dict_eig['vp'].imag, s=0.1,
-                    c=scatter_color, cmap=cmap,
-                    vmin=cmap_min, vmax=cmap_max)
-                set_save_fig.update({1, 2, 3, 4})
+                if False in np.isnan(dict_eig['sr_u']):
+                    plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
+                        ones_alpha, dict_eig['sr'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        vmin=cmap_min, vmax=cmap_max)
+                    set_save_fig.add(1)
+                if False in np.isnan(dict_eig['sp_u']):
+                    plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
+                        ones_alpha, dict_eig['sp'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        vmin=cmap_min, vmax=cmap_max)
+                    set_save_fig.add(2)
+                if False in np.isnan(dict_eig['vr_u']):
+                    plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
+                        ones_alpha, dict_eig['vr'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        vmin=cmap_min, vmax=cmap_max)
+                    set_save_fig.add(3)
+                if False in np.isnan(dict_eig['vp_u']):
+                    plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
+                        ones_alpha, dict_eig['vp'].imag, s=0.1,
+                        c=scatter_color, cmap=cmap,
+                        vmin=cmap_min, vmax=cmap_max)
+                    set_save_fig.add(4)
 
     mask_x: np.ndarray = lin_alpha
     plotter_imag.axes[0, 0].fill_between(
@@ -1067,10 +1118,14 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
         name_fig += NAME_FIG_SUFFIX_2[0]
     elif SWITCH_COLOR == 'ene':
         name_fig += NAME_FIG_SUFFIX_2[1]
-    elif SWITCH_COLOR == 'ohm':
+    elif SWITCH_COLOR == 'psm':
         name_fig += NAME_FIG_SUFFIX_2[2]
-    elif SWITCH_COLOR == 'qmode':
+    elif SWITCH_COLOR == 'pse':
         name_fig += NAME_FIG_SUFFIX_2[3]
+    elif SWITCH_COLOR == 'ohm':
+        name_fig += NAME_FIG_SUFFIX_2[4]
+    elif SWITCH_COLOR == 'qmode':
+        name_fig += NAME_FIG_SUFFIX_2[5]
 
     list_name_fig: list[str]
     if not switch_log:

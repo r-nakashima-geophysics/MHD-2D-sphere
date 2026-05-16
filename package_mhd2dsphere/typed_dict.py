@@ -75,4 +75,8 @@ class DictParams(TypedDict):
     alpha_init: float
     alpha_end: float
     num_alpha: int
+    psm_min: float
+    psm_max: float
+    pse_min: float
+    pse_max: float
     ohm_max: float

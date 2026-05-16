@@ -99,12 +99,22 @@ def pickup_param(results: DictResult) -> DictParams:
     alpha_end: float = lin_alpha[-1]
     num_alpha: int = len(lin_alpha)
 
-    ohm_max: float = np.nanmax(results['phys_qtys']['ohm'])
+    psm_min: float = np.nanpercentile(results['phys_qtys']['psm'], 5)
+    psm_max: float = np.nanpercentile(results['phys_qtys']['psm'], 95)
+
+    pse_min: float = np.nanpercentile(results['phys_qtys']['pse'], 5)
+    pse_max: float = np.nanpercentile(results['phys_qtys']['pse'], 95)
+
+    ohm_max: float = np.nanpercentile(results['phys_qtys']['ohm'], 95)
 
     params: DictParams = {
         'alpha_init': alpha_init,
         'alpha_end': alpha_end,
         'num_alpha': num_alpha,
+        'psm_min': psm_min,
+        'psm_max': psm_max,
+        'pse_min': pse_min,
+        'pse_max': pse_max,
         'ohm_max': ohm_max
     }
 

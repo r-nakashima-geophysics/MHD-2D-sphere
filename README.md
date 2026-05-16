@@ -36,7 +36,7 @@ git clone https://github.com/r-nakashima-geophysics/common-package.git
 cp -r common-package/package_common .
 ```
 
-The recommended version of the common package is v1.0.10 or later.
+The recommended version of the common package is v1.0.11 or later.
 
 ## Usage
 
