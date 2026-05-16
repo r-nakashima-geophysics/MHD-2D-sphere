@@ -49,6 +49,7 @@ import multiprocessing
 import os
 import sys
 from pathlib import Path
+from typing import cast
 
 import numpy as np
 
@@ -278,15 +279,17 @@ def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> Dic
     shared_info: SharedInfo
     alpha, dict_quad, shared_info = args
 
-    shared_memories: tuple[SharedMemory,
-                           SharedMemory,
-                           SharedMemory,
-                           SharedMemory]
-    submatrices: tuple[ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat,
-                       ArrayFloat]
-    shared_memories, submatrices = attach_shared_arrays(shared_info)
+    shared_memories_tmp: tuple[SharedMemory, ...]
+    submatrices_tmp: tuple[ArrayFloat | ArrayComplex, ...]
+    shared_memories_tmp, submatrices_tmp = attach_shared_arrays(shared_info)
+    shared_memories = cast(tuple[SharedMemory,
+                                 SharedMemory,
+                                 SharedMemory,
+                                 SharedMemory], shared_memories_tmp)
+    submatrices = cast(tuple[ArrayFloat | ArrayComplex,
+                             ArrayFloat | ArrayComplex,
+                             ArrayFloat | ArrayComplex,
+                             ArrayFloat | ArrayComplex], submatrices_tmp)
 
     mat: ArrayFloat | ArrayComplex = create_mat(
         M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)

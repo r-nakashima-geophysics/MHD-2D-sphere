@@ -37,7 +37,7 @@ def screening_eig_q(results: DictResult,
     ohm: ArrayFloat = results['phys_qtys']['ohm']
     sym: ArrayStr = results['phys_qtys']['sym']
 
-    size_mat: int = len(eig)
+    size_mat: int = eig.shape[1]
 
     params: DictParams = pickup_param(results)
     num_alpha: int = params['num_alpha']
