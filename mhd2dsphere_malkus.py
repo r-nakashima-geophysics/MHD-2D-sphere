@@ -88,8 +88,8 @@ ALPHA_LOG_END: Final[float] = 2
 EIG_INIT: Final[float] = -2
 EIG_END: Final[float] = 2
 # log
-EIG_LOG_INIT: Final[float] = -6
-EIG_LOG_END: Final[float] = 2
+EIG_LOG_INIT: Final[float] = 10**(-6)
+EIG_LOG_END: Final[float] = 10**2
 
 # The range of energy partitioning
 ENERGY_INIT: Final[float] = 0
@@ -436,8 +436,8 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
 
     plotter.axes[0].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
     plotter.axes[1].set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
-    plotter.axes[0].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
-    plotter.axes[1].set_ylim(10**EIG_LOG_INIT, 10**EIG_LOG_END)
+    plotter.axes[0].set_ylim(EIG_LOG_INIT, EIG_LOG_END)
+    plotter.axes[1].set_ylim(EIG_LOG_INIT, EIG_LOG_END)
 
     plotter.axes[0].set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes[1].set_xlabel(TEXT_XLABEL, fontsize=16)
