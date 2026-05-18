@@ -57,6 +57,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import transforms
 from matplotlib.colors import LogNorm, Normalize, TwoSlopeNorm
+from scipy.linalg import svd
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
@@ -134,6 +135,10 @@ EIG_RE_LOG_INIT: Final[float] = 10**(-6)
 EIG_RE_LOG_END: Final[float] = 10**2
 # linear & log, imaginary part
 EIG_IM_LOG_MIN: Final[float] = 10**(-10)
+
+# The number of grid points for epsilon-pseudospectrum
+NUM_EIG_RE_GRID: Final[int] = 100
+NUM_EIG_IM_GRID: Final[int] = 100
 
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
@@ -1108,25 +1113,40 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
     """
 
     lin_alpha: ArrayFloat = results['lin_alpha']
-    eig: ArrayComplex = results['eig']
+    i_alpha: int = int(np.argmin(np.abs(lin_alpha - ALPHA_CHOSEN)))
+    alpha: float = lin_alpha[i_alpha]
+
+    eig: ArrayComplex = results['eig'][i_alpha, :]
+    eig_center: complex = (np.nanmax(eig.real)+np.nanmin(eig.real)) / 2 \
+        + 1j * (np.nanmax(eig.imag)+np.nanmin(eig.imag)) / 2
+    eig_range: tuple[float, float, float, float] = (
+        eig_center.real - 1.1 * (np.nanmax(eig.real)-eig_center.real),
+        eig_center.real + 1.1 * (np.nanmax(eig.real)-eig_center.real),
+        eig_center.imag - 1.1 * (np.nanmax(eig.imag)-eig_center.imag),
+        eig_center.imag + 1.1 * (np.nanmax(eig.imag)-eig_center.imag),
+    )
+
+    lin_re: ArrayFloat = np.linspace(
+        eig_range[0], eig_range[1], NUM_EIG_RE_GRID)
+    lin_im: ArrayFloat = np.linspace(
+        eig_range[2], eig_range[3], NUM_EIG_IM_GRID)
+    grid_re, grid_im = np.meshgrid(lin_re, lin_im)
+
+    pseudospectrum: ArrayFloat = calc_pseudospectrum(alpha, eig_range)
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 5))
 
-    i_alpha: int = np.argmin(np.abs(lin_alpha - ALPHA_CHOSEN))
-    alpha: float = lin_alpha[i_alpha]
+    contour = plotter.axes.contourf(
+        grid_re, grid_im, pseudospectrum, cmap='inferno', norm=LogNorm())
 
-    submatrices: tuple[ArrayFloat | ArrayComplex,
-                       ArrayFloat | ArrayComplex,
-                       ArrayFloat | ArrayComplex,
-                       ArrayFloat | ArrayComplex] \
-        = create_submat(M_ORDER, E_ETA, ROSSBY, SIZE_SUBMAT,
-                        background_field=BG_FIELD)
+    cbar = plotter.fig.colorbar(contour, ax=plotter.axes)
+    cbar.ax.tick_params(labelsize=14)
+    cbar.set_label(label=r'$\sigma_\mathrm{min}(zI-A)$', size=16)
 
-    mat: ArrayFloat | ArrayComplex = create_mat(
-        M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)
+    plotter.axes.scatter(eig.real, eig.imag, s=2, c='black')
 
-    plotter.axes.scatter(
-        eig[i_alpha, :].real, eig[i_alpha, :].imag, s=2, c='black')
+    plotter.axes.set_xlim(eig_range[0], eig_range[1])
+    plotter.axes.set_ylim(eig_range[2], eig_range[3])
 
     plotter.axes.set_xlabel(
         r'$\mathrm{Re}(\lambda)=\mathrm{Re}(\omega)/2\Omega_0$',
@@ -1142,6 +1162,54 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
     plotter.axes.tick_params(labelsize=14)
 
     plotter.save(PATH_DIR_FIG, NAME_FIG + NAME_FIG_SUFFIX_5, FIG_DPI)
+
+
+def calc_pseudospectrum(
+        alpha: float,
+        eig_range: tuple[float, float, float, float]) -> ArrayFloat:
+    """Calculate the epsilon-pseudospectrum for a chosen alpha.
+
+    Parameters
+    ----------
+    alpha : float
+        The Lehnert number.
+    eig_range : tuple[float, float, float, float]
+        The range of the eigenvalues in the complex plane.
+
+    Returns
+    -------
+    pseudospectrum : ArrayFloat
+        The minimum singular values on the complex grid.
+    """
+
+    lin_re: ArrayFloat = np.linspace(
+        eig_range[0], eig_range[1], NUM_EIG_RE_GRID)
+    lin_im: ArrayFloat = np.linspace(
+        eig_range[2], eig_range[3], NUM_EIG_IM_GRID)
+
+    submatrices: tuple[ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex] \
+        = create_submat(M_ORDER, E_ETA, ROSSBY, SIZE_SUBMAT,
+                        background_field=BG_FIELD)
+
+    mat: ArrayFloat | ArrayComplex = create_mat(
+        M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)
+
+    identity: ArrayComplex = np.identity(mat.shape[0], dtype=np.complex128)
+    pseudospectrum: ArrayFloat = np.empty(
+        (NUM_EIG_IM_GRID, NUM_EIG_RE_GRID), dtype=np.float64)
+
+    for i_im, imag in enumerate(lin_im):
+        for i_re, real in enumerate(lin_re):
+            singular_values: np.ndarray = svd(
+                (real + 1j * imag) * identity - mat,
+                compute_uv=False,
+                check_finite=False)
+            pseudospectrum[i_im, i_re] = singular_values[-1]
+
+    return pseudospectrum
 
 
 if __name__ == '__main__':
