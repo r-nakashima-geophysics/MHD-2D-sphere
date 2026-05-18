@@ -1,0 +1,304 @@
+"""Makes a eigenfunction from an eigenvector"""
+
+import math
+
+import numpy as np
+
+from package_common.calc_heinrichs import heinrichs
+from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
+from package_common.default_logger import DefaultLogger
+from package_common.spectral_deform import ComplexCoordinate
+from package_common.utils_input import input_value_within
+from package_common.utils_name import create_function_name_logger
+from package_mhd2dsphere.typed_dict import (DictBackgroundField, DictPhysQtys,
+                                            DictResult)
+
+
+def choose_eigfunc(results: DictResult,
+                   size_mat: int) -> tuple[DictResult, int]:
+    """Choose eigenmodes which you want to plot
+
+    Parameters
+    ----------
+    results : DictResult
+        A dictionary of results of the eigenvalue problem.
+    size_mat : int
+        The size of matrices.
+
+    Returns
+    -------
+    result : DictResult
+        A dictionary of result of an eigenmode which you chose.
+    i_chosen : int
+        The index of the chosen eigenmode.
+
+    Warnings
+    --------
+    Invalid eigenmode
+        When you choose an eigenmode that can not be plotted.
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    eig: ArrayComplex = results['eig']
+    pke: ArrayFloat = results['phys_qtys']['pke']
+    pme: ArrayFloat = results['phys_qtys']['pme']
+    sym: ArrayStr = results['phys_qtys']['sym']
+
+    mode_list: list = []
+    q_value: float
+    for i_mode in range(size_mat):
+
+        if np.isnan(eig[i_mode].real):
+            continue
+
+        mode_list.append(i_mode)
+
+        q_value = np.inf
+        if eig[i_mode].imag != 0:
+            q_value = np.abs(eig[i_mode].real) / (-2*eig[i_mode].imag)
+
+        print(f'({i_mode+1:04})  '
+              + f'[{eig[i_mode].real:8.5f},{eig[i_mode].imag:8.5f}] '
+              + f'{sym[i_mode]:>9s}  Q={q_value:4.2f}  '
+              + f'MKE={pke[i_mode]:4.2f}  PME={pme[i_mode]:4.2f}')
+
+    print('==============================')
+    i_mode_min: int = min(mode_list) + 1
+    i_mode_max: int = max(mode_list) + 1
+    print(f'Please enter an integer (between {i_mode_min} and {i_mode_max})')
+
+    chosen_int: int
+    i_chosen: int
+    while True:
+        chosen_int = input_value_within(i_mode_min, i_mode_max, int)
+        i_chosen = chosen_int - 1
+
+        if i_chosen in mode_list:
+            break
+
+        logger.error('Invalid eigenmode')
+
+    print(f'You chose: ({i_chosen+1:04})  '
+          + f'[{eig[i_chosen].real:8.5f},{eig[i_chosen].imag:8.5f}] '
+          + f'{sym[i_chosen]:>9s}  Q={q_value:4.2f}  '
+          + f'PKE={pke[i_chosen]:4.2f}  PME={pme[i_chosen]:4.2f}')
+    print('==============================')
+
+    phys_qtys: DictPhysQtys = {
+        'pke': results['pke'][i_chosen],
+        'pme': results['pme'][i_chosen],
+        'psm': results['psm'][i_chosen],
+        'pse': results['pse'][i_chosen],
+        'ohm': results['ohm'][i_chosen],
+        'sym': results['sym'][i_chosen]
+    }
+
+    result: DictResult = {
+        'lin_alpha': None,
+        'eig': results['eig'][i_chosen],
+        'vec_psi': results['vec_psi'][:, i_chosen],
+        'vec_vpa': results['vec_vpa'][:, i_chosen],
+        'phys_qtys': phys_qtys
+    }
+
+    return result, i_chosen
+
+
+def make_eigfunc(result: DictResult,
+                 m_order: int,
+                 lin_theta: ArrayFloat,
+                 legendre: ArrayFloat | None,
+                 *,
+                 background_field: DictBackgroundField) \
+        -> tuple[ArrayComplex, ArrayComplex]:
+    """Make an eigenfunction from an eigenvector
+
+    Parameters
+    ----------
+    result : DictResult
+        A dictionary of result of an eigenmode which you chose.
+    m_order : int
+        The zonal wavenumber (order).
+    lin_theta : ArrayFloat
+        The values of theta at grid points.
+    legendre : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
+    background_field : DictBackgroundField
+        The background field.
+
+    Returns
+    ----------
+    psi : ArrayComplex
+        The stream function (psi).
+    vpa : ArrayComplex
+        The vector potential (a).
+    """
+
+    vec_psi: ArrayComplex = result['vec_psi']
+    vec_vpa: ArrayComplex = result['vec_vpa']
+
+    size_submat: int = vec_psi.shape[0]
+
+    psi: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
+    vpa: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
+
+    n_degree: int
+    x_pos: float
+    if legendre is not None:
+
+        for i_n in range(size_submat):
+            n_degree = m_order + i_n
+
+            psi += vec_psi[i_n] * legendre[n_degree, :]
+            vpa += vec_vpa[i_n] * legendre[n_degree, :]
+
+    else:
+
+        mu_complex: ComplexCoordinate = background_field['MU']
+        heinrichs_x: ArrayComplex
+
+        for theta in lin_theta:
+            x_pos = np.cos(theta)
+            s_pos = mu_complex.inverse(x_pos)
+
+            heinrichs_x = np.array(
+                [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
+            )
+
+            psi += heinrichs_x @ vec_psi
+            vpa += heinrichs_x @ vec_vpa
+
+    num_theta: int = lin_theta.shape[0]
+    sign: int = adjust_sign(psi, num_theta)
+
+    psi *= sign
+    vpa *= sign
+
+    return psi, vpa
+
+
+def make_eigfunc_grid(result: DictResult,
+                      m_order: int,
+                      lin_theta: ArrayFloat,
+                      lin_phi: ArrayFloat,
+                      legendre: ArrayFloat,
+                      *,
+                      background_field: DictBackgroundField) \
+        -> tuple[np.ndarray, np.ndarray]:
+    """Make a meshgrid of an eigenfunction from an eigenvector
+
+    Parameters
+    ----------
+    result : DictResult
+        A dictionary of result of an eigenmode which you chose.
+    m_order : int
+        The zonal wavenumber (order).
+    lin_theta : ArrayFloat
+        The values of theta at grid points.
+    lin_phi : ArrayFloat
+        The values of phi at grid points.
+    legendre : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
+    background_field : DictBackgroundField
+        The background field.
+
+    Returns
+    ----------
+    psi_grid.real : ArrayComplex
+        The stream function (psi).
+    vpa_grid.real : ArrayComplex
+        The vector potential (a).
+    """
+
+    grid_phi: ArrayFloat
+    grid_theta: ArrayFloat
+    grid_phi, grid_theta = np.meshgrid(lin_phi, lin_theta[1:-1])
+
+    psi_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
+    vpa_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
+
+    psi: ArrayComplex
+    vpa: ArrayComplex
+    psi, vpa = make_eigfunc(result, m_order, lin_theta, legendre,
+                            background_field=background_field)
+
+    psi_grid = np.meshgrid(lin_phi, psi[1:-1])[1]
+    vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])[1]
+
+    phase: ArrayComplex \
+        = np.cos(m_order * grid_phi) + 1j*np.sin(m_order * grid_phi)
+
+    psi_grid *= phase
+    vpa_grid *= phase
+
+    return psi_grid.real, vpa_grid.real
+
+
+def adjust_sign(psi: ArrayComplex,
+                num_theta: int) -> int:
+    """Adjust the sign of eigenfunctions
+
+    Parameters
+    ----------
+    psi : ArrayComplex
+        The stream function (psi).
+    num_theta : int
+        The number of the grid in the theta direction.
+
+    Returns
+    -------
+    sign : int
+        The sign of the eigenfunction.
+    """
+
+    width: int = int(num_theta*0.01)
+
+    i_equator: int
+    if num_theta % 2 == 1:
+        i_equator = int((num_theta-1)/2)
+    else:
+        i_equator = int(num_theta/2)
+
+    equator: float = np.sum(psi.real[i_equator-width:i_equator])
+
+    sign: int = np.sign(equator)
+
+    return sign
+
+
+def amp_range(psi: ArrayComplex,
+              vpa: ArrayComplex) -> tuple[float, float]:
+    """Determine the range of amplitude in a 1D plot.
+
+    Parameters
+    ----------
+    psi : ArrayComplex
+        The stream function (psi).
+    vpa : ArrayComplex
+        The vector potential (a).
+
+    Returns
+    ----------
+    amp_max : float
+        The maximum value of the amplitude of the eigenfunction
+    amp_min : float
+        The minimum value of the amplitude of the eigenfunction
+
+    """
+
+    factor: float = 1.5
+
+    psi_real_max: float = np.nanmax(np.abs(psi.real))
+    vpa_real_max: float = np.nanmax(np.abs(vpa.real))
+    psi_imag_max: float = np.nanmax(np.abs(psi.imag))
+    vpa_imag_max: float = np.nanmax(np.abs(vpa.imag))
+
+    amp_max: float = max(psi_real_max, vpa_real_max,
+                         psi_imag_max, vpa_imag_max)
+    amp_min: float = -amp_max
+
+    amp_max *= factor
+    amp_min *= factor
+
+    return amp_max, amp_min

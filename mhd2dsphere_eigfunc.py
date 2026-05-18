@@ -1,20 +1,29 @@
-"""A code for 2D MHD waves on a rotating sphere under the non-Malkus
-field B_phi = B_0 sin(theta) cos(theta)
+"""A Python script to plot figures of the eigenfunction of a chosen eigenmode
+for two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
+rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
+sin(theta).
 
-Plots 2 figures (north-south 1D plot and 2D contour map) of the
-eigenfunction of a chosen eigenmode.
+This script can create two figures: a north-south 1D plot and a 2D contour map
+of the eigenfunction of a chosen eigenmode.
 
 Notes
 ----------
-Parameters other than command line arguments are described below.
+All other parameters aside from command line arguments are described within the
+script.
 
 References
 ----------
 [1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
-magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
-I. Continuous spectrum and its ray-theoretical interpretation.
-Geophysical & Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024).
-doi: 10.1080/03091929.2024.2384388
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
+
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
+
+Examples
+--------
+$ python3 mhd2dsphere_eigfunc.py
 """
 
 import math
@@ -26,17 +35,36 @@ import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
+from package_common.background_field import BackgroundField
+from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.decorator_yesno import exe_yes_continue
-from package_mhd2dsphere._make_eigf import (amp_range, choose_eigf, make_eigf,
-                                            make_eigf_grid)
+from package_common.default_logger import DefaultLogger
+from package_common.spectral_deform import (ComplexCoordinate,
+                                            init_complex_coordinate_simple)
+from package_common.utils_debug import under_construction_log
+from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere._make_legendre import load_legendre
-from package_mhd2dsphere.solve_eig import wrapper_solve_eig
+from package_mhd2dsphere.make_eigfunc import (amp_range, choose_eigfunc,
+                                              make_eigfunc, make_eigfunc_grid)
+from package_mhd2dsphere.solve_eig import (prepare_chebyshev_gauss_quad,
+                                           wrapper_solve_eig)
+from package_mhd2dsphere.typed_dict import (DictBackgroundField,
+                                            DictChebyshevGaussQuad,
+                                            DictCriterionC, DictResult)
 
 # ========== Parameters ==========
 
-# The boolean value to switch whether to display the value of the
-# magnetic Ekman number or not when E_ETA = 0
-SWITCH_DISP_ETA: Final[bool] = False
+# Background field
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
+BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
+# For the spectral deformation method
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
+    -1, 1, alpha=0, beta_0=0, beta_1=0)
+# The boolean value to switch whether to follow Nakashima & Yoshida
+# (2024)[1]_ or not
+# If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
+# MU_COMPLEX are ignored.
+SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = 1
@@ -47,118 +75,137 @@ ALPHA: Final[float] = 0.1
 # The magnetic Ekman number
 E_ETA: Final[float] = 0
 
-# The truncation degree
-N_T: Final[int] = 2000
+# The Rossby number
+ROSSBY: Final[float] = 0
 
-# The number of the grid in the theta direction
+# The truncation degree
+N_T: Final[int] = 500
+# N_T: Final[int] = 2000
+
+# The number of the grid in the theta and phi directions
 NUM_THETA: Final[int] = 3601
 NUM_THETA_SKIP: Final[int] = 181
+NUM_PHI: Final[int] = 361
 
-# A criterion for convergence
+# The criterion for convergence
 # degree
 N_C: Final[int] = int(N_T/2)
 # ratio
 R_C: Final[float] = 100
 
 # The paths and filenames of outputs
-PATH_DIR_FIG: Final[Path] \
-    = Path('.') / 'fig' / 'MHD2Dsphere_sincos_eigf'
-NAME_FIG: Final[str] = 'MHD2Dsphere_sincos_eigf' \
-    + f'_m{M_ORDER}a{ALPHA}E{E_ETA}N{N_T}th{NUM_THETA}'
-NAME_FIG_SUFFIX: Final[tuple[str, str]] = ('_ns.png', '_map.png')
+PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_eigfunc'
+NAME_FIG: Final[str] \
+    = f'MHD2Dsphere_eigfunc_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
+    if SWITCH_NY24 \
+    else f'MHD2Dsphere_eigfunc_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+    + f'_{MU_COMPLEX.name}'
+NAME_FIG_SUFFIX: Final[tuple[str, str]] = ('_1d.png', '_2d.png')
 FIG_DPI: Final[int] = 600
+
+# The boolean value to switch whether to display the value of the
+# magnetic Ekman number or not when E_ETA = 0
+SWITCH_DISP_ETA: Final[bool] = False
 
 # ================================
 
-NUM_PHI: Final[int] = 361
+BG_FIELD: Final[DictBackgroundField] = {
+    'B': BG_FIELD_B,
+    'U': BG_FIELD_U,
+    'MU': MU_COMPLEX,
+    'NY24': SWITCH_NY24,
+}
 
-CRITERION_C: Final[tuple[int, float]] = (N_C, R_C)
+CRITERION_C: Final[DictCriterionC] = {
+    'degree': N_C,
+    'ratio': R_C
+}
 
-SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1
+SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
-LIN_THETA: Final[np.ndarray] = np.linspace(0, math.pi, NUM_THETA)
-LIN_THETA_SKIP: Final[np.ndarray] \
-    = np.linspace(0, math.pi, NUM_THETA_SKIP)
-LIN_PHI: Final[np.ndarray] = np.linspace(0, 2 * math.pi, NUM_PHI)
+LIN_THETA: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA)
+LIN_THETA_SKIP: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA_SKIP)
+LIN_PHI: Final[ArrayFloat] = np.linspace(0, 2*np.pi, NUM_PHI)
 
 GRID_PHI: np.ndarray
 GRID_THETA: np.ndarray
-GRID_PHI, GRID_THETA \
-    = np.meshgrid(LIN_PHI, LIN_THETA_SKIP[1:-1])
+GRID_PHI, GRID_THETA = np.meshgrid(LIN_PHI, LIN_THETA_SKIP[1:-1])
 
-GRID_LAT: Final[np.ndarray] = np.rad2deg(
-    np.full_like(GRID_THETA, math.pi/2) - GRID_THETA)
-GRID_LON: Final[np.ndarray] = np.rad2deg(GRID_PHI)
+GRID_LAT: Final[ArrayFloat] = np.rad2deg(
+    np.full_like(GRID_THETA, np.pi/2) - GRID_THETA)
+GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
 
 
 @exe_yes_continue
-def wrapper_choose_eigf(
-        bundle: tuple[np.ndarray, np.ndarray,
-                      np.ndarray, np.ndarray, np.ndarray,
-                      np.ndarray, np.ndarray]) -> None:
-    """A wrapper of a function to choose eigenmodes which you want to
-    plot
+def wrapper_choose_eigfunc(results: DictResult,
+                           *,
+                           legendre: ArrayFloat | None,
+                           legendre_skip: ArrayFloat | None) -> None:
+    """Choose eigenmodes which you want to plot.
 
     Parameters
     ----------
-    bundle : tuple of ndarray
-        A tuple of results
-
+    results : DictResult
+        A dictionary of results of the eigenvalue problem.
+    legendre : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
+    legendre_skip : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
     """
 
-    psi_vec: np.ndarray
-    vpa_vec: np.ndarray
-    eig: complex
+    result: DictResult
     i_chosen: int
-    psi_vec, vpa_vec, eig, i_chosen = choose_eigf(bundle, SIZE_MAT)
+    result, i_chosen = choose_eigfunc(results, SIZE_MAT)
 
-    wrapper_plot_eigf(psi_vec, vpa_vec, eig, i_chosen)
-#
+    wrapper_plot_eigfunc(result, i_chosen,
+                         legendre=legendre, legendre_skip=legendre_skip)
 
 
-def wrapper_plot_eigf(psi_vec: np.ndarray,
-                      vpa_vec: np.ndarray,
-                      eig: complex,
-                      i_mode: int) -> None:
-    """A wrapper of functions to plot figures of the eigenfunction of a
-    chosen eigenmode
+def wrapper_plot_eigfunc(result: DictResult,
+                         i_chosen: int,
+                         *,
+                         legendre: ArrayFloat | None,
+                         legendre_skip: ArrayFloat | None) -> None:
+    """Plot figures of the eigenfunction of a chosen eigenmode.
 
     Parameters
     ----------
-    psi_vec : ndarray
-        An eigenvector of the stream function (psi)
-    vpa_vec : ndarray
-        An eigenvector of the vector potential (a)
-    eig : complex
-        An eigenvalue
-    i_mode : int
-        The index of a mode that you chose
-
+    result : DictResult
+        A dictionary of result of an eigenmode which you chose.
+    i_chosen : int
+        The index of the chosen eigenmode.
+    legendre : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
+    legendre_skip : ArrayFloat | None
+        The values of associated Legendre polynomials at grid points.
     """
 
-    psi: np.ndarray
-    vpa: np.ndarray
-    psi, vpa = make_eigf(psi_vec, vpa_vec, M_ORDER, PNM_NORM)
+    eig: complex = result['eig']
 
-    psi_grid: np.ndarray
-    vpa_grid: np.ndarray
-    psi_grid, vpa_grid \
-        = make_eigf_grid(psi_vec, vpa_vec, M_ORDER,
-                         NUM_PHI, PNM_NORM_SKIP)
+    psi: ArrayComplex
+    vpa: ArrayComplex
+    psi, vpa = make_eigfunc(result, M_ORDER, LIN_THETA,
+                            legendre, background_field=BG_FIELD)
 
-    plot_ns(psi, vpa, eig, i_mode)
-    plot_map(psi_grid, vpa_grid, eig, i_mode)
+    psi_grid: ArrayFloat
+    vpa_grid: ArrayFloat
+    psi_grid, vpa_grid = make_eigfunc_grid(
+        result, M_ORDER, LIN_THETA_SKIP, LIN_PHI, legendre_skip,
+        background_field=BG_FIELD)
+
+    plot_ns(psi, vpa, eig, i_chosen)
+    plot_map(psi_grid, vpa_grid, eig, i_chosen)
 
     plt.show()
-#
 
 
 def plot_ns(psi: np.ndarray,
             vpa: np.ndarray,
             eig: complex,
             i_mode: int) -> None:
-    """Plots a figure of the eigenfunction of a chosen eigenmode
+    """Plot a figure of the eigenfunction of a chosen eigenmode
     (north-south 1D plot)
 
     Parameters
@@ -194,8 +241,8 @@ def plot_ns(psi: np.ndarray,
     amp_max, amp_min = amp_range(psi, vpa)
 
     axis.grid()
-    axis.set_xlim(0, math.pi)
-    axis.set_xticks([0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi])
+    axis.set_xlim(0, np.pi)
+    axis.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
     axis.set_xticklabels(['$0$', '$45$', '$90$', '$135$', '$180$'])
     axis.set_ylim(amp_min, amp_max)
 
@@ -333,22 +380,32 @@ def plot_map(psi_grid: np.ndarray,
 
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 if __name__ == '__main__':
 
-    PNM_NORM: Final[np.ndarray] \
-        = load_legendre(M_ORDER, N_T, NUM_THETA)
-    PNM_NORM_SKIP: Final[np.ndarray] \
-        = load_legendre(M_ORDER, N_T, NUM_THETA_SKIP)
-    results: tuple[np.ndarray, np.ndarray,
-                   np.ndarray, np.ndarray, np.ndarray,
-                   np.ndarray, np.ndarray] \
-        = wrapper_solve_eig(
-        M_ORDER, ALPHA, E_ETA, SIZE_SUBMAT, CRITERION_C)
+    logger: DefaultLogger = DefaultLogger(__name__)
 
-    plt.rcParams['text.usetex'] = True
+    pnm: ArrayFloat | None
+    pnm_skip: ArrayFloat | None
+    quad: DictChebyshevGaussQuad | None
+    if SWITCH_NY24:
+        under_construction_log()
 
-    wrapper_choose_eigf(results)
-#
+        pnm = load_legendre(M_ORDER, N_T, NUM_THETA)
+        pnm_skip = load_legendre(M_ORDER, N_T, NUM_THETA_SKIP)
+
+        quad = None
+        logger.info('psm and pse are not calculated when SWITCH_NY24 == True.')
+
+    else:
+        pnm = None
+        pnm_skip = None
+        quad = prepare_chebyshev_gauss_quad(
+            M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
+
+    data: DictResult = wrapper_solve_eig(
+        M_ORDER, ALPHA, E_ETA, ROSSBY, SIZE_SUBMAT,
+        criterion_c=CRITERION_C, background_field=BG_FIELD, dict_quad=quad)
+
+    wrapper_choose_eigfunc(data, legendre=pnm, legendre_skip=pnm_skip)

@@ -29,7 +29,7 @@ class DictResult(TypedDict):
     """Typed dictionary for the results of the eigenvalue problem."""
 
     lin_alpha: ArrayFloat | None
-    eig: ArrayComplex
+    eig: ArrayComplex | complex
     vec_psi: ArrayComplex | None
     vec_vpa: ArrayComplex | None
     phys_qtys: DictPhysQtys
@@ -38,12 +38,12 @@ class DictResult(TypedDict):
 class DictPhysQtys(TypedDict):
     """Typed dictionary for physical quantities."""
 
-    pke: ArrayFloat
-    pme: ArrayFloat
-    psm: ArrayFloat
-    pse: ArrayFloat
-    ohm: ArrayFloat
-    sym: ArrayStr
+    pke: ArrayFloat | float
+    pme: ArrayFloat | float
+    psm: ArrayFloat | float
+    pse: ArrayFloat | float
+    ohm: ArrayFloat | float
+    sym: ArrayStr | str
 
 
 class DictChebyshevGaussQuad(TypedDict):
