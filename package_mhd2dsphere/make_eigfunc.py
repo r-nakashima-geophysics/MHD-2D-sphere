@@ -62,7 +62,7 @@ def choose_eigfunc(results: DictResult,
         print(f'({i_mode+1:04})  '
               + f'[{eig[i_mode].real:8.5f},{eig[i_mode].imag:8.5f}] '
               + f'{sym[i_mode]:>9s}  Q={q_value:4.2f}  '
-              + f'MKE={pke[i_mode]:4.2f}  PME={pme[i_mode]:4.2f}')
+              + f'PKE={pke[i_mode]:4.2f}  PME={pme[i_mode]:4.2f}')
 
     print('==============================')
     i_mode_min: int = min(mode_list) + 1
@@ -80,6 +80,7 @@ def choose_eigfunc(results: DictResult,
 
         logger.error('Invalid eigenmode')
 
+    q_value = np.abs(eig[i_chosen].real) / (-2*eig[i_chosen].imag)
     print(f'You chose: ({i_chosen+1:04})  '
           + f'[{eig[i_chosen].real:8.5f},{eig[i_chosen].imag:8.5f}] '
           + f'{sym[i_chosen]:>9s}  Q={q_value:4.2f}  '

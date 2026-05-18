@@ -304,7 +304,7 @@ def plot_eig(eig: ArrayFloat) -> None:
 
     handles: list[Artist]
     labels: list[str]
-    [handles, labels] = plotter.axes.get_legend_handles_labels()
+    (handles, labels) = plotter.axes.get_legend_handles_labels()
     if NUM_N >= 2:
         order_leg: list[int] = [3, 1, 2, 0]
         handles = [handles[i_handle] for i_handle in order_leg]

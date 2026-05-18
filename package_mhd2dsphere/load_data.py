@@ -24,10 +24,10 @@ def wrapper_load_results(switch_plot: tuple[bool, bool, bool],
 
     Parameters
     ----------
-    info_load : DictFileInfo
-        The information of the loaded files.
     switch_plot : tuple of bool
         The boolean values to switch whether to plot figures or not.
+    info_load : DictFileInfo
+        The information of the loaded files.
 
     Returns
     -------
@@ -108,8 +108,8 @@ def load_results(name_file: str,
     results: DictResult = {
         'lin_alpha': npz_kw['lin_alpha'],
         'eig': npz_kw['eig'],
-        'vec_psi': None,
-        'vec_vpa': None,
+        'vec_psi': np.array([]),
+        'vec_vpa': np.array([]),
         'phys_qtys': phys_qtys
     }
 

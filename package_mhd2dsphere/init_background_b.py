@@ -1,8 +1,9 @@
 """A Python module to construct the instances of BackgroundField class
 for toroidal background fields, B_phi = B_0 B(theta) sin(theta)."""
 
-import cmath
 import sys
+
+import numpy as np
 
 from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
@@ -207,13 +208,13 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
 
     if switch_theta == 'theta':
         def b_sincos_theta(theta_complex: complex) -> complex:
-            return cmath.cos(theta_complex)
+            return np.cos(theta_complex)
 
         def b_sincos_d_theta(theta_complex: complex) -> complex:
-            return -cmath.sin(theta_complex)
+            return -np.sin(theta_complex)
 
         def b_sincos_d2_theta(theta_complex: complex) -> complex:
-            return -cmath.cos(theta_complex)
+            return -np.cos(theta_complex)
 
         return BackgroundField(name,
                                value=b_sincos_theta,
@@ -259,14 +260,14 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
 
     if switch_theta == 'mu':
         def b_sin2cos_mu(mu_complex: complex) -> complex:
-            return mu_complex * cmath.sqrt(1-(mu_complex**2))
+            return mu_complex * np.sqrt(1-(mu_complex**2))
 
         def b_sin2cos_d_mu(mu_complex: complex) -> complex:
-            return (1-2*(mu_complex**2)) / cmath.sqrt(1-(mu_complex**2))
+            return (1-2*(mu_complex**2)) / np.sqrt(1-(mu_complex**2))
 
         def b_sin2cos_d2_mu(mu_complex: complex) -> complex:
             return mu_complex * (2*(mu_complex**2)-3) \
-                / (cmath.sqrt(1-(mu_complex**2))**3)
+                / (np.sqrt(1-(mu_complex**2))**3)
 
         return BackgroundField(name,
                                value=b_sin2cos_mu,
@@ -276,13 +277,13 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
 
     if switch_theta == 'theta':
         def b_sin2cos_theta(theta_complex: complex) -> complex:
-            return cmath.sin(theta_complex) * cmath.cos(theta_complex)
+            return np.sin(theta_complex) * np.cos(theta_complex)
 
         def b_sin2cos_d_theta(theta_complex: complex) -> complex:
-            return cmath.cos(2*theta_complex)
+            return np.cos(2*theta_complex)
 
         def b_sin2cos_d2_theta(theta_complex: complex) -> complex:
-            return -2 * cmath.sin(2*theta_complex)
+            return -2 * np.sin(2*theta_complex)
 
         return BackgroundField(name,
                                value=b_sin2cos_theta,
@@ -349,13 +350,13 @@ def b_malkussc(strength_sincos: float, switch_theta: str = 'mu') \
 
     if switch_theta == 'theta':
         def b_malkussc_theta(theta_complex: complex) -> complex:
-            return 1 + strength_sincos * cmath.cos(theta_complex)
+            return 1 + strength_sincos * np.cos(theta_complex)
 
         def b_malkussc_d_theta(theta_complex: complex) -> complex:
-            return -strength_sincos * cmath.sin(theta_complex)
+            return -strength_sincos * np.sin(theta_complex)
 
         def b_malkussc_d2_theta(theta_complex: complex) -> complex:
-            return -strength_sincos * cmath.cos(theta_complex)
+            return -strength_sincos * np.cos(theta_complex)
 
         return BackgroundField(name,
                                value=b_malkussc_theta,

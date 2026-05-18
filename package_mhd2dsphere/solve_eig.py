@@ -44,10 +44,12 @@ def prepare_chebyshev_gauss_quad(
 
     Parameters
     ----------
-    size_submat : int
-        The size of submatrices.
+    m_order : int
+        The zonal wavenumber (order).
     rossby : float
         The Rossby number.
+    size_submat : int
+        The size of submatrices.
     background_field : DictBackgroundField
         The background field.
 
