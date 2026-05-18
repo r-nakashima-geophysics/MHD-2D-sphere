@@ -69,7 +69,8 @@ from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
 from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
-from package_mhd2dsphere.create_mat import calc_collocation_point
+from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
+                                            create_submat)
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
@@ -1113,6 +1114,16 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
 
     i_alpha: int = np.argmin(np.abs(lin_alpha - ALPHA_CHOSEN))
     alpha: float = lin_alpha[i_alpha]
+
+    submatrices: tuple[ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex,
+                       ArrayFloat | ArrayComplex] \
+        = create_submat(M_ORDER, E_ETA, ROSSBY, SIZE_SUBMAT,
+                        background_field=BG_FIELD)
+
+    mat: ArrayFloat | ArrayComplex = create_mat(
+        M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)
 
     plotter.axes.scatter(
         eig[i_alpha, :].real, eig[i_alpha, :].imag, s=2, c='black')
