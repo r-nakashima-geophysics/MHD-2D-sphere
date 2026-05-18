@@ -1,6 +1,8 @@
-"""Makes a eigenfunction from an eigenvector"""
-
-import math
+"""A Python module to make an eigenfunction from an eigenvector of the
+eigenvalue problem of two-dimensional (2D) incompressible magnetohydrodynamic
+(MHD) waves on a rotating sphere under a toroidal background field, B_phi = B_0
+B(theta) sin(theta), and a background zonal flow, U_phi = U_0 U(theta)
+sin(theta)."""
 
 import numpy as np
 
@@ -10,12 +12,13 @@ from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_input import input_value_within
 from package_common.utils_name import create_function_name_logger
-from package_mhd2dsphere.typed_dict import (DictBackgroundField, DictPhysQtys,
+from package_mhd2dsphere.typed_dict import (DictBackgroundField,
+                                            DictEigenmodeInfo, DictPhysQtys,
                                             DictResult)
 
 
 def choose_eigfunc(results: DictResult,
-                   size_mat: int) -> tuple[DictResult, int]:
+                   size_mat: int) -> DictEigenmodeInfo:
     """Choose eigenmodes which you want to plot
 
     Parameters
@@ -27,10 +30,8 @@ def choose_eigfunc(results: DictResult,
 
     Returns
     -------
-    result : DictResult
+    result : DictEigenmodeInfo
         A dictionary of result of an eigenmode which you chose.
-    i_chosen : int
-        The index of the chosen eigenmode.
 
     Warnings
     --------
@@ -85,27 +86,23 @@ def choose_eigfunc(results: DictResult,
           + f'PKE={pke[i_chosen]:4.2f}  PME={pme[i_chosen]:4.2f}')
     print('==============================')
 
-    phys_qtys: DictPhysQtys = {
-        'pke': results['pke'][i_chosen],
-        'pme': results['pme'][i_chosen],
-        'psm': results['psm'][i_chosen],
-        'pse': results['pse'][i_chosen],
-        'ohm': results['ohm'][i_chosen],
-        'sym': results['sym'][i_chosen]
-    }
-
-    result: DictResult = {
-        'lin_alpha': None,
+    result: DictEigenmodeInfo = {
+        'i_chosen': i_chosen,
         'eig': results['eig'][i_chosen],
         'vec_psi': results['vec_psi'][:, i_chosen],
         'vec_vpa': results['vec_vpa'][:, i_chosen],
-        'phys_qtys': phys_qtys
+        'pke': results['phys_qtys']['pke'][i_chosen],
+        'pme': results['phys_qtys']['pme'][i_chosen],
+        'psm': results['phys_qtys']['psm'][i_chosen],
+        'pse': results['phys_qtys']['pse'][i_chosen],
+        'ohm': results['phys_qtys']['ohm'][i_chosen],
+        'sym': results['phys_qtys']['sym'][i_chosen]
     }
 
-    return result, i_chosen
+    return result
 
 
-def make_eigfunc(result: DictResult,
+def make_eigfunc(result: DictEigenmodeInfo,
                  m_order: int,
                  lin_theta: ArrayFloat,
                  legendre: ArrayFloat | None,
@@ -116,7 +113,7 @@ def make_eigfunc(result: DictResult,
 
     Parameters
     ----------
-    result : DictResult
+    result : DictEigenmodeInfo
         A dictionary of result of an eigenmode which you chose.
     m_order : int
         The zonal wavenumber (order).

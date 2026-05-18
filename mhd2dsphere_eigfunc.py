@@ -1,7 +1,7 @@
 """A Python script to plot figures of the eigenfunction of a chosen eigenmode
 for two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
-sin(theta).
+sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
 This script can create two figures: a north-south 1D plot and a 2D contour map
 of the eigenfunction of a chosen eigenmode.
@@ -50,7 +50,8 @@ from package_mhd2dsphere.solve_eig import (prepare_chebyshev_gauss_quad,
                                            wrapper_solve_eig)
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
                                             DictChebyshevGaussQuad,
-                                            DictCriterionC, DictResult)
+                                            DictCriterionC, DictEigenmodeInfo,
+                                            DictResult)
 
 # ========== Parameters ==========
 
@@ -82,7 +83,7 @@ ROSSBY: Final[float] = 0
 N_T: Final[int] = 500
 # N_T: Final[int] = 2000
 
-# The number of the grid in the theta and phi directions
+# The number of grid points in the theta and phi directions
 NUM_THETA: Final[int] = 3601
 NUM_THETA_SKIP: Final[int] = 181
 NUM_PHI: Final[int] = 361
@@ -283,7 +284,6 @@ def plot_ns(psi: np.ndarray,
     os.makedirs(PATH_DIR_FIG, exist_ok=True)
     path_fig: Path = PATH_DIR_FIG / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
-#
 
 
 def plot_map(psi_grid: np.ndarray,
@@ -378,7 +378,7 @@ def plot_map(psi_grid: np.ndarray,
 
     name_fig_full: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[1]
 
-    path_fig: Path = PATH_DIR_FIG / name_fig_full
+    path_fig: Path = PATH_DIR / name_fig_full
     fig.savefig(path_fig, dpi=FIG_DPI)
 
 
@@ -386,21 +386,27 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
-    pnm: ArrayFloat | None
-    pnm_skip: ArrayFloat | None
+    basis: ArrayFloat | None
     quad: DictChebyshevGaussQuad | None
     if SWITCH_NY24:
         under_construction_log()
 
-        pnm = load_legendre(M_ORDER, N_T, NUM_THETA)
-        pnm_skip = load_legendre(M_ORDER, N_T, NUM_THETA_SKIP)
+        basis = load_legendre(M_ORDER, N_T, NUM_THETA)
 
         quad = None
         logger.info('psm and pse are not calculated when SWITCH_NY24 == True.')
 
     else:
-        pnm = None
-        pnm_skip = None
+        mu_complex: ComplexCoordinate = BG_FIELD['MU']
+        heinrichs_x: ArrayComplex
+        for theta in LIN_THETA:
+            x_pos = np.cos(theta)
+            s_pos = mu_complex.inverse(x_pos)
+
+            heinrichs_x[] = np.array(
+                [heinrichs(i_n, s_pos) for i_n in range(SIZE_SUBMAT)]
+            )
+
         quad = prepare_chebyshev_gauss_quad(
             M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
 
@@ -408,4 +414,4 @@ if __name__ == '__main__':
         M_ORDER, ALPHA, E_ETA, ROSSBY, SIZE_SUBMAT,
         criterion_c=CRITERION_C, background_field=BG_FIELD, dict_quad=quad)
 
-    wrapper_choose_eigfunc(data, legendre=pnm, legendre_skip=pnm_skip)
+    wrapper_choose_eigfunc(data, basis_func=basis)
