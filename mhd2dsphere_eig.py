@@ -1,7 +1,7 @@
 """A Python script to calculate the dispersion relation of
 two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
-sin(theta).
+sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
 This script outputs up to two npz files of results, which include alpha,
 eigenvalue, perturbation kinetic energy, perturbation magnetic energy,
@@ -252,8 +252,8 @@ def wrapper_solve_eig_for_lin_alpha(
     results: DictResult = {
         'lin_alpha': LIN_ALPHA if not switch_log else 10**LIN_ALPHA_LOG,
         'eig': eig,
-        'vec_psi': None,
-        'vec_vpa': None,
+        'vec_psi': np.array([]),
+        'vec_vpa': np.array([]),
         'phys_qtys': phys_qtys
     }
 

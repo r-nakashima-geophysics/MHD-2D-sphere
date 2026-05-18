@@ -1,7 +1,7 @@
 """A Python script to plot the dispersion diagram of
 two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
-sin(theta).
+sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
 This script can create up to four figures: linear-linear and log-log plots of
 the dispersion relation with some coloring based on black or physical quantity

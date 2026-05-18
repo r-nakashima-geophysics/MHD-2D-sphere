@@ -1,7 +1,8 @@
 """A Python module to load the files of the results of the eigenvalue
 problem of two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves
 on a rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
-sin(theta), and background zonal flows, U_phi = U_0 U(theta) sin(theta)."""
+sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
+"""
 
 import sys
 from pathlib import Path

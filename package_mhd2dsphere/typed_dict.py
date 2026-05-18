@@ -28,22 +28,37 @@ class DictCriterionC(TypedDict):
 class DictResult(TypedDict):
     """Typed dictionary for the results of the eigenvalue problem."""
 
-    lin_alpha: ArrayFloat | None
-    eig: ArrayComplex | complex
-    vec_psi: ArrayComplex | None
-    vec_vpa: ArrayComplex | None
+    lin_alpha: ArrayFloat
+    eig: ArrayComplex
+    vec_psi: ArrayComplex
+    vec_vpa: ArrayComplex
     phys_qtys: DictPhysQtys
 
 
 class DictPhysQtys(TypedDict):
     """Typed dictionary for physical quantities."""
 
-    pke: ArrayFloat | float
-    pme: ArrayFloat | float
-    psm: ArrayFloat | float
-    pse: ArrayFloat | float
-    ohm: ArrayFloat | float
-    sym: ArrayStr | str
+    pke: ArrayFloat
+    pme: ArrayFloat
+    psm: ArrayFloat
+    pse: ArrayFloat
+    ohm: ArrayFloat
+    sym: ArrayStr
+
+
+class DictEigenmodeInfo(TypedDict):
+    """Typed dictionary for eigenmode information."""
+
+    i_chosen: int
+    eig: complex
+    vec_psi: ArrayComplex
+    vec_vpa: ArrayComplex
+    pke: float
+    pme: float
+    psm: float
+    pse: float
+    ohm: float
+    sym: str
 
 
 class DictChebyshevGaussQuad(TypedDict):
