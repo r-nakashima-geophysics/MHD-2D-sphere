@@ -1306,10 +1306,6 @@ if __name__ == '__main__':
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
 
-    if (SWITCH_COLOR == 'ene') and MU_COMPLEX.check_spectral_deform():
-        logger.warning('Meaningless figures are plotted')
-        sys.exit(1)
-
     if (SWITCH_COLOR == 'ohm') and (E_ETA == 0):
         logger.warning('Meaningless figures are plotted')
         sys.exit(1)
