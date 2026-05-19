@@ -50,6 +50,7 @@ Run the script with a specified value (say M_ORDER = 2):
     $ python3 mhd2dsphere_eigfig.py 2
 """
 
+import multiprocessing
 import sys
 from pathlib import Path
 
@@ -61,14 +62,22 @@ from scipy.linalg import svdvals
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
-                                         Final)
+                                         Final, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
-                                            DefaultPlotter, create_plotter)
+                                            DefaultPlotter, QuadContourSet,
+                                            create_plotter)
 from package_common.default_timer import DefaultTimer
+from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
 from package_common.utils_input import input_value
+from package_common.utils_name import create_function_name_progress_bar
+from package_common.utils_parallel import (SharedInfo, SharedMemory,
+                                           attach_shared_arrays,
+                                           create_shared_arrays,
+                                           detach_shared_arrays,
+                                           set_num_process, set_num_threads)
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
                                             create_submat)
@@ -86,7 +95,7 @@ type Bbox = transforms.Bbox
 # SWITCH_PLOT[0]: The dispersion diagram for the linear-linear plot
 # SWITCH_PLOT[1]: The dispersion diagram for the log-log plot
 # SWITCH_PLOT[2]: The dispersion diagram for a chosen alpha
-SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, False)
+SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (False, False, True)
 ALPHA_CHOSEN: Final[float] = 1
 
 # The coloring rule
@@ -137,8 +146,7 @@ EIG_RE_LOG_END: Final[float] = 10**2
 EIG_IM_LOG_MIN: Final[float] = 10**(-10)
 
 # The number of grid points for epsilon-pseudospectrum
-NUM_EIG_RE_GRID: Final[int] = 100
-NUM_EIG_IM_GRID: Final[int] = 100
+NUM_EIG_GRID: Final[int] = 100
 
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
@@ -169,6 +177,11 @@ FIG_DPI: Final[int] = 600
 # The boolean value to switch whether to display the value of the
 # magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
+
+# The number of processes for multiprocessing
+NUM_PROCESS: Final[int] = set_num_process()
+# The number of threads for each process
+NUM_THREADS: Final[int] = 1
 
 # ================================ #
 
@@ -1119,34 +1132,36 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
     eig: ArrayComplex = results['eig'][i_alpha, :]
     eig_center: complex = (np.nanmax(eig.real)+np.nanmin(eig.real)) / 2 \
         + 1j * (np.nanmax(eig.imag)+np.nanmin(eig.imag)) / 2
+    half_width: float = max(
+        np.nanmax(eig.real) - np.nanmin(eig.real),
+        np.nanmax(eig.imag) - np.nanmin(eig.imag)
+    ) / 2
     eig_range: tuple[float, float, float, float] = (
-        eig_center.real - 1.1 * (np.nanmax(eig.real)-eig_center.real),
-        eig_center.real + 1.1 * (np.nanmax(eig.real)-eig_center.real),
-        eig_center.imag - 1.1 * (np.nanmax(eig.imag)-eig_center.imag),
-        eig_center.imag + 1.1 * (np.nanmax(eig.imag)-eig_center.imag),
-    )
+        eig_center.real - 1.1*half_width, eig_center.real + 1.1*half_width,
+        eig_center.imag - 1.1*half_width, eig_center.imag + 1.1*half_width)
 
-    lin_re: ArrayFloat = np.linspace(
-        eig_range[0], eig_range[1], NUM_EIG_RE_GRID)
-    lin_im: ArrayFloat = np.linspace(
-        eig_range[2], eig_range[3], NUM_EIG_IM_GRID)
+    lin_re: ArrayFloat = np.linspace(eig_range[0], eig_range[1], NUM_EIG_GRID)
+    lin_im: ArrayFloat = np.linspace(eig_range[2], eig_range[3], NUM_EIG_GRID)
     grid_re, grid_im = np.meshgrid(lin_re, lin_im)
 
     pseudospectrum: ArrayFloat = calc_pseudospectrum(alpha, eig_range)
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 5))
 
-    contour = plotter.axes.contourf(
-        grid_re, grid_im, pseudospectrum, cmap='inferno', norm=LogNorm())
+    contour: QuadContourSet = plotter.axes.contourf(
+        grid_re, grid_im, pseudospectrum, cmap='Blues', norm=LogNorm())
 
-    cbar = plotter.fig.colorbar(contour, ax=plotter.axes)
+    cbar: Colorbar = plotter.fig.colorbar(contour, ax=plotter.axes)
     cbar.ax.tick_params(labelsize=14)
-    cbar.set_label(label=r'$\sigma_\mathrm{min}(zI-A)$', size=16)
+    cbar.set_label(
+        label=r'$||(\lambda \mathsf{I}-\mathsf{A})^{-1}||$', size=16)
 
     plotter.axes.scatter(eig.real, eig.imag, s=2, c='black')
 
     plotter.axes.set_xlim(eig_range[0], eig_range[1])
     plotter.axes.set_ylim(eig_range[2], eig_range[3])
+
+    plotter.axes.set_aspect('equal')
 
     plotter.axes.set_xlabel(
         r'$\mathrm{Re}(\lambda)=\mathrm{Re}(\omega)/2\Omega_0$',
@@ -1182,10 +1197,8 @@ def calc_pseudospectrum(
         The minimum singular values on the complex grid.
     """
 
-    lin_re: ArrayFloat = np.linspace(
-        eig_range[0], eig_range[1], NUM_EIG_RE_GRID)
-    lin_im: ArrayFloat = np.linspace(
-        eig_range[2], eig_range[3], NUM_EIG_IM_GRID)
+    lin_re: ArrayFloat = np.linspace(eig_range[0], eig_range[1], NUM_EIG_GRID)
+    lin_im: ArrayFloat = np.linspace(eig_range[2], eig_range[3], NUM_EIG_GRID)
 
     submatrices: tuple[ArrayFloat | ArrayComplex,
                        ArrayFloat | ArrayComplex,
@@ -1197,15 +1210,74 @@ def calc_pseudospectrum(
     mat: ArrayFloat | ArrayComplex = create_mat(
         M_ORDER, alpha, E_ETA, submatrices, background_field=BG_FIELD)
 
-    identity: ArrayComplex = np.identity(mat.shape[0], dtype=np.complex128)
-    pseudospectrum: ArrayFloat = np.empty(
-        (NUM_EIG_IM_GRID, NUM_EIG_RE_GRID), dtype=np.float64)
+    identity: ArrayFloat = np.identity(mat.shape[0], dtype=np.float64)
 
-    for i_im, imag in enumerate(lin_im):
-        for i_re, real in enumerate(lin_re):
-            singular_values: ArrayFloat = svdvals(
-                (real + 1j * imag) * identity - mat)
-            pseudospectrum[i_im, i_re] = singular_values[-1]
+    shared_memories: tuple[SharedMemory, ...]
+    shared_info: SharedInfo
+    shared_memories, shared_info = create_shared_arrays(lin_re, mat, identity)
+
+    try:
+        args_list: list[tuple[float, SharedInfo]] = [
+            (eig_im, shared_info) for eig_im in lin_im
+        ]
+
+        pseudospectrum: ArrayFloat = np.empty(
+            (NUM_EIG_GRID, NUM_EIG_GRID), dtype=np.float64)
+
+        progress_bar: ProgressBar \
+            = create_function_name_progress_bar(NUM_EIG_GRID)
+        progress_bar.start()
+        with multiprocessing.Pool(processes=NUM_PROCESS,
+                                  initializer=set_num_threads,
+                                  initargs=(NUM_THREADS,)) as pool:
+            for i_im, result in enumerate(pool.imap(worker, args_list)):
+
+                pseudospectrum[i_im, :] = result
+                progress_bar.update(i_im, NUM_PROCESS)
+
+    finally:
+        detach_shared_arrays(*shared_memories, unlink=True)
+
+    return pseudospectrum
+
+
+def worker(args: tuple[float, SharedInfo]) -> ArrayFloat:
+    """Set the task for multiprocessing
+
+    Parameters
+    ----------
+    args : tuple[float, SharedInfo]
+        The arguments for the task
+
+    Returns
+    -------
+    result : ArrayFloat
+        The result of the task
+    """
+
+    eig_im: float
+    shared_info: SharedInfo
+    eig_im, shared_info = args
+
+    shared_memories_tmp: tuple[SharedMemory, ...]
+    shared_arrays_tmp: tuple[ArrayFloat | ArrayComplex, ...]
+    shared_memories_tmp, shared_arrays_tmp = attach_shared_arrays(shared_info)
+    shared_memories = cast(tuple[SharedMemory,
+                                 SharedMemory,
+                                 SharedMemory], shared_memories_tmp)
+    shared_arrays = cast(tuple[ArrayFloat,
+                               ArrayFloat | ArrayComplex,
+                               ArrayFloat], shared_arrays_tmp)
+    lin_re, mat, identity = shared_arrays
+
+    pseudospectrum: ArrayFloat = np.empty(NUM_EIG_GRID, dtype=np.float64)
+
+    for i_re, real in enumerate(lin_re):
+        singular_values: ArrayFloat \
+            = svdvals((real + 1j * eig_im) * identity - mat)
+        pseudospectrum[i_re] = singular_values[-1]
+
+    detach_shared_arrays(*shared_memories)
 
     return pseudospectrum
 
