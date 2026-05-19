@@ -1149,7 +1149,7 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 5))
 
     contour: QuadContourSet = plotter.axes.contourf(
-        grid_re, grid_im, pseudospectrum, cmap='Blues', norm=LogNorm())
+        grid_re, grid_im, pseudospectrum, cmap='Blues_r', norm=LogNorm())
 
     cbar: Colorbar = plotter.fig.colorbar(contour, ax=plotter.axes)
     cbar.ax.tick_params(labelsize=14)
@@ -1277,7 +1277,7 @@ def worker(args: tuple[float, SharedInfo]) -> ArrayFloat:
             = cast(ArrayFloat,
                    svdvals((real + 1j * eig_im) * identity - mat, overwrite_a=True, check_finite=False))
 
-        pseudospectrum[i_re] = singular_values[-1]
+        pseudospectrum[i_re] = 1 / singular_values[-1]
 
     detach_shared_arrays(*shared_memories)
 
@@ -1361,8 +1361,6 @@ if __name__ == '__main__':
         if (E_ETA != 0) and (CRITERION_Q > 0):
             data = screening_eig_q(
                 data, criterion_q=CRITERION_Q)
-
-        params = pickup_param(data)
 
         plot_eig_for_an_alpha(data)
 

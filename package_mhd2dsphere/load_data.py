@@ -92,25 +92,25 @@ def load_results(name_file: str,
         logger.error('File not found')
         sys.exit(1)
 
-    npz_kw = np.load(path_file, allow_pickle=True)
+    with np.load(path_file, allow_pickle=True) as npz_kw:
 
-    file_logger.info('Loaded')
+        file_logger.info('Loaded')
 
-    phys_qtys: DictPhysQtys = {
-        'pke': npz_kw['pke'],
-        'pme': npz_kw['pme'],
-        'psm': npz_kw['psm'],
-        'pse': npz_kw['pse'],
-        'ohm': npz_kw['ohm'],
-        'sym': npz_kw['sym']
-    }
+        phys_qtys: DictPhysQtys = {
+            'pke': npz_kw['pke'],
+            'pme': npz_kw['pme'],
+            'psm': npz_kw['psm'],
+            'pse': npz_kw['pse'],
+            'ohm': npz_kw['ohm'],
+            'sym': npz_kw['sym']
+        }
 
-    results: DictResult = {
-        'lin_alpha': npz_kw['lin_alpha'],
-        'eig': npz_kw['eig'],
-        'vec_psi': np.array([]),
-        'vec_vpa': np.array([]),
-        'phys_qtys': phys_qtys
-    }
+        results: DictResult = {
+            'lin_alpha': npz_kw['lin_alpha'],
+            'eig': npz_kw['eig'],
+            'vec_psi': np.array([]),
+            'vec_vpa': np.array([]),
+            'phys_qtys': phys_qtys
+        }
 
     return results
