@@ -506,6 +506,7 @@ def plot_eig(results: DictResult,
             elif SWITCH_COLOR == 'ohm':
                 scatter_color = ohm[i_alpha, :]
             elif SWITCH_COLOR == 'qmode':
+                scatter_color = np.full(SIZE_MAT, np.nan, dtype=np.float64)
                 if alpha != 0:
                     for i_mode in range(SIZE_MAT):
                         scatter_color[i_mode] = np.min(np.abs(
@@ -939,12 +940,14 @@ def plot_eig_log(results: DictResult,
             elif SWITCH_COLOR == 'pse':
                 scatter_color = pse[i_alpha, :]
             elif SWITCH_COLOR == 'qmode':
-                for i_mode in range(SIZE_MAT):
-                    scatter_color[i_mode] = np.min(np.abs(
-                        (M_ORDER*ROSSBY*LIN_BG_FIELD_U
-                         - eig[i_alpha, i_mode])**2
-                        / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
-                    ))
+                scatter_color = np.full(SIZE_MAT, np.nan, dtype=np.float64)
+                if alpha != 0:
+                    for i_mode in range(SIZE_MAT):
+                        scatter_color[i_mode] = np.min(np.abs(
+                            (M_ORDER*ROSSBY*LIN_BG_FIELD_U
+                             - eig[i_alpha, i_mode])**2
+                            / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
+                        ))
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
                 plotter_real.axes[0, 0].scatter(
