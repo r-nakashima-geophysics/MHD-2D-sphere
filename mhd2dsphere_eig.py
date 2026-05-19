@@ -49,13 +49,12 @@ import multiprocessing
 import os
 import sys
 from pathlib import Path
-from typing import cast
 
 import numpy as np
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
-                                         Final, SharedInfo, SharedMemory)
+                                         Final, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
@@ -63,7 +62,8 @@ from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
-from package_common.utils_parallel import (attach_shared_arrays,
+from package_common.utils_parallel import (SharedInfo, SharedMemory,
+                                           attach_shared_arrays,
                                            create_shared_arrays,
                                            detach_shared_arrays,
                                            set_num_process, set_num_threads)
@@ -199,8 +199,9 @@ def wrapper_solve_eig_for_lin_alpha(
 
     try:
         num_alpha: int
-        args_list: list[tuple[float,
-                              DictChebyshevGaussQuad | None, SharedInfo]]
+        args_list: list[
+            tuple[float, DictChebyshevGaussQuad | None, SharedInfo]
+        ]
         if not switch_log:
             num_alpha = NUM_ALPHA
             args_list = [(LIN_ALPHA[i_alpha], dict_quad, shared_info)
@@ -371,14 +372,8 @@ if __name__ == '__main__':
         logger.warning('Invalid settings')
         sys.exit(1)
 
-    quad: DictChebyshevGaussQuad | None
-    if SWITCH_NY24:
-        quad = None
-        logger.info(
-            'psm and pse are not calculated when SWITCH_NY24 == True.')
-    else:
-        quad = prepare_chebyshev_gauss_quad(
-            M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
+    quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
+        M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
 
     data: DictResult
 

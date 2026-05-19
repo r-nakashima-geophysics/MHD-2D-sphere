@@ -20,6 +20,7 @@ from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
                                          ArrayStr)
+from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_collocation import (ChebyshevGaussQuad,
@@ -39,7 +40,7 @@ def prepare_chebyshev_gauss_quad(
         rossby: float,
         size_submat: int,
         *,
-        background_field: DictBackgroundField) -> DictChebyshevGaussQuad:
+        background_field: DictBackgroundField) -> DictChebyshevGaussQuad | None:
     """Prepare the Chebyshev-Gauss quadrature.
 
     Parameters
@@ -58,6 +59,13 @@ def prepare_chebyshev_gauss_quad(
     quad : DictChebyshevGaussQuad
         The dictionary for the Chebyshev-Gauss quadrature.
     """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    if background_field['NY24']:
+        logger.info(
+            'psm and pse are not calculated when SWITCH_NY24 == True.')
+        return None
 
     timer: DefaultTimer = create_function_name_timer()
     timer.start()
