@@ -57,7 +57,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import transforms
 from matplotlib.colors import LogNorm, Normalize, TwoSlopeNorm
-from scipy.linalg import svd
+from scipy.linalg import svdvals
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
@@ -1203,10 +1203,8 @@ def calc_pseudospectrum(
 
     for i_im, imag in enumerate(lin_im):
         for i_re, real in enumerate(lin_re):
-            singular_values: np.ndarray = svd(
-                (real + 1j * imag) * identity - mat,
-                compute_uv=False,
-                check_finite=False)
+            singular_values: ArrayFloat = svdvals(
+                (real + 1j * imag) * identity - mat)
             pseudospectrum[i_im, i_re] = singular_values[-1]
 
     return pseudospectrum
