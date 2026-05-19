@@ -95,7 +95,7 @@ type Bbox = transforms.Bbox
 # SWITCH_PLOT[0]: The dispersion diagram for the linear-linear plot
 # SWITCH_PLOT[1]: The dispersion diagram for the log-log plot
 # SWITCH_PLOT[2]: The dispersion diagram for a chosen alpha
-SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (False, False, True)
+SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, False)
 ALPHA_CHOSEN: Final[float] = 1
 
 # The coloring rule
