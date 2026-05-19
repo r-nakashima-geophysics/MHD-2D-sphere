@@ -72,8 +72,8 @@ def screening_eig_q(results: DictResult,
     results = {
         'lin_alpha': lin_alpha,
         'eig': eig,
-        'vec_psi': None,
-        'vec_vpa': None,
+        'vec_psi': results['vec_psi'],
+        'vec_vpa': results['vec_vpa'],
         'phys_qtys': phys_qtys
     }
 

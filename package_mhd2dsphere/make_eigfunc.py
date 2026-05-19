@@ -12,9 +12,55 @@ from package_common.default_logger import DefaultLogger
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_input import input_value_within
 from package_common.utils_name import create_function_name_logger
+from package_mhd2dsphere._make_legendre import load_legendre
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
-                                            DictEigenmodeInfo, DictPhysQtys,
-                                            DictResult)
+                                            DictEigenmodeInfo, DictResult)
+
+
+def create_basis(
+        m_order: int,
+        n_t: int,
+        lin_theta: ArrayFloat,
+        *,
+        background_field: DictBackgroundField) -> ArrayFloat | ArrayComplex:
+    """Create basis functions for eigenfunctions
+
+    Parameters
+    ----------
+    lin_theta : ArrayFloat
+        The values of theta at grid points.
+    m_order : int
+        The zonal wavenumber (order).
+    n_t : int
+        The truncation degree.
+    background_field : DictBackgroundField
+        The background field.
+
+    Returns
+    -------
+    basis : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
+    """
+
+    num_theta: int = lin_theta.shape[0]
+
+    if background_field['NY24']:
+        return load_legendre(m_order, n_t, num_theta)
+
+    size_submat: int = n_t + 1
+    mu_complex: ComplexCoordinate = background_field['MU']
+
+    heinrichs_x: ArrayComplex = np.empty(
+        (size_submat, num_theta), dtype=np.complex128)
+    for i_theta, theta in enumerate(lin_theta):
+        x_pos = np.cos(theta)
+        s_pos = mu_complex.inverse(x_pos)
+
+        heinrichs_x[:, i_theta] = np.array(
+            [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
+        )
+
+    return heinrichs_x
 
 
 def choose_eigfunc(results: DictResult,
@@ -88,7 +134,7 @@ def choose_eigfunc(results: DictResult,
     print('==============================')
 
     result: DictEigenmodeInfo = {
-        'i_chosen': i_chosen,
+        'i_mode': i_chosen,
         'eig': results['eig'][i_chosen],
         'vec_psi': results['vec_psi'][:, i_chosen],
         'vec_vpa': results['vec_vpa'][:, i_chosen],
@@ -106,7 +152,7 @@ def choose_eigfunc(results: DictResult,
 def make_eigfunc(result: DictEigenmodeInfo,
                  m_order: int,
                  lin_theta: ArrayFloat,
-                 legendre: ArrayFloat | None,
+                 basis_func: ArrayFloat | ArrayComplex,
                  *,
                  background_field: DictBackgroundField) \
         -> tuple[ArrayComplex, ArrayComplex]:
@@ -120,8 +166,8 @@ def make_eigfunc(result: DictEigenmodeInfo,
         The zonal wavenumber (order).
     lin_theta : ArrayFloat
         The values of theta at grid points.
-    legendre : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
+    basis_func : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
     background_field : DictBackgroundField
         The background field.
 
@@ -137,37 +183,24 @@ def make_eigfunc(result: DictEigenmodeInfo,
     vec_vpa: ArrayComplex = result['vec_vpa']
 
     size_submat: int = vec_psi.shape[0]
+    num_theta: int = lin_theta.shape[0]
 
     psi: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
     vpa: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
 
-    n_degree: int
-    x_pos: float
-    if legendre is not None:
-
+    if background_field['NY24']:
+        n_degree: int
         for i_n in range(size_submat):
             n_degree = m_order + i_n
 
-            psi += vec_psi[i_n] * legendre[n_degree, :]
-            vpa += vec_vpa[i_n] * legendre[n_degree, :]
-
+            psi += vec_psi[i_n] * basis_func[n_degree, :]
+            vpa += vec_vpa[i_n] * basis_func[n_degree, :]
     else:
+        for i_theta in range(num_theta):
 
-        mu_complex: ComplexCoordinate = background_field['MU']
-        heinrichs_x: ArrayComplex
+            psi += basis_func[:, i_theta] @ vec_psi
+            vpa += basis_func[:, i_theta] @ vec_vpa
 
-        for theta in lin_theta:
-            x_pos = np.cos(theta)
-            s_pos = mu_complex.inverse(x_pos)
-
-            heinrichs_x = np.array(
-                [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
-            )
-
-            psi += heinrichs_x @ vec_psi
-            vpa += heinrichs_x @ vec_vpa
-
-    num_theta: int = lin_theta.shape[0]
     sign: int = adjust_sign(psi, num_theta)
 
     psi *= sign
@@ -176,11 +209,11 @@ def make_eigfunc(result: DictEigenmodeInfo,
     return psi, vpa
 
 
-def make_eigfunc_grid(result: DictResult,
+def make_eigfunc_grid(result: DictEigenmodeInfo,
                       m_order: int,
                       lin_theta: ArrayFloat,
                       lin_phi: ArrayFloat,
-                      legendre: ArrayFloat,
+                      basis_func: ArrayFloat | ArrayComplex,
                       *,
                       background_field: DictBackgroundField) \
         -> tuple[np.ndarray, np.ndarray]:
@@ -188,7 +221,7 @@ def make_eigfunc_grid(result: DictResult,
 
     Parameters
     ----------
-    result : DictResult
+    result : DictEigenmodeInfo
         A dictionary of result of an eigenmode which you chose.
     m_order : int
         The zonal wavenumber (order).
@@ -196,8 +229,8 @@ def make_eigfunc_grid(result: DictResult,
         The values of theta at grid points.
     lin_phi : ArrayFloat
         The values of phi at grid points.
-    legendre : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
+    basis_func : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
     background_field : DictBackgroundField
         The background field.
 
@@ -209,17 +242,17 @@ def make_eigfunc_grid(result: DictResult,
         The vector potential (a).
     """
 
+    psi: ArrayComplex
+    vpa: ArrayComplex
+    psi, vpa = make_eigfunc(result, m_order, lin_theta, basis_func,
+                            background_field=background_field)
+
     grid_phi: ArrayFloat
     grid_theta: ArrayFloat
     grid_phi, grid_theta = np.meshgrid(lin_phi, lin_theta[1:-1])
 
     psi_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
     vpa_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
-
-    psi: ArrayComplex
-    vpa: ArrayComplex
-    psi, vpa = make_eigfunc(result, m_order, lin_theta, legendre,
-                            background_field=background_field)
 
     psi_grid = np.meshgrid(lin_phi, psi[1:-1])[1]
     vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])[1]

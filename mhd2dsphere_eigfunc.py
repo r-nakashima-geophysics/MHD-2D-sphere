@@ -26,7 +26,6 @@ Examples
 $ python3 mhd2dsphere_eigfunc.py
 """
 
-import math
 import os
 from pathlib import Path
 from typing import Final
@@ -39,13 +38,13 @@ from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.decorator_yesno import exe_yes_continue
 from package_common.default_logger import DefaultLogger
+from package_common.default_plotter import DefaultPlotter, create_plotter
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
-from package_common.utils_debug import under_construction_log
 from package_mhd2dsphere import init_background_b, init_background_u
-from package_mhd2dsphere._make_legendre import load_legendre
 from package_mhd2dsphere.make_eigfunc import (amp_range, choose_eigfunc,
-                                              make_eigfunc, make_eigfunc_grid)
+                                              create_basis, make_eigfunc,
+                                              make_eigfunc_grid)
 from package_mhd2dsphere.solve_eig import (prepare_chebyshev_gauss_quad,
                                            wrapper_solve_eig)
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
@@ -142,62 +141,58 @@ GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
 @exe_yes_continue
 def wrapper_choose_eigfunc(results: DictResult,
                            *,
-                           legendre: ArrayFloat | None,
-                           legendre_skip: ArrayFloat | None) -> None:
+                           basis_func: ArrayFloat | ArrayComplex,
+                           basis_func_skip: ArrayFloat | ArrayComplex) -> None:
     """Choose eigenmodes which you want to plot.
 
     Parameters
     ----------
     results : DictResult
         A dictionary of results of the eigenvalue problem.
-    legendre : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
-    legendre_skip : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
+    basis_func : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
+    basis_func_skip : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
     """
 
-    result: DictResult
-    i_chosen: int
-    result, i_chosen = choose_eigfunc(results, SIZE_MAT)
+    result: DictEigenmodeInfo = choose_eigfunc(results, SIZE_MAT)
 
-    wrapper_plot_eigfunc(result, i_chosen,
-                         legendre=legendre, legendre_skip=legendre_skip)
+    wrapper_plot_eigfunc(
+        result, basis_func=basis_func, basis_func_skip=basis_func_skip)
 
 
-def wrapper_plot_eigfunc(result: DictResult,
-                         i_chosen: int,
+def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
                          *,
-                         legendre: ArrayFloat | None,
-                         legendre_skip: ArrayFloat | None) -> None:
+                         basis_func: ArrayFloat | ArrayComplex,
+                         basis_func_skip: ArrayFloat | ArrayComplex) -> None:
     """Plot figures of the eigenfunction of a chosen eigenmode.
 
     Parameters
     ----------
-    result : DictResult
+    result : DictEigenmodeInfo
         A dictionary of result of an eigenmode which you chose.
-    i_chosen : int
-        The index of the chosen eigenmode.
-    legendre : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
-    legendre_skip : ArrayFloat | None
-        The values of associated Legendre polynomials at grid points.
+    basis_func : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
+    basis_func_skip : ArrayFloat | ArrayComplex
+        The values of basis functions at grid points.
     """
 
     eig: complex = result['eig']
+    i_mode: int = result['i_mode']
 
     psi: ArrayComplex
     vpa: ArrayComplex
-    psi, vpa = make_eigfunc(result, M_ORDER, LIN_THETA,
-                            legendre, background_field=BG_FIELD)
+    psi, vpa = make_eigfunc(result, M_ORDER, LIN_THETA, basis_func,
+                            background_field=BG_FIELD)
 
     psi_grid: ArrayFloat
     vpa_grid: ArrayFloat
     psi_grid, vpa_grid = make_eigfunc_grid(
-        result, M_ORDER, LIN_THETA_SKIP, LIN_PHI, legendre_skip,
+        result, M_ORDER, LIN_THETA_SKIP, LIN_PHI, basis_func_skip,
         background_field=BG_FIELD)
 
-    plot_ns(psi, vpa, eig, i_chosen)
-    plot_map(psi_grid, vpa_grid, eig, i_chosen)
+    plot_ns(psi, vpa, eig, i_mode)
+    plot_map(psi_grid, vpa_grid, eig, i_mode)
 
     plt.show()
 
@@ -219,54 +214,48 @@ def plot_ns(psi: np.ndarray,
         An eigenvalue
     i_mode : int
         The index of a mode that you chose
-
     """
 
-    fig: plt.Figure
-    axis: plt.Axes
-    fig, axis = plt.subplots(figsize=(7, 4))
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 4))
 
-    axis.plot(LIN_THETA, psi.real, color='red',
-              label=r'stream function $\tilde{\psi}$')
-    axis.plot(LIN_THETA, vpa.real, color='blue',
-              label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
-              + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
+    plotter.axes.plot(LIN_THETA, psi.real, color='red',
+                      label=r'stream function $\tilde{\psi}$')
+    plotter.axes.plot(LIN_THETA, vpa.real, color='blue',
+                      label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
+                      + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
     if np.nanmax(np.abs(psi.imag)) > 0:
-        axis.plot(LIN_THETA, psi.imag, color='red', linestyle=':')
+        plotter.axes.plot(LIN_THETA, psi.imag, color='red', linestyle=':')
 
     if np.nanmax(np.abs(vpa.imag)) > 0:
-        axis.plot(LIN_THETA, vpa.imag, color='blue', linestyle=':')
+        plotter.axes.plot(LIN_THETA, vpa.imag, color='blue', linestyle=':')
 
     amp_max: float
     amp_min: float
     amp_max, amp_min = amp_range(psi, vpa)
 
-    axis.grid()
-    axis.set_xlim(0, np.pi)
-    axis.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
-    axis.set_xticklabels(['$0$', '$45$', '$90$', '$135$', '$180$'])
-    axis.set_ylim(amp_min, amp_max)
+    plotter.axes.set_xlim(0, np.pi)
+    plotter.axes.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
+    plotter.axes.set_xticklabels(['$0$', '$45$', '$90$', '$135$', '$180$'])
+    plotter.axes.set_ylim(amp_min, amp_max)
 
-    axis.set_xlabel('colatitude [degree]', fontsize=16)
-    axis.set_ylabel('amplitude', fontsize=16)
+    plotter.axes.set_xlabel('colatitude [degree]', fontsize=16)
+    plotter.axes.set_ylabel('amplitude', fontsize=16)
 
     if eig.imag == 0:
-        axis.set_title(
-            r'$\lambda=$' + f' {eig.real:8.5f}',
-            fontsize=16)
+        plotter.axes.set_title(
+            r'$\lambda=$' + f' {eig.real:8.5f}', fontsize=16)
     else:
-        axis.set_title(
+        plotter.axes.set_title(
             r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
-            + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
-            fontsize=16)
+            + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$', fontsize=16)
 
     if (not SWITCH_DISP_ETA) and (E_ETA == 0):
-        fig.suptitle(
+        plotter.fig.suptitle(
             r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}',
             fontsize=16)
     else:
-        fig.suptitle(
+        plotter.fig.suptitle(
             r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
             + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
             + r'$E_\eta=$' + f' {E_ETA}', fontsize=16)
@@ -386,32 +375,16 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
-    basis: ArrayFloat | None
-    quad: DictChebyshevGaussQuad | None
-    if SWITCH_NY24:
-        under_construction_log()
+    basis: ArrayFloat | ArrayComplex = create_basis(
+        M_ORDER, N_T, LIN_THETA, background_field=BG_FIELD)
+    basis_skip: ArrayFloat | ArrayComplex = create_basis(
+        M_ORDER, N_T, LIN_THETA_SKIP, background_field=BG_FIELD)
 
-        basis = load_legendre(M_ORDER, N_T, NUM_THETA)
-
-        quad = None
-        logger.info('psm and pse are not calculated when SWITCH_NY24 == True.')
-
-    else:
-        mu_complex: ComplexCoordinate = BG_FIELD['MU']
-        heinrichs_x: ArrayComplex
-        for theta in LIN_THETA:
-            x_pos = np.cos(theta)
-            s_pos = mu_complex.inverse(x_pos)
-
-            heinrichs_x[] = np.array(
-                [heinrichs(i_n, s_pos) for i_n in range(SIZE_SUBMAT)]
-            )
-
-        quad = prepare_chebyshev_gauss_quad(
-            M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
+    quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
+        M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
 
     data: DictResult = wrapper_solve_eig(
         M_ORDER, ALPHA, E_ETA, ROSSBY, SIZE_SUBMAT,
         criterion_c=CRITERION_C, background_field=BG_FIELD, dict_quad=quad)
 
-    wrapper_choose_eigfunc(data, basis_func=basis)
+    wrapper_choose_eigfunc(data, basis_func=basis, basis_func_skip=basis_skip)

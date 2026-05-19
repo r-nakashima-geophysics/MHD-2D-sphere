@@ -49,7 +49,7 @@ class DictPhysQtys(TypedDict):
 class DictEigenmodeInfo(TypedDict):
     """Typed dictionary for eigenmode information."""
 
-    i_chosen: int
+    i_mode: int
     eig: complex
     vec_psi: ArrayComplex
     vec_vpa: ArrayComplex
