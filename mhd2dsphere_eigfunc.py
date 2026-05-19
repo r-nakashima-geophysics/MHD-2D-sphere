@@ -145,12 +145,12 @@ GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
 
 TEXT_TITLE: Final[str] \
     = f'Eigenfunction [{TEX_BG_FIELD}] : ' \
-    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}' \
+    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
     + r'$R=$' + f' {ROSSBY}' \
     if ((not SWITCH_DISP_ETA) and (E_ETA == 0)) \
     else f'Eigenfunction [{TEX_BG_FIELD}] : ' \
     + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
-    + r'$E_\eta=$' + f' {E_ETA}' + r'$R=$' + f' {ROSSBY}'
+    + r'$E_\eta=$' + f' {E_ETA}, ' + r'$R=$' + f' {ROSSBY}'
 
 
 @exe_yes_continue
@@ -355,6 +355,23 @@ def plot_map(psi_grid: np.ndarray,
 if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
+
+    if SWITCH_NY24:
+        logger.show_params(f'{SWITCH_NY24=}',
+                           f'{M_ORDER=}',
+                           f'{ALPHA=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}')
+    else:
+        logger.show_params(f'{BG_FIELD_B.name=}',
+                           f'{BG_FIELD_U.name=}',
+                           f'{MU_COMPLEX.name=}',
+                           f'{M_ORDER=}',
+                           f'{ALPHA=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}')
 
     basis: ArrayFloat | ArrayComplex = create_basis(
         M_ORDER, N_T, LIN_THETA, background_field=BG_FIELD)
