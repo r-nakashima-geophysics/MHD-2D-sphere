@@ -1154,7 +1154,7 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
     cbar: Colorbar = plotter.fig.colorbar(contour, ax=plotter.axes)
     cbar.ax.tick_params(labelsize=14)
     cbar.set_label(
-        label=r'$||(\lambda \mathsf{I}-\mathsf{A})^{-1}||$', size=16)
+        label=r'$\|(\lambda \mathsf{I}-\mathsf{A})^{-1}\|$', size=16)
 
     plotter.axes.scatter(eig.real, eig.imag, s=2, c='black')
 
@@ -1274,7 +1274,9 @@ def worker(args: tuple[float, SharedInfo]) -> ArrayFloat:
 
     for i_re, real in enumerate(lin_re):
         singular_values: ArrayFloat \
-            = svdvals((real + 1j * eig_im) * identity - mat)
+            = cast(ArrayFloat,
+                   svdvals((real + 1j * eig_im) * identity - mat, overwrite_a=True, check_finite=False))
+
         pseudospectrum[i_re] = singular_values[-1]
 
     detach_shared_arrays(*shared_memories)
