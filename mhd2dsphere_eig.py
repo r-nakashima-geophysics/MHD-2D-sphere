@@ -165,6 +165,8 @@ LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
 SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
+DICT_QUAD_4WORKER: DictChebyshevGaussQuad | None = None
+
 
 def wrapper_solve_eig_for_lin_alpha(
         *,
@@ -199,16 +201,14 @@ def wrapper_solve_eig_for_lin_alpha(
 
     try:
         num_alpha: int
-        args_list: list[
-            tuple[float, DictChebyshevGaussQuad | None, SharedInfo]
-        ]
+        args_list: list[tuple[float, SharedInfo]]
         if not switch_log:
             num_alpha = NUM_ALPHA
-            args_list = [(LIN_ALPHA[i_alpha], dict_quad, shared_info)
+            args_list = [(LIN_ALPHA[i_alpha], shared_info)
                          for i_alpha in range(NUM_ALPHA)]
         else:
             num_alpha = NUM_ALPHA_LOG
-            args_list = [(10**LIN_ALPHA_LOG[i_alpha], dict_quad, shared_info)
+            args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
                          for i_alpha in range(NUM_ALPHA_LOG)]
 
         eig: ArrayComplex \
@@ -224,8 +224,8 @@ def wrapper_solve_eig_for_lin_alpha(
             = create_function_name_progress_bar(num_alpha)
         progress_bar.start()
         with multiprocessing.Pool(processes=NUM_PROCESS,
-                                  initializer=set_num_threads,
-                                  initargs=(NUM_THREADS,)) as pool:
+                                  initializer=init_worker,
+                                  initargs=(NUM_THREADS, dict_quad)) as pool:
             for i_alpha, result in enumerate(pool.imap(worker, args_list)):
 
                 eig[i_alpha, :] = result['eig']
@@ -261,12 +261,25 @@ def wrapper_solve_eig_for_lin_alpha(
     return results
 
 
-def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> DictResult:
+def init_worker(num_threads: int,
+                dict_quad: DictChebyshevGaussQuad | None) -> None:
+    """Initialize each worker process once.
+
+    This avoids sending `dict_quad` for every task.
+    """
+
+    global DICT_QUAD_4WORKER
+
+    set_num_threads(num_threads)
+    DICT_QUAD_4WORKER = dict_quad
+
+
+def worker(args: tuple[float, SharedInfo]) -> DictResult:
     """Set the task for multiprocessing.
 
     Parameters
     ----------
-    args : tuple[float, DictChebyshevGaussQuad | None, SharedInfo]
+    args : tuple[float, SharedInfo]
         The arguments for the task.
 
     Returns
@@ -276,9 +289,10 @@ def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> Dic
     """
 
     alpha: float
-    dict_quad: DictChebyshevGaussQuad | None
     shared_info: SharedInfo
-    alpha, dict_quad, shared_info = args
+    alpha, shared_info = args
+
+    dict_quad: DictChebyshevGaussQuad | None = DICT_QUAD_4WORKER
 
     shared_memories_tmp: tuple[SharedMemory, ...]
     submatrices_tmp: tuple[ArrayFloat | ArrayComplex, ...]
