@@ -271,7 +271,7 @@ def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> Dic
 
     Returns
     -------
-    DictResult
+    result : DictResult
         The results of the task.
     """
 
@@ -297,10 +297,15 @@ def worker(args: tuple[float, DictChebyshevGaussQuad | None, SharedInfo]) -> Dic
 
     detach_shared_arrays(*shared_memories)
 
-    return solve_eig(M_ORDER, alpha, E_ETA, mat,
-                     criterion_c=CRITERION_C,
-                     background_field=BG_FIELD,
-                     dict_quad=dict_quad)
+    result: DictResult = solve_eig(M_ORDER, alpha, E_ETA, mat,
+                                   criterion_c=CRITERION_C,
+                                   background_field=BG_FIELD,
+                                   dict_quad=dict_quad)
+
+    result['vec_psi'] = np.array([])
+    result['vec_vpa'] = np.array([])
+
+    return result
 
 
 def save_results(results: DictResult,

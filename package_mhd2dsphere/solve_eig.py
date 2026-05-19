@@ -285,8 +285,11 @@ def solve_eig(m_order: int,
     eig_val: ArrayComplex
     eig_vec: ArrayComplex
     eig_val, eig_vec = np.linalg.eig(mat)
+    del mat
 
     eig_valvec: ArrayComplex = sort_eig(eig_val, eig_vec)
+    del eig_val, eig_vec
+
     eig_valvec = normalize_eigvec(m_order, eig_valvec,
                                   background_field=background_field,
                                   dict_quad=dict_quad)
