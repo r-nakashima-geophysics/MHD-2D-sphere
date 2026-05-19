@@ -38,7 +38,8 @@ from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat
 from package_common.decorator_yesno import exe_yes_continue
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import DefaultPlotter, create_plotter
+from package_common.default_plotter import (Colorbar, DefaultPlotter,
+                                            QuadContourSet, create_plotter)
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
 from package_mhd2dsphere import init_background_b, init_background_u
@@ -117,6 +118,11 @@ BG_FIELD: Final[DictBackgroundField] = {
     'NY24': SWITCH_NY24,
 }
 
+TEX_BG_FIELD: Final[str] \
+    = r'$B_{0\phi}=B_0\sin\theta\cos\theta$, $U_{0\phi}=0$' \
+    if SWITCH_NY24 \
+    else f'{BG_FIELD_B.tex}, {BG_FIELD_U.tex}'
+
 CRITERION_C: Final[DictCriterionC] = {
     'degree': N_C,
     'ratio': R_C
@@ -136,6 +142,15 @@ GRID_PHI, GRID_THETA = np.meshgrid(LIN_PHI, LIN_THETA_SKIP[1:-1])
 GRID_LAT: Final[ArrayFloat] = np.rad2deg(
     np.full_like(GRID_THETA, np.pi/2) - GRID_THETA)
 GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
+
+TEXT_TITLE: Final[str] \
+    = f'Eigenfunction [{TEX_BG_FIELD}] : ' \
+    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}' \
+    + r'$R=$' + f' {ROSSBY}' \
+    if ((not SWITCH_DISP_ETA) and (E_ETA == 0)) \
+    else f'Eigenfunction [{TEX_BG_FIELD}] : ' \
+    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
+    + r'$E_\eta=$' + f' {E_ETA}' + r'$R=$' + f' {ROSSBY}'
 
 
 @exe_yes_continue
@@ -202,18 +217,18 @@ def plot_ns(psi: np.ndarray,
             eig: complex,
             i_mode: int) -> None:
     """Plot a figure of the eigenfunction of a chosen eigenmode
-    (north-south 1D plot)
+    (north-south 1D plot).
 
     Parameters
     ----------
     psi : ndarray
-        An eigenfunction of the stream function (psi)
+        The stream function (psi) of an eigenmode which you chose.
     vpa : ndarray
-        An eigenfunction of the vector potential (a)
+        The vector potential (a) of an eigenmode which you chose.
     eig : complex
-        An eigenvalue
+        The eigenvalue of an eigenmode which you chose.
     i_mode : int
-        The index of a mode that you chose
+        The index of an eigenmode which you chose.
     """
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 4))
@@ -249,38 +264,22 @@ def plot_ns(psi: np.ndarray,
             r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
             + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$', fontsize=16)
 
-    if (not SWITCH_DISP_ETA) and (E_ETA == 0):
-        plotter.fig.suptitle(
-            r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}',
-            fontsize=16)
-    else:
-        plotter.fig.suptitle(
-            r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
-            + r'$E_\eta=$' + f' {E_ETA}', fontsize=16)
+    plotter.fig.suptitle(TEXT_TITLE, fontsize=16)
 
-    leg: plt.Legend = axis.legend(loc='best', fontsize=11)
-    leg.get_frame().set_alpha(1)
+    plotter.leg = plotter.axes.legend(loc='best', fontsize=11)
 
-    axis.tick_params(labelsize=14)
-    axis.minorticks_on()
+    plotter.axes.tick_params(labelsize=14)
 
-    fig.tight_layout()
-
-    name_fig_full: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[0]
-
-    os.makedirs(PATH_DIR_FIG, exist_ok=True)
-    path_fig: Path = PATH_DIR_FIG / name_fig_full
-    fig.savefig(path_fig, dpi=FIG_DPI)
+    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[0]
+    plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
 def plot_map(psi_grid: np.ndarray,
              vpa_grid: np.ndarray,
              eig: complex,
              i_mode: int) -> None:
-    """Plots a figure of the eigenfunction of a chosen eigenmode (2D
-    contour map)
+    """Plot a figure of the eigenfunction of a chosen eigenmode (2D
+    contour map).
 
     Parameters
     ----------
@@ -292,17 +291,12 @@ def plot_map(psi_grid: np.ndarray,
         An eigenvalue
     i_mode : int
         The index of a mode that you chose
-
     """
 
-    fig: plt.Figure
-    axes: np.ndarray
-    fig, axes = plt.subplots(
+    plotter: DefaultPlotter = create_plotter(
         1, 2, figsize=(10, 5),
         subplot_kw={'projection':
                     ccrs.Mollweide(central_longitude=0.0)})
-
-    cfs: list = [None, ] * 2
 
     max_psi: float = np.nanmax(np.abs(psi_grid))
     max_vpa: float = np.nanmax(np.abs(vpa_grid))
@@ -312,63 +306,50 @@ def plot_map(psi_grid: np.ndarray,
     level_vpa: np.ndarray \
         = np.arange(-max_vpa, 1.2*max_vpa, 0.2*max_vpa)
 
-    cfs[0] = axes[0].contourf(
+    contour1: QuadContourSet = plotter.axes[0].contourf(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
         transform=ccrs.PlateCarree(),
         vmin=-max_psi, vmax=max_psi, cmap='bwr_r')
-    axes[0].contour(
+    plotter.axes[0].contour(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
         transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
 
-    cfs[1] = axes[1].contourf(
+    contour2: QuadContourSet = plotter.axes[1].contourf(
         GRID_LON, GRID_LAT, vpa_grid, levels=level_vpa,
         transform=ccrs.PlateCarree(),
         vmin=-max_vpa, vmax=max_vpa, cmap='PiYG_r')
-    axes[1].contour(
+    plotter.axes[1].contour(
         GRID_LON, GRID_LAT, vpa_grid, levels=level_vpa,
         transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
 
-    axes[0].gridlines(linestyle=':')
-    axes[1].gridlines(linestyle=':')
+    plotter.axes[0].gridlines(linestyle=':')
+    plotter.axes[1].gridlines(linestyle=':')
 
-    cbar1 = fig.colorbar(cfs[0], ax=axes[0], orientation='horizontal')
-    cbar2 = fig.colorbar(cfs[1], ax=axes[1], orientation='horizontal')
+    cbar1: Colorbar = plotter.fig.colorbar(
+        contour1, ax=plotter.axes[0], orientation='horizontal')
+    cbar2: Colorbar = plotter.fig.colorbar(
+        contour2, ax=plotter.axes[1], orientation='horizontal')
     cbar1.ax.tick_params(labelsize=14)
     cbar2.ax.tick_params(labelsize=14)
 
-    axes[0].set_title(r'stream function $\psi_1$', fontsize=16)
-    axes[1].set_title(
+    plotter.axes[0].set_title(r'stream function $\psi_1$', fontsize=16)
+    plotter.axes[1].set_title(
         r'vector potential $\mathrm{sgn}(\alpha)a_1'
         + r'/\sqrt{\rho_0\mu_\mathrm{m}}$', fontsize=16)
 
-    if (not SWITCH_DISP_ETA) and (E_ETA == 0):
-        fig.suptitle(
-            r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}\n\n'
-            + r'$\lambda=$' + f' {eig.real:8.5f}',
-            fontsize=16)
-    elif eig.imag == 0:
-        fig.suptitle(
-            r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
-            + r'$E_\eta=$' + f' {E_ETA}\n\n'
-            + r'$\lambda=$' + f' {eig.real:8.5f}',
+    if np.isclose(eig.imag, 0):
+        plotter.fig.suptitle(
+            TEXT_TITLE + f'\n\n' + r'$\lambda=$' + f' {eig.real:8.5f}',
             fontsize=16)
     else:
-        fig.suptitle(
-            r'Eigenfunction [$B_{0\phi}=B_0\sin\theta\cos\theta$] : '
-            + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, '
-            + r'$E_\eta=$' + f' {E_ETA}\n\n'
+        plotter.fig.suptitle(
+            TEXT_TITLE + f'\n\n'
             + r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
             + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
             fontsize=16)
 
-    fig.tight_layout()
-
-    name_fig_full: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[1]
-
-    path_fig: Path = PATH_DIR / name_fig_full
-    fig.savefig(path_fig, dpi=FIG_DPI)
+    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[1]
+    plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
 if __name__ == '__main__':
