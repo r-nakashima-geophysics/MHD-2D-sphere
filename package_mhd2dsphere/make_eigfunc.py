@@ -285,7 +285,7 @@ def adjust_sign(psi: ArrayComplex,
         The sign of the eigenfunction.
     """
 
-    width: int = np.max(int(num_theta*0.01), 1)
+    width: int = max(int(num_theta*0.01), 1)
 
     i_equator: int
     if num_theta % 2 == 1:
