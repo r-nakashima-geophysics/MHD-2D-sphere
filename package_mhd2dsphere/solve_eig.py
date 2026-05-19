@@ -313,7 +313,7 @@ def solve_eig(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
     result: DictResult = {
-        'lin_alpha': None,
+        'lin_alpha': np.array([]),
         'eig': eig_valvec[size_mat, :],
         'vec_psi': eig_valvec[:size_submat, :],
         'vec_vpa': eig_valvec[size_submat:size_mat, :],

@@ -126,7 +126,9 @@ def choose_eigfunc(results: DictResult,
 
         logger.error('Invalid eigenmode')
 
-    q_value = np.abs(eig[i_chosen].real) / (-2*eig[i_chosen].imag)
+    q_value = np.inf
+    if eig[i_chosen].imag != 0:
+        q_value = np.abs(eig[i_chosen].real) / (-2*eig[i_chosen].imag)
     print(f'You chose: ({i_chosen+1:04})  '
           + f'[{eig[i_chosen].real:8.5f},{eig[i_chosen].imag:8.5f}] '
           + f'{sym[i_chosen]:>9s}  Q={q_value:4.2f}  '
@@ -198,8 +200,8 @@ def make_eigfunc(result: DictEigenmodeInfo,
     else:
         for i_theta in range(num_theta):
 
-            psi += basis_func[:, i_theta] @ vec_psi
-            vpa += basis_func[:, i_theta] @ vec_vpa
+            psi[i_theta] = basis_func[:, i_theta] @ vec_psi
+            vpa[i_theta] = basis_func[:, i_theta] @ vec_vpa
 
     sign: int = adjust_sign(psi, num_theta)
 
@@ -254,8 +256,8 @@ def make_eigfunc_grid(result: DictEigenmodeInfo,
     psi_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
     vpa_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
 
-    psi_grid = np.meshgrid(lin_phi, psi[1:-1])[1]
-    vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])[1]
+    _, psi_grid = np.meshgrid(lin_phi, psi[1:-1])
+    _, vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])
 
     phase: ArrayComplex \
         = np.cos(m_order * grid_phi) + 1j*np.sin(m_order * grid_phi)
