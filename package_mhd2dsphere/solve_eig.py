@@ -443,15 +443,19 @@ def calc_qty(m_order: int,
     even: ArrayFloat = np.zeros(size_mat)
     odd: ArrayFloat = np.zeros(size_mat)
     sym: ArrayStr = np.empty(size_mat, dtype=np.str_)
-    for i_n in range(int(size_submat/2)):
-        even += np.abs(eig_valvec[2*i_n, :])
-        odd += np.abs(eig_valvec[2*i_n+1, :])
-
-    for i_mode in range(size_mat):
-        if even[i_mode] > odd[i_mode]:
+    if 'malsincos' in background_field['B'].name:
+        for i_mode in range(size_mat):
             sym[i_mode] = 'sinuous'
-        else:
-            sym[i_mode] = 'varicose'
+    else:
+        for i_n in range(int(size_submat/2)):
+            even += np.abs(eig_valvec[2*i_n, :])
+            odd += np.abs(eig_valvec[2*i_n+1, :])
+
+        for i_mode in range(size_mat):
+            if even[i_mode] > odd[i_mode]:
+                sym[i_mode] = 'sinuous'
+            else:
+                sym[i_mode] = 'varicose'
 
     phys_qtys: DictPhysQtys = {
         'pke': pke,
