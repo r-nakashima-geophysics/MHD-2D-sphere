@@ -26,7 +26,6 @@ Examples
 $ python3 mhd2dsphere_eigfunc.py
 """
 
-import os
 from pathlib import Path
 from typing import Final
 
