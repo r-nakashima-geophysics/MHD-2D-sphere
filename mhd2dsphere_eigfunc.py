@@ -338,11 +338,11 @@ def plot_map(psi_grid: np.ndarray,
 
     if np.isclose(eig.imag, 0):
         plotter.fig.suptitle(
-            TEXT_TITLE + f'\n\n' + r'$\lambda=$' + f' {eig.real:8.5f}',
+            TEXT_TITLE + '\n\n' + r'$\lambda=$' + f' {eig.real:8.5f}',
             fontsize=16)
     else:
         plotter.fig.suptitle(
-            TEXT_TITLE + f'\n\n'
+            TEXT_TITLE + '\n\n'
             + r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
             + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
             fontsize=16)

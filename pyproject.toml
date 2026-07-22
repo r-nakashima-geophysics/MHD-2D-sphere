@@ -16,4 +16,6 @@ dependencies = [
     "pycodestyle>=2.14.0",
     "pylint>=4.0.6",
     "scipy>=1.18.0",
+    "scipy-stubs>=1.18.0.1",
+    "types-psutil>=7.2.2.20260518",
 ]

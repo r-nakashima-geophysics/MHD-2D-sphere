@@ -1,8 +1,6 @@
 """A Python module to construct the instances of BackgroundField class
 for background zonal flows, U_phi = U_0 U(theta) sin(theta)."""
 
-import sys
-
 from package_common.background_field import BackgroundField
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger

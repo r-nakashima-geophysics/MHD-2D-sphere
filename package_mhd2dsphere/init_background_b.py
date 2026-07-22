@@ -1,8 +1,6 @@
 """A Python module to construct the instances of BackgroundField class
 for toroidal background fields, B_phi = B_0 B(theta) sin(theta)."""
 
-import sys
-
 import numpy as np
 
 from package_common.background_field import BackgroundField
