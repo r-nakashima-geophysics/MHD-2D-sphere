@@ -84,7 +84,7 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(

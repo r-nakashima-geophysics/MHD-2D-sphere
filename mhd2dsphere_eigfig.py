@@ -108,7 +108,7 @@ ALPHA_CHOSEN: Final[float] = 1
 SWITCH_COLOR: Final[str] = 'ene'
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
