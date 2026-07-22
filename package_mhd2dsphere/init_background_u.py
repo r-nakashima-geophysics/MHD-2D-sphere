@@ -79,4 +79,3 @@ def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
                                tex=tex)
 
     logger.error('Invalid argument')
-    sys.exit(1)

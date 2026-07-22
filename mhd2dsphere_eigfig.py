@@ -230,7 +230,8 @@ CBAR_LABEL: Final[str] \
             'pseudoenergy' if SWITCH_COLOR == 'pse' else (
                 'ohmic dissipation' if SWITCH_COLOR == 'ohm' else (
                     r'$\displaystyle{\min_\theta}$'
-                    + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2-\mathcal{B}^2|$'
+                    + r'$|(mR\mathcal{U}-\lambda)^2/m^2\alpha^2$'
+                    + r'-\mathcal{B}^2|$'
                     if SWITCH_COLOR == 'qmode' else '')
             )
         )
@@ -1278,7 +1279,8 @@ def worker(args: tuple[float, SharedInfo]) -> ArrayFloat:
     for i_re, real in enumerate(lin_re):
         singular_values: ArrayFloat \
             = cast(ArrayFloat,
-                   svdvals((real + 1j * eig_im) * identity - mat, overwrite_a=True, check_finite=False))
+                   svdvals((real + 1j * eig_im) * identity - mat,
+                           overwrite_a=True, check_finite=False))
 
         pseudospectrum[i_re] = 1 / singular_values[-1]
 
@@ -1299,21 +1301,20 @@ if __name__ == '__main__':
 
     if SWITCH_COLOR not in ('blk', 'ene', 'ohm', 'psm', 'pse', 'qmode'):
         logger.error('Invalid value for \'SWITCH_COLOR\'')
-        sys.exit(1)
 
     if (SWITCH_COLOR == 'blk') and (
             MU_COMPLEX.check_spectral_deform() or (E_ETA != 0)):
         logger.warning('Meaningless figures are plotted')
-        sys.exit(1)
+        sys.exit(0)
 
     if (SWITCH_COLOR == 'ohm') and (E_ETA == 0):
         logger.warning('Meaningless figures are plotted')
-        sys.exit(1)
+        sys.exit(0)
 
     if (SWITCH_COLOR == 'qmode') \
             and (not MU_COMPLEX.check_spectral_deform()):
         logger.warning('Meaningless figures are plotted')
-        sys.exit(1)
+        sys.exit(0)
 
     if SWITCH_NY24:
         logger.show_params(f'{SWITCH_NY24=}',

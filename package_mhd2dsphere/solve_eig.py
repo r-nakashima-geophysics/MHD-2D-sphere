@@ -36,11 +36,12 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 
 
 def prepare_chebyshev_gauss_quad(
-        m_order: int,
-        rossby: float,
-        size_submat: int,
-        *,
-        background_field: DictBackgroundField) -> DictChebyshevGaussQuad | None:
+    m_order: int,
+    rossby: float,
+    size_submat: int,
+    *,
+    background_field: DictBackgroundField) \
+        -> DictChebyshevGaussQuad | None:
     """Prepare the Chebyshev-Gauss quadrature.
 
     Parameters

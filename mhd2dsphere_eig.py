@@ -388,8 +388,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if (E_ETA != 0) and MU_COMPLEX.check_spectral_deform():
-        logger.warning('Invalid settings')
-        sys.exit(1)
+        logger.error('Invalid settings')
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
         M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
