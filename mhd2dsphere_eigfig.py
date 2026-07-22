@@ -1051,7 +1051,7 @@ def plot_eig_log(results: DictResult,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(4)
 
-    mask_x: np.ndarray = lin_alpha
+    mask_x: ArrayFloat = lin_alpha
     plotter_imag.axes[0, 0].fill_between(
         mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     plotter_imag.axes[0, 1].fill_between(

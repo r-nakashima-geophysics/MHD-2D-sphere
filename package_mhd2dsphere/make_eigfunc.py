@@ -218,7 +218,7 @@ def make_eigfunc_grid(result: DictEigenmodeInfo,
                       basis_func: ArrayFloat | ArrayComplex,
                       *,
                       background_field: DictBackgroundField) \
-        -> tuple[np.ndarray, np.ndarray]:
+        -> tuple[ArrayFloat, ArrayFloat]:
     """Make a meshgrid of an eigenfunction from an eigenvector
 
     Parameters
@@ -238,9 +238,9 @@ def make_eigfunc_grid(result: DictEigenmodeInfo,
 
     Returns
     ----------
-    psi_grid.real : ArrayComplex
+    psi_grid.real : ArrayFloat
         The stream function (psi).
-    vpa_grid.real : ArrayComplex
+    vpa_grid.real : ArrayFloat
         The vector potential (a).
     """
 
@@ -250,12 +250,10 @@ def make_eigfunc_grid(result: DictEigenmodeInfo,
                             background_field=background_field)
 
     grid_phi: ArrayFloat
-    grid_theta: ArrayFloat
-    grid_phi, grid_theta = np.meshgrid(lin_phi, lin_theta[1:-1])
+    grid_phi, _ = np.meshgrid(lin_phi, lin_theta[1:-1])
 
-    psi_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
-    vpa_grid: ArrayComplex = np.zeros_like(grid_theta, dtype=np.complex128)
-
+    psi_grid: ArrayComplex
+    vpa_grid: ArrayComplex
     _, psi_grid = np.meshgrid(lin_phi, psi[1:-1])
     _, vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])
 

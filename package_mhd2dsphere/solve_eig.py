@@ -83,12 +83,12 @@ def prepare_chebyshev_gauss_quad(
         return (-1) * spherical_laplacian_heinrichs(
             m_order, n_degree, s_pos, mu_complex=mu_complex)
 
-    def weight_psm_1(s_pos: float) -> float:
+    def _weight_psm_1(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         b_mu = bg_field_b.r_value(mu)
         return (-1) / (4 * b_mu)
 
-    def weight_psm_2(s_pos: float) -> float:
+    def _weight_psm_2(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         b_mu = bg_field_b.r_value(mu)
         u_shear_mu = (
@@ -98,17 +98,17 @@ def prepare_chebyshev_gauss_quad(
         )
         return (-1) * (rossby*u_shear_mu-1) / (4 * (b_mu**2))
 
-    def weight_pse_u1(s_pos: float) -> float:
+    def _weight_pse_u1(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         u_mu = bg_field_u.r_value(mu)
-        return 4 * rossby * u_mu * weight_psm_1(s_pos)
+        return 4 * rossby * u_mu * _weight_psm_1(s_pos)
 
-    def weight_pse_u2(s_pos: float) -> float:
+    def _weight_pse_u2(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         u_mu = bg_field_u.r_value(mu)
-        return 4 * rossby * u_mu * weight_psm_2(s_pos)
+        return 4 * rossby * u_mu * _weight_psm_2(s_pos)
 
-    def weight_pse_b(s_pos: float) -> float:
+    def _weight_pse_b(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         b_mu = bg_field_b.r_value(mu)
         b_shear_mu = (
@@ -118,7 +118,7 @@ def prepare_chebyshev_gauss_quad(
         )
         return b_shear_mu / b_mu
 
-    def weight_psm_hd(s_pos: float) -> float:
+    def _weight_psm_hd(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         u_shear_mu = (
             bg_field_u.r_value_d2(mu) * (1-(mu**2))
@@ -127,10 +127,10 @@ def prepare_chebyshev_gauss_quad(
         )
         return 1 / (4 * (rossby*u_shear_mu-1))
 
-    def weight_pse_hd(s_pos: float) -> float:
+    def _weight_pse_hd(s_pos: float) -> float:
         mu = mu_complex.r_value(s_pos)
         u_mu = bg_field_u.r_value(mu)
-        return 4 * rossby * u_mu * weight_psm_hd(s_pos)
+        return 4 * rossby * u_mu * _weight_psm_hd(s_pos)
 
     quad: DictChebyshevGaussQuad = {
         'quad_pke': ChebyshevGaussQuad(
@@ -144,27 +144,27 @@ def prepare_chebyshev_gauss_quad(
         'quad_psm_1': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
-            weight=weight_psm_1
+            weight=_weight_psm_1
         ),
         'quad_psm_2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_psm_2
+            weight=_weight_psm_2
         ),
         'quad_pse_u1': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_u1
+            weight=_weight_pse_u1
         ),
         'quad_pse_u2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_u2
+            weight=_weight_pse_u2
         ),
         'quad_pse_b': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_b
+            weight=_weight_pse_b
         ),
         'quad_ohm': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
@@ -173,12 +173,12 @@ def prepare_chebyshev_gauss_quad(
         'quad_psm_hd': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs,
-            weight=weight_psm_hd
+            weight=_weight_psm_hd
         ),
         'quad_pse_hd': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs,
-            weight=weight_pse_hd
+            weight=_weight_pse_hd
         ),
     }
 

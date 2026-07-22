@@ -134,8 +134,8 @@ LIN_THETA: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA)
 LIN_THETA_SKIP: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA_SKIP)
 LIN_PHI: Final[ArrayFloat] = np.linspace(0, 2*np.pi, NUM_PHI)
 
-GRID_PHI: np.ndarray
-GRID_THETA: np.ndarray
+GRID_PHI: ArrayFloat
+GRID_THETA: ArrayFloat
 GRID_PHI, GRID_THETA = np.meshgrid(LIN_PHI, LIN_THETA_SKIP[1:-1])
 
 GRID_LAT: Final[ArrayFloat] = np.rad2deg(
@@ -211,8 +211,8 @@ def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
     plt.show()
 
 
-def plot_ns(psi: np.ndarray,
-            vpa: np.ndarray,
+def plot_ns(psi: ArrayComplex,
+            vpa: ArrayComplex,
             eig: complex,
             i_mode: int) -> None:
     """Plot a figure of the eigenfunction of a chosen eigenmode
@@ -220,9 +220,9 @@ def plot_ns(psi: np.ndarray,
 
     Parameters
     ----------
-    psi : ndarray
+    psi : ArrayComplex
         The stream function (psi) of an eigenmode which you chose.
-    vpa : ndarray
+    vpa : ArrayComplex
         The vector potential (a) of an eigenmode which you chose.
     eig : complex
         The eigenvalue of an eigenmode which you chose.
@@ -273,8 +273,8 @@ def plot_ns(psi: np.ndarray,
     plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
-def plot_map(psi_grid: np.ndarray,
-             vpa_grid: np.ndarray,
+def plot_map(psi_grid: ArrayFloat,
+             vpa_grid: ArrayFloat,
              eig: complex,
              i_mode: int) -> None:
     """Plot a figure of the eigenfunction of a chosen eigenmode (2D
@@ -282,9 +282,9 @@ def plot_map(psi_grid: np.ndarray,
 
     Parameters
     ----------
-    psi_grid : ndarray
+    psi_grid : ArrayFloat
         A meshgrid of the stream function (psi)
-    vpa_grid : ndarray
+    vpa_grid : ArrayFloat
         A meshgrid of the vector potential (a)
     eig : complex
         An eigenvalue
@@ -300,9 +300,9 @@ def plot_map(psi_grid: np.ndarray,
     max_psi: float = np.nanmax(np.abs(psi_grid))
     max_vpa: float = np.nanmax(np.abs(vpa_grid))
 
-    level_psi: np.ndarray \
+    level_psi: ArrayFloat \
         = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_vpa: np.ndarray \
+    level_vpa: ArrayFloat \
         = np.arange(-max_vpa, 1.2*max_vpa, 0.2*max_vpa)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
