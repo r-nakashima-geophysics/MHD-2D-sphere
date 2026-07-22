@@ -1,0 +1,19 @@
+[project]
+name = "MHD-2D-sphere"
+version = "1.2.1"
+description = "These Python scripts support the findings of our study, Nakashima & Yoshida (2024)."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "autopep8>=2.3.2",
+    "caffeine>=0.5",
+    "cartopy>=0.25.0",
+    "isort>=8.0.1",
+    "matplotlib>=3.11.1",
+    "mypy>=2.3.0",
+    "numpy>=2.5.1",
+    "psutil>=7.2.2",
+    "pycodestyle>=2.14.0",
+    "pylint>=4.0.6",
+    "scipy>=1.18.0",
+]

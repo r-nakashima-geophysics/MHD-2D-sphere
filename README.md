@@ -15,7 +15,7 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 | 2, 3                   |              malkus |
 | 4, 6                   |         eig, eigfig |
 | 5                      |       sincos_degree |
-| 7, 8, A4               |         sincos_eigf |
+| 7, 8, A4               |             eigfunc |
 | 9, 10, 11              |      sincos_alleigf |
 | 12                     |            harmonic |
 | 13, 14, 15, 16         |               local |
@@ -27,7 +27,13 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 
 ## Setup
 
-It is recommended to run these scripts with Python 3.14 or later. First, install the required Python packages using the following command:
+It is recommended to use `uv` as package manager of Python.
+
+```sh
+brew install uv  # if not
+```
+
+First, install the required Python packages using the following command:
 
 Additionally, the scripts require the common package, `r-nakashima-geophysics/common-package` ([https://github.com/r-nakashima-geophysics/common-package.git](https://github.com/r-nakashima-geophysics/common-package.git)). For example, place the common package in the same parent directory as the script:
 
@@ -36,12 +42,16 @@ git clone https://github.com/r-nakashima-geophysics/common-package.git
 cp -r common-package/package_common .
 ```
 
-The recommended version of the common package is v1.0.13 or later.
+The recommended version of the common package is v1.0.14 or later.
+
+```sh
+uv sync
+```
 
 ## Usage
 
 ```sh
-python3 mhd2dsphere_*.py
+uv run python mhd2dsphere_*.py
 ```
 
 See the docstring of each Python script for details.
