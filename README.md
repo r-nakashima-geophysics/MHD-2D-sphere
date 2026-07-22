@@ -27,26 +27,53 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 
 ## Setup
 
-It is recommended to use `uv` as package manager of Python.
+These scripts require Python 3.14 or later. I recommend using `uv` to manage Python dependencies.
 
 ```sh
-brew install uv  # if not
+# if needed
+brew install uv
+uv python install 3.14
 ```
 
-First, install the required Python packages using the following command:
-
-Additionally, the scripts require the common package, `r-nakashima-geophysics/common-package` ([https://github.com/r-nakashima-geophysics/common-package.git](https://github.com/r-nakashima-geophysics/common-package.git)). For example, place the common package in the same parent directory as the script:
-
-```sh
-git clone https://github.com/r-nakashima-geophysics/common-package.git
-cp -r common-package/package_common .
-```
-
-The recommended version of the common package is v1.0.14 or later.
+First, install the required packages using the following command:
 
 ```sh
 uv sync
 ```
+
+Additionally, the scripts require the common package, `r-nakashima-geophysics/common-package` ([https://github.com/r-nakashima-geophysics/common-package.git](https://github.com/r-nakashima-geophysics/common-package.git)). Place the directory `common-package/package_common` in the same parent directory as the scripts `mhd2dsphere_*.py`:
+
+```
+.
+├── input
+├── mhd2dsphere_*.py
+├── package_common
+│   └── *.py
+├── package_mhd2dsphere
+│   └── *.py
+├── README.md
+└── *
+```
+
+You can do this with:
+
+```sh
+git clone https://github.com/r-nakashima-geophysics/common-package.git
+```
+
+and then
+
+```sh
+cp -r common-package/package_common .
+```
+
+or
+
+```sh
+ln -sf common-package/package_common package_common
+```
+
+The recommended version of the common package is v1.0.14 or later.
 
 ## Usage
 
