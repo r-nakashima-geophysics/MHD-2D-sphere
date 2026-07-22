@@ -74,7 +74,7 @@ def prepare_chebyshev_gauss_quad(
     bg_field_u: BackgroundField = background_field['U']
     bg_field_b: BackgroundField = background_field['B']
 
-    ChebyshevGaussQuad.set_class_variable(2*size_submat, size_submat)
+    ChebyshevGaussQuad.set_class_variable(size_submat, y_complex=mu_complex)
 
     def _minus_spherical_laplacian_heinrichs(
             n_degree: int,
@@ -134,59 +134,50 @@ def prepare_chebyshev_gauss_quad(
     quad: DictChebyshevGaussQuad = {
         'quad_pke': ChebyshevGaussQuad(
             func_1=heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs,
-            y_complex=mu_complex),
+            func_2=_minus_spherical_laplacian_heinrichs
+        ),
         'quad_pme': ChebyshevGaussQuad(
             func_1=heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs,
-            y_complex=mu_complex
+            func_2=_minus_spherical_laplacian_heinrichs
         ),
         'quad_psm_1': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
-            weight=weight_psm_1,
-            y_complex=mu_complex
+            weight=weight_psm_1
         ),
         'quad_psm_2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_psm_2,
-            y_complex=mu_complex
+            weight=weight_psm_2
         ),
         'quad_pse_u1': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_u1,
-            y_complex=mu_complex
+            weight=weight_pse_u1
         ),
         'quad_pse_u2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_u2,
-            y_complex=mu_complex
+            weight=weight_pse_u2
         ),
         'quad_pse_b': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
-            weight=weight_pse_b,
-            y_complex=mu_complex
+            weight=weight_pse_b
         ),
         'quad_ohm': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs,
-            y_complex=mu_complex
+            func_2=_minus_spherical_laplacian_heinrichs
         ),
         'quad_psm_hd': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs,
-            weight=weight_psm_hd,
-            y_complex=mu_complex
+            weight=weight_psm_hd
         ),
         'quad_pse_hd': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs,
-            weight=weight_pse_hd,
-            y_complex=mu_complex
+            weight=weight_pse_hd
         ),
     }
 
