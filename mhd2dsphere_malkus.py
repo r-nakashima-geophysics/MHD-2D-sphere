@@ -218,7 +218,6 @@ def calc_eig(n_degree: int,
         return (-M_ORDER+M_ORDER*sqrt_part) / (2*nn1)
 
     DefaultLogger(__name__).error('Invalid ID')
-    sys.exit(1)
 
 
 def calc_ene(n_degree: int,
@@ -304,7 +303,7 @@ def plot_eig(eig: ArrayFloat) -> None:
 
     handles: list[Artist]
     labels: list[str]
-    (handles, labels) = plotter.axes.get_legend_handles_labels()
+    handles, labels = plotter.axes.get_legend_handles_labels()
     if NUM_N >= 2:
         order_leg: list[int] = [3, 1, 2, 0]
         handles = [handles[i_handle] for i_handle in order_leg]
@@ -374,7 +373,7 @@ def plot_ene(ene: ArrayFloat) -> None:
 
     handles: list[Artist]
     labels: list[str]
-    [handles, labels] = plotter.axes.get_legend_handles_labels()
+    handles, labels = plotter.axes.get_legend_handles_labels()
     if NUM_N >= 2:
         order_leg: list[int] = [2, 0, 3, 1]
         handles = [handles[i_handle] for i_handle in order_leg]
@@ -409,6 +408,15 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
                 10**LIN_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0], label=r'$n=$ 1 fast MR')
+            plotter.axes[1].loglog(
+                10**LIN_ALPHA_LOG,
+                eig_log[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1])
+        elif (M_ORDER == 1) and (i_n == 1):
+            plotter.axes[0].loglog(
+                10**LIN_ALPHA_LOG,
+                -eig_log[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0])
             plotter.axes[1].loglog(
                 10**LIN_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
@@ -448,14 +456,12 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     handles: list[list[Artist]] = [[], []]
     labels: list[list[str]] = [[], []]
 
-    [handles[0], labels[0]] \
-        = plotter.axes[0].get_legend_handles_labels()
+    handles[0], labels[0] = plotter.axes[0].get_legend_handles_labels()
     plotter.leg[0] = plotter.axes[0].legend(
         handles=handles[0][::-1], labels=labels[0][::-1],
         loc='lower right', fontsize=14)
 
-    [handles[1], labels[1]] \
-        = plotter.axes[1].get_legend_handles_labels()
+    handles[1], labels[1] = plotter.axes[1].get_legend_handles_labels()
     plotter.leg[1] = plotter.axes[1].legend(
         handles=handles[1][::-1], labels=labels[1][::-1],
         loc='lower right', fontsize=14)
