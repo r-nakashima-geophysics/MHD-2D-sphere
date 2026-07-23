@@ -73,7 +73,7 @@ or
 ln -sf common-package/package_common package_common
 ```
 
-The recommended version of the common package is v1.0.14 or later.
+The recommended version of the common package is v1.0.15 or later.
 
 ## Usage
 
