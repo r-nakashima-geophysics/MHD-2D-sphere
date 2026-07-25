@@ -387,7 +387,7 @@ if __name__ == '__main__':
         logger.warning('No saved file')
         sys.exit(0)
 
-    if (E_ETA != 0) and MU_COMPLEX.check_spectral_deform():
+    if (E_ETA != 0) and MU_COMPLEX.with_spectral_deform:
         logger.error('Invalid settings')
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(

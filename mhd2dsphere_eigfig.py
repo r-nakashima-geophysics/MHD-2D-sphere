@@ -1303,7 +1303,7 @@ if __name__ == '__main__':
         logger.error('Invalid value for \'SWITCH_COLOR\'')
 
     if (SWITCH_COLOR == 'blk') and (
-            MU_COMPLEX.check_spectral_deform() or (E_ETA != 0)):
+            MU_COMPLEX.with_spectral_deform or (E_ETA != 0)):
         logger.warning('Meaningless figures are plotted')
         sys.exit(0)
 
@@ -1312,7 +1312,7 @@ if __name__ == '__main__':
         sys.exit(0)
 
     if (SWITCH_COLOR == 'qmode') \
-            and (not MU_COMPLEX.check_spectral_deform()):
+            and (not MU_COMPLEX.with_spectral_deform):
         logger.warning('Meaningless figures are plotted')
         sys.exit(0)
 
