@@ -84,12 +84,12 @@ def prepare_chebyshev_gauss_quad(
             m_order, n_degree, s_pos, mu_complex=mu_complex)
 
     def _weight_psm_1(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         b_mu: float = bg_field_b.r_value(mu)
         return (-1) / (4 * b_mu)
 
     def _weight_psm_2(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         b_mu: float = bg_field_b.r_value(mu)
         u_shear_mu: float = (
             bg_field_u.r_value_d2(mu) * (1-(mu**2))
@@ -99,17 +99,17 @@ def prepare_chebyshev_gauss_quad(
         return (-1) * (rossby*u_shear_mu-1) / (4 * (b_mu**2))
 
     def _weight_pse_u1(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         u_mu: float = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_1(s_pos)
 
     def _weight_pse_u2(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         u_mu: float = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_2(s_pos)
 
     def _weight_pse_b(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         b_mu: float = bg_field_b.r_value(mu)
         b_shear_mu: float = (
             bg_field_b.r_value_d2(mu) * (1-(mu**2))
@@ -119,7 +119,7 @@ def prepare_chebyshev_gauss_quad(
         return b_shear_mu / b_mu
 
     def _weight_psm_hd(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         u_shear_mu: float = (
             bg_field_u.r_value_d2(mu) * (1-(mu**2))
             - 4 * mu * bg_field_u.r_value_d(mu)
@@ -128,7 +128,7 @@ def prepare_chebyshev_gauss_quad(
         return 1 / (4 * (rossby*u_shear_mu-1))
 
     def _weight_pse_hd(s_pos: float) -> float:
-        mu: float = mu_complex.r_value(s_pos)
+        mu: float = mu_complex.value_no_spectral_deform(s_pos)
         u_mu: float = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_hd(s_pos)
 
