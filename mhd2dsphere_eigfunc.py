@@ -6,6 +6,11 @@ sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 This script can create two figures: a north-south 1D plot and a 2D contour map
 of the eigenfunction of a chosen eigenmode.
 
+Parameters
+----------
+ALPHA : float
+    The Lehnert number.
+
 Notes
 ----------
 All other parameters aside from command line arguments are described within the
@@ -27,20 +32,20 @@ $ python3 mhd2dsphere_eigfunc.py
 """
 
 from pathlib import Path
-from typing import Final
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
 import numpy as np
 
 from package_common.background_field import BackgroundField
-from package_common.common_types import ArrayComplex, ArrayFloat
+from package_common.common_types import ArrayComplex, ArrayFloat, Final
 from package_common.decorator_yesno import exe_yes_continue
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Colorbar, DefaultPlotter,
                                             QuadContourSet, create_plotter)
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
+from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
 from package_mhd2dsphere.make_eigfunc import (amp_range, choose_eigfunc,
                                               create_basis, make_eigfunc,
@@ -72,7 +77,7 @@ SWITCH_NY24: Final[bool] = False
 M_ORDER: Final[int] = 1
 
 # The Lehnert number
-ALPHA: Final[float] = 0.1
+ALPHA: Final[float] = input_value(0.1, float)
 
 # The magnetic Ekman number
 E_ETA: Final[float] = 0
@@ -258,7 +263,7 @@ def plot_ns(psi: ArrayComplex,
     plotter.axes.set_xlabel('colatitude [degree]', fontsize=16)
     plotter.axes.set_ylabel('amplitude', fontsize=16)
 
-    if eig.imag == 0:
+    if np.isclose(eig.imag, 0):
         plotter.axes.set_title(
             r'$\lambda=$' + f' {eig.real:8.5f}', fontsize=16)
     else:
