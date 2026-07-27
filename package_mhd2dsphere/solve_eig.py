@@ -411,7 +411,7 @@ def calc_qty(m_order: int,
                 vec_1=vec_psi, vec_2=vec_vpa) / alpha
             psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
                 vec_1=vec_vpa, vec_2=vec_vpa) / (alpha**2)
-            psm: ArrayFloat = np.real(psm_1 + np.conj(psm_1) + psm_2)
+            psm = np.real(psm_1 + np.conj(psm_1) + psm_2)
 
             pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
                 vec_1=vec_psi, vec_2=vec_vpa) / alpha
