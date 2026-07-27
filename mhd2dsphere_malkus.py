@@ -107,10 +107,10 @@ FIG_DPI: Final[int] = 600
 NAMES_MODE: Final[tuple[str, str]] = ('fMR', 'sMR')
 NUM_MODE: Final[int] = len(NAMES_MODE)
 
-NUM_N: Final[int] = 1 + int((N_END-N_INIT)/N_STEP)
-NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
+NUM_N: Final[int] = 1 + round((N_END-N_INIT)/N_STEP)
+NUM_ALPHA: Final[int] = 1 + round((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
-    = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
+    = 1 + round((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
 LIN_N: Final[ArrayInt] = np.linspace(
     N_INIT, N_END, NUM_N, dtype=np.int_)

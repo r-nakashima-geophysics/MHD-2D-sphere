@@ -156,9 +156,9 @@ CRITERION_C: Final[DictCriterionC] = {
     'ratio': R_C
 }
 
-NUM_ALPHA: Final[int] = 1 + int((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
+NUM_ALPHA: Final[int] = 1 + round((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
-    = 1 + int((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
+    = 1 + round((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
 LIN_ALPHA: Final[ArrayFloat] = np.linspace(
     ALPHA_INIT, ALPHA_END, NUM_ALPHA, dtype=np.float64)
