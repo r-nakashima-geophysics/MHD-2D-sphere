@@ -27,7 +27,7 @@ $ python3 mhd2dsphere_eigfunc.py
 """
 
 from pathlib import Path
-from typing import Callable, Final
+from typing import Final
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt

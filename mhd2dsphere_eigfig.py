@@ -62,7 +62,7 @@ from scipy.linalg import svdvals
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
-                                         Callable, Final, cast)
+                                         Final, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
                                             DefaultPlotter, QuadContourSet,
