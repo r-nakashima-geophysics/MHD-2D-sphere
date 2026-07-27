@@ -117,7 +117,7 @@ def create_submat(m_order: int,
         bg_field_u: BackgroundField = background_field['U']
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        if mu_complex.with_spectral_deform or (e_eta != 0):
+        if mu_complex.use_spectral_deform or (e_eta != 0):
             submat_11 = np.zeros(
                 (size_submat, size_submat), dtype=np.complex128)
             submat_12 = np.zeros(
@@ -153,7 +153,7 @@ def create_submat(m_order: int,
         for i_l in range(size_submat):
             s_pos = calc_collocation_point(i_l+1, n_t+2)
 
-            if mu_complex.with_spectral_deform or (e_eta != 0):
+            if mu_complex.use_spectral_deform or (e_eta != 0):
                 mu = mu_complex.value(s_pos)
                 u_mu = bg_field_u.value(mu)
                 u_shear_mu = (
@@ -199,7 +199,7 @@ def create_submat(m_order: int,
                 submat_b_11[i_l, i_n] = laplacian
                 submat_b_22[i_l, i_n] = h_n
 
-        if mu_complex.with_spectral_deform or (e_eta != 0):
+        if mu_complex.use_spectral_deform or (e_eta != 0):
             submat_11 = np.linalg.solve(
                 submat_b_11, submat_11).astype(np.complex128)
             submat_12 = np.linalg.solve(
@@ -287,7 +287,7 @@ def create_mat(m_order: int,
     else:
         mu_complex: ComplexCoordinate = background_field['MU']
 
-        if mu_complex.with_spectral_deform or (e_eta != 0):
+        if mu_complex.use_spectral_deform or (e_eta != 0):
             mat = np.zeros((size_mat, size_mat), dtype=np.complex128)
         else:
             mat = np.zeros((size_mat, size_mat), dtype=np.float64)
