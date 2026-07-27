@@ -44,23 +44,32 @@ def create_basis(
 
     num_theta: int = lin_theta.shape[0]
 
+    basis: ArrayFloat | ArrayComplex
     if background_field['NY24']:
-        return load_legendre(m_order, n_t, num_theta)
+        basis = load_legendre(m_order, n_t, num_theta)
+        return basis
 
     size_submat: int = n_t + 1
     mu_complex: ComplexCoordinate = background_field['MU']
 
-    heinrichs_x: ArrayComplex = np.empty(
-        (size_submat, num_theta), dtype=np.complex128)
+    basis = np.empty((size_submat, num_theta), dtype=np.complex128)
+
+    x_pos: float
+    s_pos: complex | float
+    guess: complex
     for i_theta, theta in enumerate(lin_theta):
         x_pos = np.cos(theta)
-        s_pos = mu_complex.inverse(x_pos)
+        if i_theta == 0:
+            guess = x_pos + 1j * 0
+        else:
+            guess = s_pos
+        s_pos = mu_complex.inverse(x_pos, guess=guess)
 
-        heinrichs_x[:, i_theta] = np.array(
+        basis[:, i_theta] = np.array(
             [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
         )
 
-    return heinrichs_x
+    return basis
 
 
 def choose_eigfunc(results: DictResult,
@@ -298,17 +307,16 @@ def adjust_sign(psi: ArrayComplex,
 
     equator: float = np.sum(psi.real[i_equator-width:i_equator])
 
-    sign: int = 1
     if equator > 0:
-        return sign
+        return 1
     elif equator < 0:
-        sign = -1
+        return -1
     else:
         logger: DefaultLogger = create_function_name_logger()
         logger.warning(
             'The adjustment of the sign of the eigenfunction is failed')
 
-    return sign
+    return 1
 
 
 def amp_range(psi: ArrayComplex,
