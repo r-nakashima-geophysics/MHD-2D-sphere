@@ -27,12 +27,12 @@ def create_basis(
 
     Parameters
     ----------
-    lin_theta : ArrayFloat
-        The values of theta at grid points.
     m_order : int
         The zonal wavenumber (order).
     n_t : int
         The truncation degree.
+    lin_theta : ArrayFloat
+        The values of theta at grid points.
     background_field : DictBackgroundField
         The background field.
 
@@ -124,7 +124,7 @@ def choose_eigfunc(results: DictResult,
         if i_chosen in mode_list:
             break
 
-        logger.error('Invalid eigenmode')
+        logger.warning('Invalid eigenmode')
 
     q_value = np.inf
     if eig[i_chosen].imag != 0:
@@ -281,6 +281,11 @@ def adjust_sign(psi: ArrayComplex,
     -------
     sign : int
         The sign of the eigenfunction.
+
+    Warnings
+    --------
+    The adjustment of the sign of the eigenfunction is failed
+        When the sum of the stream function around the equator is zero.
     """
 
     width: int = max(int(num_theta*0.01), 1)
@@ -293,7 +298,15 @@ def adjust_sign(psi: ArrayComplex,
 
     equator: float = np.sum(psi.real[i_equator-width:i_equator])
 
-    sign: int = np.sign(equator)
+    sign: int = 1
+    if equator > 0:
+        return sign
+    elif equator < 0:
+        sign = -1
+    else:
+        logger: DefaultLogger = create_function_name_logger()
+        logger.warning(
+            'The adjustment of the sign of the eigenfunction is failed')
 
     return sign
 

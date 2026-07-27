@@ -71,6 +71,7 @@ from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_simple)
+from package_common.utils_collocation import calc_collocation_point
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
 from package_common.utils_parallel import (SharedInfo, SharedMemory,
@@ -79,8 +80,7 @@ from package_common.utils_parallel import (SharedInfo, SharedMemory,
                                            detach_shared_arrays,
                                            set_num_process, set_num_threads)
 from package_mhd2dsphere import init_background_b, init_background_u
-from package_mhd2dsphere.create_mat import (calc_collocation_point, create_mat,
-                                            create_submat)
+from package_mhd2dsphere.create_mat import create_mat, create_submat
 from package_mhd2dsphere.load_data import wrapper_load_results
 from package_mhd2dsphere.processing_results import (pickup_eig, pickup_param,
                                                     screening_eig_q)
@@ -435,6 +435,7 @@ def plot_eig(results: DictResult,
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
         cmap = 'jet'
+        norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'psm':
         cmap_min = psm_min
         cmap_max = psm_max
@@ -477,14 +478,14 @@ def plot_eig(results: DictResult,
                 ones_alpha, dict_eig['v'].real, s=0.1, c='black')
 
             if E_ETA == 0:
-                if False in np.isnan(dict_eig['s_u']):
+                if not np.all(np.isnan(dict_eig['s_u'])):
                     plotter_real.axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].real, s=0.2, c='red')
                     plotter_imag.axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].imag, s=0.2, c='red')
                     set_save_fig.add(1)
 
-                if False in np.isnan(dict_eig['v_u']):
+                if not np.all(np.isnan(dict_eig['v_u'])):
                     plotter_real.axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].real, s=0.2, c='red')
                     plotter_imag.axes[1].scatter(
@@ -534,14 +535,14 @@ def plot_eig(results: DictResult,
                     ones_alpha, dict_eig['v_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
-                if False in np.isnan(dict_eig['s_u']):
+                if not np.all(np.isnan(dict_eig['s_u'])):
                     plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
-                if False in np.isnan(dict_eig['v_u']):
+                if not np.all(np.isnan(dict_eig['v_u'])):
                     plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
@@ -829,6 +830,7 @@ def plot_eig_log(results: DictResult,
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
         cmap = 'jet'
+        norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'psm':
         cmap_min = psm_min
         cmap_max = psm_max
@@ -884,7 +886,7 @@ def plot_eig_log(results: DictResult,
                 ones_alpha, dict_eig['vp'].real, s=0.1, c='black')
 
             if E_ETA == 0:
-                if False in np.isnan(dict_eig['sr_u']):
+                if not np.all(np.isnan(dict_eig['sr_u'])):
                     plotter_real.axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].real,
                         s=0.2, c='red')
@@ -893,7 +895,7 @@ def plot_eig_log(results: DictResult,
                         s=0.2, c='red')
                     set_save_fig.add(1)
 
-                if False in np.isnan(dict_eig['sp_u']):
+                if not np.all(np.isnan(dict_eig['sp_u'])):
                     plotter_real.axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].real,
                         s=0.2, c='red')
@@ -902,7 +904,7 @@ def plot_eig_log(results: DictResult,
                         s=0.2, c='red')
                     set_save_fig.add(2)
 
-                if False in np.isnan(dict_eig['vr_u']):
+                if not np.all(np.isnan(dict_eig['vr_u'])):
                     plotter_real.axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].real,
                         s=0.2, c='red')
@@ -911,7 +913,7 @@ def plot_eig_log(results: DictResult,
                         s=0.2, c='red')
                     set_save_fig.add(3)
 
-                if False in np.isnan(dict_eig['vp_u']):
+                if not np.all(np.isnan(dict_eig['vp_u'])):
                     plotter_real.axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].real,
                         s=0.2, c='red')
@@ -988,7 +990,7 @@ def plot_eig_log(results: DictResult,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
-                if False in np.isnan(dict_eig['sr_u']):
+                if not np.all(np.isnan(dict_eig['sr_u'])):
                     plotter_imag.sc[0, 0] \
                         = plotter_imag.axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].imag, s=0.1,
@@ -996,7 +998,7 @@ def plot_eig_log(results: DictResult,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
-                if False in np.isnan(dict_eig['sp_u']):
+                if not np.all(np.isnan(dict_eig['sp_u'])):
                     plotter_imag.sc[0, 1] \
                         = plotter_imag.axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag, s=0.1,
@@ -1004,7 +1006,7 @@ def plot_eig_log(results: DictResult,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
 
-                if False in np.isnan(dict_eig['vr_u']):
+                if not np.all(np.isnan(dict_eig['vr_u'])):
                     plotter_imag.sc[1, 0] \
                         = plotter_imag.axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag, s=0.1,
@@ -1012,7 +1014,7 @@ def plot_eig_log(results: DictResult,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(3)
 
-                if False in np.isnan(dict_eig['vp_u']):
+                if not np.all(np.isnan(dict_eig['vp_u'])):
                     plotter_imag.sc[1, 1] \
                         = plotter_imag.axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag, s=0.1,
@@ -1033,22 +1035,22 @@ def plot_eig_log(results: DictResult,
                     ones_alpha, dict_eig['vp'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
 
-                if False in np.isnan(dict_eig['sr_u']):
+                if not np.all(np.isnan(dict_eig['sr_u'])):
                     plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(1)
-                if False in np.isnan(dict_eig['sp_u']):
+                if not np.all(np.isnan(dict_eig['sp_u'])):
                     plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(2)
-                if False in np.isnan(dict_eig['vr_u']):
+                if not np.all(np.isnan(dict_eig['vr_u'])):
                     plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(3)
-                if False in np.isnan(dict_eig['vp_u']):
+                if not np.all(np.isnan(dict_eig['vp_u'])):
                     plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)

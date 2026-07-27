@@ -90,7 +90,7 @@ def load_results(name_file: str,
     if not path_file.exists():
         logger.error('File not found')
 
-    with np.load(path_file, allow_pickle=True) as npz_kw:
+    with np.load(path_file) as npz_kw:
 
         file_logger.info('Loaded')
 

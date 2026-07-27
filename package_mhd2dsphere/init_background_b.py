@@ -328,7 +328,7 @@ def b_malsincos(ratio_sincos2malkus:
     sincos: float = ratio_sincos2malkus / (1+ratio_sincos2malkus)
 
     tex: str = r'$B_{0\phi}=B_0\sin\theta(' \
-        + str(malkus) + r' + ' + str(sincos) + r'\cos\theta)$'
+        + f'{malkus:.2f}' + r' + ' + f'{sincos:.2f}' + r'\cos\theta)$'
 
     if switch_theta == 'mu':
         def b_malsincos_mu(mu_complex: complex) -> complex:
