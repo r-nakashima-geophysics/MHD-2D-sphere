@@ -54,7 +54,7 @@ import numpy as np
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
-                                         Final, cast)
+                                         Callable, Final, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
@@ -89,6 +89,8 @@ BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
+MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
+    = init_complex_coordinate_simple(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
@@ -145,6 +147,7 @@ BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
     'MU': MU_COMPLEX,
+    'MU_UNUSE_SPECTRAL_DEFORM': MU_COMPLEX_UNUSE_SPECTRAL_DEFORM,
     'NY24': SWITCH_NY24,
 }
 
@@ -387,7 +390,7 @@ if __name__ == '__main__':
         logger.warning('No saved file')
         sys.exit(0)
 
-    if (E_ETA != 0) and MU_COMPLEX.with_spectral_deform:
+    if (E_ETA != 0) and MU_COMPLEX.use_spectral_deform:
         logger.error('Invalid settings')
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(

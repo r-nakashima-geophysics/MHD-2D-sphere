@@ -27,7 +27,7 @@ $ python3 mhd2dsphere_eigfunc.py
 """
 
 from pathlib import Path
-from typing import Final
+from typing import Callable, Final
 
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
@@ -60,6 +60,8 @@ BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
+MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
+    = init_complex_coordinate_simple(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
@@ -114,7 +116,8 @@ BG_FIELD: Final[DictBackgroundField] = {
     'B': BG_FIELD_B,
     'U': BG_FIELD_U,
     'MU': MU_COMPLEX,
-    'NY24': SWITCH_NY24,
+    'MU_UNUSE_SPECTRAL_DEFORM': MU_COMPLEX_UNUSE_SPECTRAL_DEFORM,
+    'NY24': SWITCH_NY24
 }
 
 TEX_BG_FIELD: Final[str] \

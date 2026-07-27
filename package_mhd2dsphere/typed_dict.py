@@ -15,6 +15,7 @@ class DictBackgroundField(TypedDict):
     B: BackgroundField
     U: BackgroundField
     MU: ComplexCoordinate
+    MU_UNUSE_SPECTRAL_DEFORM: ComplexCoordinate
     NY24: bool
 
 
