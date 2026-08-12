@@ -371,6 +371,10 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
+    if not any(SWITCH_CALC):
+        logger.warning('No saved file')
+        sys.exit(0)
+
     if SWITCH_NY24:
         logger.show_params(f'{SWITCH_NY24=}',
                            f'{M_ORDER=}',
@@ -386,12 +390,8 @@ if __name__ == '__main__':
                            f'{ROSSBY=}',
                            f'{N_T=}')
 
-    if not any(SWITCH_CALC):
-        logger.warning('No saved file')
-        sys.exit(0)
-
-    if (E_ETA != 0) and MU_COMPLEX.use_spectral_deform:
-        logger.error('Invalid settings')
+        if (E_ETA != 0) and MU_COMPLEX.use_spectral_deform:
+            logger.error('Invalid settings')
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
         M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
