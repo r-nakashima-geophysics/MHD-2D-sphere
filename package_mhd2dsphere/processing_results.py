@@ -102,8 +102,8 @@ def pickup_param(results: DictResult) -> DictParams:
     psm_min: float = np.nanpercentile(results['phys_qtys']['psm'], 5)
     psm_max: float = np.nanpercentile(results['phys_qtys']['psm'], 95)
 
-    pse_min: float = np.nanpercentile(results['phys_qtys']['pse'], 5)
-    pse_max: float = np.nanpercentile(results['phys_qtys']['pse'], 95)
+    pse_min: float = np.nanmin(results['phys_qtys']['pse'])
+    pse_max: float = np.nanmax(results['phys_qtys']['pse'])
 
     ohm_max: float = np.nanpercentile(results['phys_qtys']['ohm'], 95)
 

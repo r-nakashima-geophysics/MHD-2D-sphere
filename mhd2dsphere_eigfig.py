@@ -5,9 +5,9 @@ sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
 This script can create up to four figures: linear-linear and log-log plots of
 the dispersion relation with some coloring based on black or physical quantity
-(energy partitioning, ohmic dissipation, pseudomomentum, pseudoenergy, or
-eigenfrequencies). The script can also create a plot of the dispersion diagram
-for a chosen alpha.
+(energy partitioning, ohmic dissipation, angular pseudomomentum, pseudoenergy,
+or eigenfrequencies). The script can also create a plot of the dispersion
+diagram for a chosen alpha.
 
 Parameters
 ----------
@@ -57,7 +57,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import transforms
-from matplotlib.colors import LogNorm, Normalize, TwoSlopeNorm
+from matplotlib.colors import LogNorm, Normalize, SymLogNorm
 from scipy.linalg import svdvals
 
 from package_common.background_field import BackgroundField
@@ -101,7 +101,7 @@ ALPHA_CHOSEN: Final[float] = 1
 # The coloring rule
 # SWITCH_COLOR == 'blk': black
 # SWITCH_COLOR == 'ene': energy partitioning
-# SWITCH_COLOR == 'psm': pseudomomentum
+# SWITCH_COLOR == 'psm': angular pseudomomentum
 # SWITCH_COLOR == 'pse': pseudoenergy
 # SWITCH_COLOR == 'ohm': ohmic dissipation
 # SWITCH_COLOR == 'qmode': for finding quasi-modes
@@ -358,8 +358,10 @@ def wrapper_plot_eig(results: DictResult,
     elif SWITCH_COLOR in ('psm', 'pse', 'ohm', 'qmode'):
 
         cbar_extend: str
-        if SWITCH_COLOR in ('psm', 'pse'):
+        if SWITCH_COLOR == 'psm':
             cbar_extend = 'both'
+        elif SWITCH_COLOR == 'pse':
+            cbar_extend = 'neither'
         elif SWITCH_COLOR == 'ohm':
             cbar_extend = 'max'
         elif SWITCH_COLOR == 'qmode':
@@ -430,17 +432,17 @@ def plot_eig(results: DictResult,
     cmap_min: float = np.nan
     cmap_max: float = np.nan
     cmap: str
-    norm: Normalize | TwoSlopeNorm | LogNorm
+    norm: Normalize | LogNorm
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
         cmap = 'jet'
         norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'psm':
-        cmap_min = psm_min
-        cmap_max = psm_max
+        cmap_min = -np.max(np.abs([psm_min, psm_max]))
+        cmap_max = np.max(np.abs([psm_min, psm_max]))
         cmap = 'RdBu_r'
-        norm = TwoSlopeNorm(vmin=cmap_min, vcenter=0.0, vmax=cmap_max)
+        norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'pse':
         cmap_min = pse_min
         cmap_max = pse_max
@@ -740,8 +742,10 @@ def wrapper_plot_eig_log(results: DictResult,
     elif SWITCH_COLOR in ('ohm', 'psm', 'pse', 'qmode'):
 
         cbar_extend: str
-        if SWITCH_COLOR in ('psm', 'pse'):
+        if SWITCH_COLOR == 'psm':
             cbar_extend = 'both'
+        elif SWITCH_COLOR == 'pse':
+            cbar_extend = 'neither'
         elif SWITCH_COLOR == 'ohm':
             cbar_extend = 'max'
         elif SWITCH_COLOR == 'qmode':
@@ -825,17 +829,17 @@ def plot_eig_log(results: DictResult,
 
     cmap_min: float = np.nan
     cmap_max: float = np.nan
-    norm: Normalize | TwoSlopeNorm | LogNorm
+    norm: Normalize | SymLogNorm | LogNorm
     if SWITCH_COLOR == 'ene':
         cmap_min = np.atan(STRETCH_ATAN * (0-0.5))
         cmap_max = np.atan(STRETCH_ATAN * (1-0.5))
         cmap = 'jet'
         norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'psm':
-        cmap_min = psm_min
-        cmap_max = psm_max
+        cmap_min = -np.max(np.abs([psm_min, psm_max]))
+        cmap_max = np.max(np.abs([psm_min, psm_max]))
         cmap = 'RdBu_r'
-        norm = TwoSlopeNorm(vmin=cmap_min, vcenter=0.0, vmax=cmap_max)
+        norm = SymLogNorm(linthresh=10**(-2), vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'pse':
         cmap_min = pse_min
         cmap_max = pse_max

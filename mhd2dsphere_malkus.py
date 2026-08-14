@@ -577,7 +577,7 @@ def plot_psm(psm: ArrayFloat) -> None:
         Angular pseudomomentum.
     """
 
-    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 7))
 
     i_n: int
     for i_n_inv in range(NUM_N):
@@ -615,7 +615,7 @@ def plot_psm(psm: ArrayFloat) -> None:
         r'$(2\Omega_0R_0)\mathrm{PSM}/(\mathrm{PKE}+\mathrm{PME})$', fontsize=16)
     plotter.axes.set_title(
         r'Angular pseudomomentum [$B_{0\phi}=B_0\sin\theta$] : $m=$'
-        + f' {M_ORDER}\n', fontsize=16)
+        + f' {M_ORDER}\n', fontsize=13)
 
     handles: list[Artist]
     labels: list[str]
