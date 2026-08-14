@@ -4,7 +4,7 @@ rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
 This script outputs up to two npz files of results, which include alpha,
-eigenvalue, perturbation kinetic energy, perturbation magnetic energy,
+eigenvalue, perturbation kinetic energy, perturbation magnetic energy, angular
 pseudomomentum, pseudoenergy, ohmic dissipation, and the symmetry of
 eigenmodes. In addition, the script uses multiprocessing to speed up the
 calculations.
