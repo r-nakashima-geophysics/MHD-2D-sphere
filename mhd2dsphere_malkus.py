@@ -30,6 +30,8 @@ Continuous spectrum and its ray-theoretical interpretation. Geophysical &
 Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 10.1080/03091929.2024.2384388
 
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
+
 Examples
 --------
 Run the script with the default value of M_ORDER:
@@ -63,7 +65,10 @@ type Artist = artist.Artist
 # SWITCH_PLOT[0]: The linear-linear plot of the dispersion relation
 # SWITCH_PLOT[1]: The plot showing energy partitioning
 # SWITCH_PLOT[2]: The log-log plot of the dispersion relation
-SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
+# SWITCH_PLOT[3]: The plot showing angular pseudomomentum
+# SWITCH_PLOT[4]: The plot showing pseudoenergy
+SWITCH_PLOT: Final[tuple[bool, bool, bool, bool, bool]] \
+    = (True, True, True, True, True)
 
 # The zonal wavenumber (order)
 M_ORDER: Final[int] = input_value(1, int)
@@ -100,6 +105,8 @@ PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_malkus'
 NAME_FIG_1: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_eig.png'
 NAME_FIG_2: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_ene.png'
 NAME_FIG_3: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_eiglog.png'
+NAME_FIG_4: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_psm.png'
+NAME_FIG_5: Final[str] = f'MHD2Dsphere_malkus_m={M_ORDER}_pse.png'
 FIG_DPI: Final[int] = 600
 
 # ================================ #
@@ -125,17 +132,24 @@ TEXT_XLABEL: Final[str] \
 
 def wrapper_eigene() -> tuple[ArrayFloat,
                               ArrayFloat,
+                              ArrayFloat,
+                              ArrayFloat,
                               ArrayFloat]:
-    """Calculate the dispersion relation and energy partitioning.
+    """Calculate the dispersion relation, energy partitioning, angular
+    pseudomomentum, and pseudoenergy.
 
     Returns
     -------
     eig : ArrayFloat
-        Eigenvalues (linear-linear).
+        Eigenvalues(linear-linear).
     ene : ArrayFloat
         Energy partitioning.
     eig_log : ArrayFloat
-        Eigenvalues (log-log).
+        Eigenvalues(log-log).
+    psm : ArrayFloat
+        Angular pseudomomentum.
+    pse : ArrayFloat
+        Pseudoenergy.
     """
 
     eig: ArrayFloat \
@@ -143,6 +157,10 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     ene: ArrayFloat \
         = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
     eig_log: ArrayFloat \
+        = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
+    psm: ArrayFloat \
+        = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
+    pse: ArrayFloat \
         = np.empty((NUM_N, NUM_ALPHA_LOG, NUM_MODE), dtype=np.float64)
 
     n_degree: int
@@ -161,7 +179,8 @@ def wrapper_eigene() -> tuple[ArrayFloat,
                     eig[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
                         = calc_eig(n_degree, alpha, name_mode)
 
-        if (SWITCH_PLOT[1] or SWITCH_PLOT[2]):
+        if (SWITCH_PLOT[1] or SWITCH_PLOT[2]
+                or SWITCH_PLOT[3] or SWITCH_PLOT[4]):
             for i_alpha in range(NUM_ALPHA_LOG):
                 alpha = 10**LIN_ALPHA_LOG[i_alpha]
 
@@ -170,10 +189,14 @@ def wrapper_eigene() -> tuple[ArrayFloat,
                         = calc_ene(n_degree, alpha, name_mode)
                     eig_log[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
                         = calc_eig(n_degree, alpha, name_mode)
+                    psm[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
+                        = calc_psm(n_degree, alpha, name_mode)
+                    pse[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
+                        = calc_pse(n_degree, alpha, name_mode)
 
         progress_bar.update(i_n)
 
-    return eig, ene, eig_log
+    return eig, ene, eig_log, psm, pse
 
 
 def calc_eig(n_degree: int,
@@ -241,23 +264,91 @@ def calc_ene(n_degree: int,
 
     Notes
     -----
-    If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for fast MR
-    waves and 1 for slow MR waves. This function is based on the equation in
-    the caption of Fig. 3 in Nakashima & Yoshida (2024)[1]_.
+    If n_degree = 0, ene is set to 0. If alpha = 0, ene is set to 0 for slow MR
+    waves. This function is based on the equation in the caption of Fig. 3 in
+    Nakashima & Yoshida(2024)[1]_.
     """
 
     if n_degree == 0:
         return 0
 
-    if alpha == 0:
-        if name_mode == 'fMR':
-            return 0
-        if name_mode == 'sMR':
-            return 1
+    if (alpha == 0) and (name_mode == 'sMR'):
+        return 0
 
     ma2: float = (M_ORDER**2) * (alpha**2)
     lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
     return (lambda_mr**2) / ((lambda_mr**2)+ma2)
+
+
+def calc_psm(n_degree: int,
+             alpha: float,
+             name_mode: str) -> float:
+    """Calculate angular pseudomomentum.
+
+    Parameters
+    ----------
+    n_degree : int
+        The degree of the associated Legendre polynomial.
+    alpha : float
+        The Lehnert number.
+    name_mode : str
+        'fMR' or 'sMR'.
+
+    Returns
+    -------
+    float
+        Angular pseudomomentum.
+
+    Notes
+    -----
+    If n_degree = 0, psm is set to 0. This function is based on Nakashima & Yoshida(in prep.)[2]_.
+    """
+
+    if n_degree == 0:
+        return 0
+
+    ma2: float = (M_ORDER**2) * (alpha**2)
+    nn1: int = n_degree * (n_degree+1)
+    lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
+    return (2*M_ORDER*lambda_mr + (M_ORDER**2)/nn1) / ((lambda_mr**2)+ma2)
+
+
+def calc_pse(n_degree: int,
+             alpha: float,
+             name_mode: str) -> float:
+    """Calculate pseudoenergy.
+
+    Parameters
+    ----------
+    n_degree : int
+        The degree of the associated Legendre polynomial.
+    alpha : float
+        The Lehnert number.
+    name_mode : str
+        'fMR' or 'sMR'.
+
+    Returns
+    -------
+    float
+        Pseudoenergy.
+
+    Notes
+    -----
+    If n_degree = 0, pse is set to 0. If alpha = 0, pse is set to 1 - 2/n(n+1)
+    for slow MR waves. This function is based on Nakashima & Yoshida(in
+    prep.)[2]_.
+    """
+
+    if n_degree == 0:
+        return 0
+
+    nn1: int = n_degree * (n_degree+1)
+    if (alpha == 0) and (name_mode == 'sMR'):
+        return 1 - (2/nn1)
+
+    ma2: float = (M_ORDER**2) * (alpha**2)
+    lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
+    return 1 - (ma2 / (lambda_mr**2+ma2)) * (2/nn1)
 
 
 def plot_eig(eig: ArrayFloat) -> None:
@@ -476,6 +567,136 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
     plotter.save(PATH_DIR, NAME_FIG_3, FIG_DPI)
 
 
+def plot_psm(psm: ArrayFloat) -> None:
+    """Create the plot showing angular pseudomomentum for various
+    eigenmodes.
+
+    Parameters
+    ----------
+    psm : ArrayFloat
+        Angular pseudomomentum.
+    """
+
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
+
+    i_n: int
+    for i_n_inv in range(NUM_N):
+        i_n = NUM_N - 1 - i_n_inv
+
+        if i_n not in (0, NUM_N-1):
+            plotter.axes.loglog(
+                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0])
+            plotter.axes.loglog(
+                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1])
+        else:
+            plotter.axes.loglog(
+                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0],
+                label=r'$n=$'+f' {N_INIT+i_n} fast MR')
+            plotter.axes.loglog(
+                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1],
+                label=r'$n=$'+f' {N_INIT+i_n} slow MR')
+
+    mask_x: ArrayFloat = np.array([10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END])
+    mask_y1: float = 10**(-2)
+    mask_y2: float = -mask_y1
+    plotter.axes.set_yscale('symlog', linthresh=mask_y1)
+    plotter.axes.fill_between(mask_x, mask_y1, mask_y2,
+                              facecolor='gray', zorder=100)
+
+    plotter.axes.set_xlim(mask_x[0], mask_x[1])
+    plotter.axes.set_ylim(np.nanmin(psm), np.nanmax(psm))
+
+    plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter.axes.set_ylabel(
+        r'$(2\Omega_0R_0)\mathrm{PSM}/(\mathrm{PKE}+\mathrm{PME})$', fontsize=16)
+    plotter.axes.set_title(
+        r'Angular pseudomomentum [$B_{0\phi}=B_0\sin\theta$] : $m=$'
+        + f' {M_ORDER}\n', fontsize=16)
+
+    handles: list[Artist]
+    labels: list[str]
+    handles, labels = plotter.axes.get_legend_handles_labels()
+    if NUM_N >= 2:
+        order_leg: list[int] = [2, 0, 3, 1]
+        handles = [handles[i_handle] for i_handle in order_leg]
+        labels = [labels[i_label] for i_label in order_leg]
+
+    plotter.leg = plotter.axes.legend(
+        handles=handles, labels=labels, loc='upper right', fontsize=12)
+
+    plotter.axes.tick_params(labelsize=13)
+
+    plotter.save(PATH_DIR, NAME_FIG_4, FIG_DPI)
+
+
+def plot_pse(pse: ArrayFloat) -> None:
+    """Create the plot showing pseudoenergy for various
+    eigenmodes.
+
+    Parameters
+    ----------
+    pse : ArrayFloat
+        Pseudoenergy.
+    """
+
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
+
+    i_n: int
+    for i_n_inv in range(NUM_N):
+        i_n = NUM_N - 1 - i_n_inv
+
+        if (M_ORDER == 1) and (i_n == 0):
+            plotter.axes.semilogx(
+                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1], linewidth=3)
+
+        if i_n not in (0, NUM_N-1):
+            plotter.axes.semilogx(
+                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0])
+            plotter.axes.semilogx(
+                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1])
+        else:
+            plotter.axes.semilogx(
+                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
+                color=[1, i_n/NUM_N, 0],
+                label=r'$n=$'+f' {N_INIT+i_n} fast MR')
+            plotter.axes.semilogx(
+                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                color=[0, i_n/NUM_N, 1],
+                label=r'$n=$'+f' {N_INIT+i_n} slow MR')
+
+    plotter.axes.set_xlim(10**ALPHA_LOG_INIT, 10**ALPHA_LOG_END)
+    plotter.axes.set_ylim(np.nanmin(pse), np.nanmax(pse))
+
+    plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
+    plotter.axes.set_ylabel(
+        r'$\mathrm{PSE}/(\mathrm{PKE}+\mathrm{PME})$', fontsize=16)
+    plotter.axes.set_title(
+        r'Pseudoenergy [$B_{0\phi}=B_0\sin\theta$] : $m=$'
+        + f' {M_ORDER}\n', fontsize=16)
+
+    handles: list[Artist]
+    labels: list[str]
+    handles, labels = plotter.axes.get_legend_handles_labels()
+    if NUM_N >= 2:
+        order_leg: list[int] = [2, 0, 3, 1]
+        handles = [handles[i_handle] for i_handle in order_leg]
+        labels = [labels[i_label] for i_label in order_leg]
+
+    plotter.leg = plotter.axes.legend(
+        handles=handles, labels=labels, loc='lower left', fontsize=12)
+
+    plotter.axes.tick_params(labelsize=13)
+
+    plotter.save(PATH_DIR, NAME_FIG_5, FIG_DPI)
+
+
 if __name__ == '__main__':
     timer: DefaultTimer = DefaultTimer(__name__)
     timer.start()
@@ -490,6 +711,8 @@ if __name__ == '__main__':
 
     data: tuple[ArrayFloat,
                 ArrayFloat,
+                ArrayFloat,
+                ArrayFloat,
                 ArrayFloat] = wrapper_eigene()
 
     if SWITCH_PLOT[0]:
@@ -500,6 +723,12 @@ if __name__ == '__main__':
 
     if SWITCH_PLOT[2]:
         plot_eig_log(data[2])
+
+    if SWITCH_PLOT[3]:
+        plot_psm(data[3])
+
+    if SWITCH_PLOT[4]:
+        plot_pse(data[4])
 
     timer.end()
 
