@@ -441,7 +441,7 @@ def plot_eig(results: DictResult,
     elif SWITCH_COLOR == 'psm':
         cmap_min = -np.max(np.abs([psm_min, psm_max]))
         cmap_max = np.max(np.abs([psm_min, psm_max]))
-        cmap = 'RdBu_r'
+        cmap = 'jet'
         norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'pse':
         cmap_min = pse_min
@@ -838,7 +838,7 @@ def plot_eig_log(results: DictResult,
     elif SWITCH_COLOR == 'psm':
         cmap_min = -np.max(np.abs([psm_min, psm_max]))
         cmap_max = np.max(np.abs([psm_min, psm_max]))
-        cmap = 'RdBu_r'
+        cmap = 'jet'
         norm = SymLogNorm(linthresh=10**(-2), vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'pse':
         cmap_min = pse_min
