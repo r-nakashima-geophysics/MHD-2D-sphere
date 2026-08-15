@@ -59,11 +59,14 @@ def create_basis(
     guess: complex
     for i_theta, theta in enumerate(lin_theta):
         x_pos = np.cos(theta)
-        if i_theta == 0:
-            guess = x_pos + 1j * 0
+        if mu_complex.use_spectral_deform:
+            if i_theta == 0:
+                guess = x_pos + 1j * 0
+            else:
+                guess = s_pos
+            s_pos = mu_complex.inverse(x_pos, guess=guess)
         else:
-            guess = s_pos
-        s_pos = mu_complex.inverse(x_pos, guess=guess)
+            s_pos = x_pos
 
         basis[:, i_theta] = np.array(
             [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
@@ -100,6 +103,8 @@ def choose_eigfunc(results: DictResult,
     pke: ArrayFloat = results['phys_qtys']['pke']
     pme: ArrayFloat = results['phys_qtys']['pme']
     sym: ArrayStr = results['phys_qtys']['sym']
+
+    print('==============================')
 
     mode_list: list = []
     q_value: float
