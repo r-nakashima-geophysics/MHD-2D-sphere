@@ -60,11 +60,11 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 # ========== Parameters ==========
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
-    -1, 1, alpha=0, beta_0=0, beta_1=0)
+    -1, 1, alpha=0, beta_0=0, beta_1=-0.01)
 MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
     = init_complex_coordinate_simple(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
@@ -74,7 +74,7 @@ MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
 SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = 1
+M_ORDER: Final[int] = 2
 
 # The Lehnert number
 ALPHA: Final[float] = input_value(0.1, float)
@@ -86,12 +86,12 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 500
-# N_T: Final[int] = 2000
+N_T: Final[int] = 200 if not SWITCH_NY24 else 2000
+N_T_PLOT: Final[int] = N_T
 
 # The number of grid points in the theta and phi directions
 NUM_THETA: Final[int] = 3601
-NUM_THETA_SKIP: Final[int] = 181
+NUM_THETA_SKIP: Final[int] = 361
 NUM_PHI: Final[int] = 361
 
 # The criterion for convergence
@@ -106,9 +106,10 @@ NAME_FIG: Final[str] \
     = f'MHD2Dsphere_eigfunc_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
     if SWITCH_NY24 \
     else f'MHD2Dsphere_eigfunc_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}_NP={N_T_PLOT}' \
     + f'_{MU_COMPLEX.name}'
-NAME_FIG_SUFFIX: Final[tuple[str, str]] = ('_1d.png', '_2d.png')
+NAME_FIG_SUFFIX: Final[tuple[str, str, str]] \
+    = ('_1d.png', '_2d.png', '_conv.png')
 FIG_DPI: Final[int] = 600
 
 # The boolean value to switch whether to display the value of the
@@ -150,14 +151,14 @@ GRID_LAT: Final[ArrayFloat] = np.rad2deg(
     np.full_like(GRID_THETA, np.pi/2) - GRID_THETA)
 GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
 
-TEXT_TITLE: Final[str] \
-    = f'Eigenfunction [{TEX_BG_FIELD}] : ' \
-    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
+TEXT_TITLE_PARAMS: Final[str] \
+    = r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
     + r'$R=$' + f' {ROSSBY}' \
     if ((not SWITCH_DISP_ETA) and (E_ETA == 0)) \
-    else f'Eigenfunction [{TEX_BG_FIELD}] : ' \
-    + r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
+    else r'$m=$' + f' {M_ORDER}, ' + r'$|\alpha|=$' + f' {ALPHA}, ' \
     + r'$E_\eta=$' + f' {E_ETA}, ' + r'$R=$' + f' {ROSSBY}'
+TEXT_TITLE: Final[str] \
+    = f'Eigenfunction [{TEX_BG_FIELD}] : ' + TEXT_TITLE_PARAMS
 
 
 @exe_yes_continue
@@ -215,6 +216,7 @@ def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
 
     plot_ns(psi, vpa, eig, i_mode)
     plot_map(psi_grid, vpa_grid, eig, i_mode)
+    plot_convergence(result, eig, i_mode)
 
     plt.show()
 
@@ -265,13 +267,21 @@ def plot_ns(psi: ArrayComplex,
 
     if np.isclose(eig.imag, 0):
         plotter.axes.set_title(
-            r'$\lambda=$' + f' {eig.real:8.5f}', fontsize=16)
+            r'$\lambda=$' + f' {eig.real:10.7f}', fontsize=16)
     else:
-        plotter.axes.set_title(
-            r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
-            + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$', fontsize=16)
+        if eig.imag > 0:
+            plotter.axes.set_title(
+                r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$+$'
+                + f'{eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
+        else:
+            plotter.axes.set_title(
+                r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$-$'
+                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
 
-    plotter.fig.suptitle(TEXT_TITLE, fontsize=16)
+    if E_ETA == 0:
+        plotter.fig.suptitle(TEXT_TITLE, fontsize=16)
+    else:
+        plotter.fig.suptitle(TEXT_TITLE, fontsize=13)
 
     plotter.leg = plotter.axes.legend(loc='best', fontsize=11)
 
@@ -346,16 +356,82 @@ def plot_map(psi_grid: ArrayFloat,
 
     if np.isclose(eig.imag, 0):
         plotter.fig.suptitle(
-            TEXT_TITLE + '\n\n' + r'$\lambda=$' + f' {eig.real:8.5f}',
+            TEXT_TITLE + '\n\n' + r'$\lambda=$' + f' {eig.real:10.7f}',
             fontsize=16)
     else:
-        plotter.fig.suptitle(
-            TEXT_TITLE + '\n\n'
-            + r'$\lambda=$' + f' {eig.real:8.5f} ' + r'$+$'
-            + f'{eig.imag:8.5f} ' + r'$\mathrm{i}$',
-            fontsize=16)
+        if eig.imag > 0:
+            plotter.fig.suptitle(
+                TEXT_TITLE + '\n\n'
+                + r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$+$'
+                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$',
+                fontsize=16)
+        else:
+            plotter.fig.suptitle(
+                TEXT_TITLE + '\n\n'
+                + r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$-$'
+                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$',
+                fontsize=16)
 
     name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[1]
+    plotter.save(PATH_DIR, name_fig, FIG_DPI)
+
+
+def plot_convergence(result: DictEigenmodeInfo,
+                     eig: complex,
+                     i_mode: int) -> None:
+    """Plot a figure of the convergence of a chosen eigenmode.
+
+    Parameters
+    ----------
+    result : DictEigenmodeInfo
+        A dictionary of result of an eigenmode which you chose.
+    eig : complex
+        The eigenvalue of an eigenmode which you chose.
+    i_mode : int
+        The index of an eigenmode which you chose.
+    """
+
+    vec_psi: ArrayComplex = result['vec_psi']
+    vec_vpa: ArrayComplex = result['vec_vpa']
+
+    size_submat: int = vec_psi.shape[0]
+
+    plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
+
+    plotter.axes.scatter(
+        np.arange(size_submat), np.abs(vec_psi),
+        s=5, color='red',
+        label=r'stream function $\tilde{\psi}$')
+    plotter.axes.scatter(
+        np.arange(size_submat), np.abs(vec_vpa),
+        s=5, marker='s', edgecolors='blue', facecolors='none',
+        label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
+        + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
+
+    plotter.axes.set_xlabel('degree', fontsize=16)
+    plotter.axes.set_ylabel('magnitude', fontsize=16)
+
+    if np.isclose(eig.imag, 0):
+        plotter.axes.set_title(
+            r'$\lambda=$' + f' {eig.real:10.7f}', fontsize=16)
+    else:
+        if eig.imag > 0:
+            plotter.axes.set_title(
+                r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$+$'
+                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
+        else:
+            plotter.axes.set_title(
+                r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$-$'
+                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
+
+    plotter.fig.suptitle(
+        f'Eigenvector [{TEX_BG_FIELD}]' + '\n' + TEXT_TITLE_PARAMS, fontsize=16)
+
+    plotter.leg = plotter.axes.legend(loc='best', fontsize=14)
+
+    plotter.axes.tick_params(labelsize=14)
+
+    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[2]
     plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
@@ -369,7 +445,8 @@ if __name__ == '__main__':
                            f'{ALPHA=}',
                            f'{E_ETA=}',
                            f'{ROSSBY=}',
-                           f'{N_T=}')
+                           f'{N_T=}',
+                           f'{N_T_PLOT=}')
     else:
         logger.show_params(f'{BG_FIELD_B.name=}',
                            f'{BG_FIELD_U.name=}',
@@ -378,12 +455,13 @@ if __name__ == '__main__':
                            f'{ALPHA=}',
                            f'{E_ETA=}',
                            f'{ROSSBY=}',
-                           f'{N_T=}')
+                           f'{N_T=}',
+                           f'{N_T_PLOT=}')
 
     basis: ArrayFloat | ArrayComplex = create_basis(
-        M_ORDER, N_T, LIN_THETA, background_field=BG_FIELD)
+        M_ORDER, N_T, N_T_PLOT, LIN_THETA, background_field=BG_FIELD)
     basis_skip: ArrayFloat | ArrayComplex = create_basis(
-        M_ORDER, N_T, LIN_THETA_SKIP, background_field=BG_FIELD)
+        M_ORDER, N_T, N_T_PLOT, LIN_THETA_SKIP, background_field=BG_FIELD)
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
         M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)
