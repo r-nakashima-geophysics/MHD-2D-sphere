@@ -20,6 +20,7 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 def create_basis(
         m_order: int,
         n_t: int,
+        n_t_plot: int,
         lin_theta: ArrayFloat,
         *,
         background_field: DictBackgroundField) -> ArrayFloat | ArrayComplex:
@@ -31,6 +32,8 @@ def create_basis(
         The zonal wavenumber (order).
     n_t : int
         The truncation degree.
+    n_t_plot : int
+        The truncation degree for plotting.
     lin_theta : ArrayFloat
         The values of theta at grid points.
     background_field : DictBackgroundField
@@ -50,9 +53,10 @@ def create_basis(
         return basis
 
     size_submat: int = n_t + 1
+    max_n_plot: int = n_t_plot + 1
     mu_complex: ComplexCoordinate = background_field['MU']
 
-    basis = np.empty((size_submat, num_theta), dtype=np.complex128)
+    basis = np.zeros((size_submat, num_theta), dtype=np.complex128)
 
     x_pos: float
     s_pos: complex | float
@@ -68,8 +72,8 @@ def create_basis(
         else:
             s_pos = x_pos
 
-        basis[:, i_theta] = np.array(
-            [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
+        basis[:max_n_plot, i_theta] = np.array(
+            [heinrichs(i_n, s_pos) for i_n in range(max_n_plot)]
         )
 
     return basis
@@ -120,7 +124,7 @@ def choose_eigfunc(results: DictResult,
             q_value = np.abs(eig[i_mode].real) / (-2*eig[i_mode].imag)
 
         print(f'({i_mode+1:04})  '
-              + f'[{eig[i_mode].real:8.5f},{eig[i_mode].imag:8.5f}] '
+              + f'[{eig[i_mode].real:10.7f},{eig[i_mode].imag:10.7f}] '
               + f'{sym[i_mode]:>9s}  Q={q_value:4.2f}  '
               + f'PKE={pke[i_mode]:4.2f}  PME={pme[i_mode]:4.2f}')
 
@@ -144,7 +148,7 @@ def choose_eigfunc(results: DictResult,
     if eig[i_chosen].imag != 0:
         q_value = np.abs(eig[i_chosen].real) / (-2*eig[i_chosen].imag)
     print(f'You chose: ({i_chosen+1:04})  '
-          + f'[{eig[i_chosen].real:8.5f},{eig[i_chosen].imag:8.5f}] '
+          + f'[{eig[i_chosen].real:10.7f},{eig[i_chosen].imag:10.7f}] '
           + f'{sym[i_chosen]:>9s}  Q={q_value:4.2f}  '
           + f'PKE={pke[i_chosen]:4.2f}  PME={pme[i_chosen]:4.2f}')
     print('==============================')

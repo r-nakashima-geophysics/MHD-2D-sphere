@@ -60,11 +60,11 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 # ========== Parameters ==========
 
 # Background field
-BG_FIELD_B: Final[BackgroundField] = init_background_b.b_sincos('mu')
+BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
 MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
-    -1, 1, alpha=0, beta_0=0, beta_1=-0.01)
+    -1, 1, alpha=0, beta_0=0, beta_1=0)
 MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
     = init_complex_coordinate_simple(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
@@ -74,7 +74,7 @@ MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
 SWITCH_NY24: Final[bool] = False
 
 # The zonal wavenumber (order)
-M_ORDER: Final[int] = 2
+M_ORDER: Final[int] = 1
 
 # The Lehnert number
 ALPHA: Final[float] = input_value(0.1, float)
