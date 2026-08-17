@@ -77,9 +77,12 @@ def prepare_chebyshev_gauss_quad(
     bg_field_u: BackgroundField = background_field['U']
     bg_field_b: BackgroundField = background_field['B']
 
+    analytic_cont: bool = False
     ChebyshevGaussQuad.set_class_variable(
         size_submat,
-        y_complex=mu_complex, y_unuse_spectral_deform=mu_unuse_spectral_deform)
+        y_complex=mu_complex,
+        y_unuse_spectral_deform=mu_unuse_spectral_deform,
+        analytic_cont=analytic_cont)
 
     def _minus_spherical_laplacian_heinrichs(
             n_degree: int,
@@ -87,53 +90,111 @@ def prepare_chebyshev_gauss_quad(
         return (-1) * spherical_laplacian_heinrichs(
             m_order, n_degree, s_pos, mu_complex=mu_complex)
 
-    def _weight_psm_1(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        b_mu: float = bg_field_b.r_value(mu)
+    def _weight_psm_1(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        b_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            b_mu = bg_field_b.value(mu)
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            b_mu = bg_field_b.r_value(mu)
         return (-1) / (4 * b_mu)
 
-    def _weight_psm_2(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        b_mu: float = bg_field_b.r_value(mu)
-        u_shear_mu: float = (
-            bg_field_u.r_value_d2(mu) * (1-(mu**2))
-            - 4 * mu * bg_field_u.r_value_d(mu)
-            - 2 * bg_field_u.r_value(mu)
-        )
+    def _weight_psm_2(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        b_mu: complex | float
+        u_shear_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            b_mu = bg_field_b.value(mu)
+            u_shear_mu = (
+                bg_field_u.value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_u.value_d(mu)
+                - 2 * bg_field_u.value(mu)
+            )
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            b_mu = bg_field_b.r_value(mu)
+            u_shear_mu = (
+                bg_field_u.r_value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_u.r_value_d(mu)
+                - 2 * bg_field_u.r_value(mu)
+            )
         return (-1) * (rossby*u_shear_mu-1) / (4 * (b_mu**2))
 
-    def _weight_pse_u1(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        u_mu: float = bg_field_u.r_value(mu)
+    def _weight_pse_u1(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        u_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            u_mu = bg_field_u.value(mu)
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            u_mu = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_1(s_pos)
 
-    def _weight_pse_u2(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        u_mu: float = bg_field_u.r_value(mu)
+    def _weight_pse_u2(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        u_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            u_mu = bg_field_u.value(mu)
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            u_mu = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_2(s_pos)
 
-    def _weight_pse_b(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        b_mu: float = bg_field_b.r_value(mu)
-        b_shear_mu: float = (
-            bg_field_b.r_value_d2(mu) * (1-(mu**2))
-            - 4 * mu * bg_field_b.r_value_d(mu)
-            - 2 * bg_field_b.r_value(mu)
-        )
+    def _weight_pse_b(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        b_mu: complex | float
+        b_shear_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            b_mu = bg_field_b.value(mu)
+            b_shear_mu = (
+                bg_field_b.value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_b.value_d(mu)
+                - 2 * bg_field_b.value(mu)
+            )
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            b_mu = bg_field_b.r_value(mu)
+            b_shear_mu = (
+                bg_field_b.r_value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_b.r_value_d(mu)
+                - 2 * bg_field_b.r_value(mu)
+            )
         return b_shear_mu / b_mu
 
-    def _weight_psm_hd(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        u_shear_mu: float = (
-            bg_field_u.r_value_d2(mu) * (1-(mu**2))
-            - 4 * mu * bg_field_u.r_value_d(mu)
-            - 2 * bg_field_u.r_value(mu)
-        )
+    def _weight_psm_hd(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        u_shear_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            u_shear_mu = (
+                bg_field_u.value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_u.value_d(mu)
+                - 2 * bg_field_u.value(mu)
+            )
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            u_shear_mu = (
+                bg_field_u.r_value_d2(mu) * (1-(mu**2))
+                - 4 * mu * bg_field_u.r_value_d(mu)
+                - 2 * bg_field_u.r_value(mu)
+            )
         return 1 / (4 * (rossby*u_shear_mu-1))
 
-    def _weight_pse_hd(s_pos: float) -> float:
-        mu: float = mu_unuse_spectral_deform.r_value(s_pos)
-        u_mu: float = bg_field_u.r_value(mu)
+    def _weight_pse_hd(s_pos: complex | float) -> complex | float:
+        mu: complex | float
+        u_mu: complex | float
+        if mu_complex.use_spectral_deform and (not analytic_cont):
+            mu = mu_complex.value(s_pos)
+            u_mu = bg_field_u.value(mu)
+        else:
+            mu = mu_unuse_spectral_deform.r_value(s_pos.real)
+            u_mu = bg_field_u.r_value(mu)
         return 4 * rossby * u_mu * _weight_psm_hd(s_pos)
 
     quad: DictChebyshevGaussQuad = {
