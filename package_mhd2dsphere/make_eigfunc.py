@@ -23,7 +23,8 @@ def create_basis(
         n_t_plot: int,
         lin_theta: ArrayFloat,
         *,
-        background_field: DictBackgroundField) -> ArrayFloat | ArrayComplex:
+        background_field: DictBackgroundField,
+        use_analytic_cont: bool = True) -> ArrayFloat | ArrayComplex:
     """Create basis functions for eigenfunctions
 
     Parameters
@@ -63,7 +64,7 @@ def create_basis(
     guess: complex
     for i_theta, theta in enumerate(lin_theta):
         x_pos = np.cos(theta)
-        if mu_complex.use_spectral_deform:
+        if (mu_complex.use_spectral_deform) and (use_analytic_cont):
             if i_theta == 0:
                 guess = x_pos + 1j * 0
             else:

@@ -77,12 +77,12 @@ def prepare_chebyshev_gauss_quad(
     bg_field_u: BackgroundField = background_field['U']
     bg_field_b: BackgroundField = background_field['B']
 
-    analytic_cont: bool = False
+    use_analytic_cont: bool = False
     ChebyshevGaussQuad.set_class_variable(
         size_submat,
         y_complex=mu_complex,
         y_unuse_spectral_deform=mu_unuse_spectral_deform,
-        analytic_cont=analytic_cont)
+        use_analytic_cont=use_analytic_cont)
 
     def _minus_spherical_laplacian_heinrichs(
             n_degree: int,
@@ -93,7 +93,7 @@ def prepare_chebyshev_gauss_quad(
     def _weight_psm_1(s_pos: complex | float) -> complex | float:
         mu: complex | float
         b_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             b_mu = bg_field_b.value(mu)
         else:
@@ -105,7 +105,7 @@ def prepare_chebyshev_gauss_quad(
         mu: complex | float
         b_mu: complex | float
         u_shear_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             b_mu = bg_field_b.value(mu)
             u_shear_mu = (
@@ -126,7 +126,7 @@ def prepare_chebyshev_gauss_quad(
     def _weight_pse_u1(s_pos: complex | float) -> complex | float:
         mu: complex | float
         u_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             u_mu = bg_field_u.value(mu)
         else:
@@ -137,7 +137,7 @@ def prepare_chebyshev_gauss_quad(
     def _weight_pse_u2(s_pos: complex | float) -> complex | float:
         mu: complex | float
         u_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             u_mu = bg_field_u.value(mu)
         else:
@@ -149,7 +149,7 @@ def prepare_chebyshev_gauss_quad(
         mu: complex | float
         b_mu: complex | float
         b_shear_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             b_mu = bg_field_b.value(mu)
             b_shear_mu = (
@@ -170,7 +170,7 @@ def prepare_chebyshev_gauss_quad(
     def _weight_psm_hd(s_pos: complex | float) -> complex | float:
         mu: complex | float
         u_shear_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             u_shear_mu = (
                 bg_field_u.value_d2(mu) * (1-(mu**2))
@@ -189,7 +189,7 @@ def prepare_chebyshev_gauss_quad(
     def _weight_pse_hd(s_pos: complex | float) -> complex | float:
         mu: complex | float
         u_mu: complex | float
-        if mu_complex.use_spectral_deform and (not analytic_cont):
+        if mu_complex.use_spectral_deform and (not use_analytic_cont):
             mu = mu_complex.value(s_pos)
             u_mu = bg_field_u.value(mu)
         else:

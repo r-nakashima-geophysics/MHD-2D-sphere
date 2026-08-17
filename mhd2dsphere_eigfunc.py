@@ -116,6 +116,10 @@ FIG_DPI: Final[int] = 600
 # magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
 
+# The boolean value to switch whether the analytic continuation of the complex
+# coordinate is used.
+USE_ANALYTIC_CONT: Final[bool] = True
+
 # ================================
 
 BG_FIELD: Final[DictBackgroundField] = {
@@ -459,7 +463,8 @@ if __name__ == '__main__':
                            f'{N_T_PLOT=}')
 
     basis: ArrayFloat | ArrayComplex = create_basis(
-        M_ORDER, N_T, N_T_PLOT, LIN_THETA, background_field=BG_FIELD)
+        M_ORDER, N_T, N_T_PLOT, LIN_THETA,
+        background_field=BG_FIELD, use_analytic_cont=USE_ANALYTIC_CONT)
     basis_skip: ArrayFloat | ArrayComplex = create_basis(
         M_ORDER, N_T, N_T_PLOT, LIN_THETA_SKIP, background_field=BG_FIELD)
 
