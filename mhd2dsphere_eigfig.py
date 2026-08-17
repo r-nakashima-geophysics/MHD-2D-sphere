@@ -1324,20 +1324,28 @@ if __name__ == '__main__':
         logger.warning('Meaningless figures are plotted')
         sys.exit(0)
 
+    show_param_text: list[str]
     if SWITCH_NY24:
-        logger.show_params(f'{SWITCH_NY24=}',
-                           f'{M_ORDER=}',
-                           f'{E_ETA=}',
-                           f'{ROSSBY=}',
-                           f'{N_T=}')
+        show_param_text = [
+            f'{SWITCH_NY24=}',
+            f'{M_ORDER=}',
+            f'{E_ETA=}',
+            f'{ROSSBY=}',
+            f'{N_T=}'
+        ]
     else:
-        logger.show_params(f'{BG_FIELD_B.name=}',
-                           f'{BG_FIELD_U.name=}',
-                           f'{MU_COMPLEX.name=}',
-                           f'{M_ORDER=}',
-                           f'{E_ETA=}',
-                           f'{ROSSBY=}',
-                           f'{N_T=}')
+        show_param_text = [
+            f'{BG_FIELD_B.name=}',
+            f'{BG_FIELD_U.name=}',
+            f'{MU_COMPLEX.name=}',
+            f'{M_ORDER=}',
+            f'{E_ETA=}',
+            f'{ROSSBY=}',
+            f'{N_T=}'
+        ]
+    if SWITCH_PLOT[2]:
+        show_param_text.append(f'{ALPHA_CHOSEN=}')
+    logger.show_params(*show_param_text)
 
     data: DictResult | None
     data_log: DictResult | None
