@@ -131,8 +131,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 500
-# N_T: Final[int] = 2000
+N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
 
 # The criterion for plotting, which is based on the quality factor
 CRITERION_Q: Final[float] = 0

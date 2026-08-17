@@ -86,7 +86,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 200 if not SWITCH_NY24 else 2000
+N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
 N_T_PLOT: Final[int] = N_T
 
 # The number of grid points in the theta and phi directions
@@ -363,7 +363,7 @@ def plot_map(psi_grid: ArrayFloat,
             plotter.fig.suptitle(
                 TEXT_TITLE + '\n\n'
                 + r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$+$'
-                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$',
+                + f'{eig.imag:10.7f} ' + r'$\mathrm{i}$',
                 fontsize=16)
         else:
             plotter.fig.suptitle(
@@ -418,7 +418,7 @@ def plot_convergence(result: DictEigenmodeInfo,
         if eig.imag > 0:
             plotter.axes.set_title(
                 r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$+$'
-                + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
+                + f'{eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
         else:
             plotter.axes.set_title(
                 r'$\lambda=$' + f' {eig.real:10.7f} ' + r'$-$'
