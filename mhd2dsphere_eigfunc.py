@@ -112,7 +112,7 @@ NAME_FIG: Final[str] \
     + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}_NP={N_T_PLOT}' \
     + f'_{MU_COMPLEX.name}'
 NAME_FIG_SUFFIX: Final[tuple[str, str, str, str]] \
-    = ('_1d.png', '_s1d.pdf', '_2d.png', '_conv.png')
+    = ('_1d.png', '_s1d.png', '_2d.png', '_conv.png')
 FIG_DPI: Final[int] = 600
 
 # The boolean value to switch whether to display the value of the
