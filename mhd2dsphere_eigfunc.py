@@ -89,9 +89,12 @@ ROSSBY: Final[float] = 0
 N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
 N_T_PLOT: Final[int] = N_T
 
+# The boolean value to switch whether to use the analytic continuation or not.
+USE_ANALYTIC_CONT: Final[bool] = True
+
 # The number of grid points in the theta and phi directions
 NUM_THETA: Final[int] = 3601
-NUM_THETA_SKIP: Final[int] = 361
+NUM_THETA_SKIP: Final[int] = 181
 NUM_PHI: Final[int] = 361
 
 # The criterion for convergence
@@ -108,17 +111,13 @@ NAME_FIG: Final[str] \
     else f'MHD2Dsphere_eigfunc_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
     + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}_NP={N_T_PLOT}' \
     + f'_{MU_COMPLEX.name}'
-NAME_FIG_SUFFIX: Final[tuple[str, str, str]] \
-    = ('_1d.png', '_2d.png', '_conv.png')
+NAME_FIG_SUFFIX: Final[tuple[str, str, str, str]] \
+    = ('_1d.png', '_s1d.pdf', '_2d.png', '_conv.png')
 FIG_DPI: Final[int] = 600
 
 # The boolean value to switch whether to display the value of the
 # magnetic Ekman number or not when E_ETA = 0
 SWITCH_DISP_ETA: Final[bool] = False
-
-# The boolean value to switch whether the analytic continuation of the complex
-# coordinate is used.
-USE_ANALYTIC_CONT: Final[bool] = True
 
 # ================================
 
@@ -219,7 +218,8 @@ def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
         background_field=BG_FIELD)
 
     plot_ns(psi, vpa, eig, i_mode)
-    plot_map(psi_grid, vpa_grid, eig, i_mode)
+    if (not BG_FIELD['MU'].use_spectral_deform) or USE_ANALYTIC_CONT:
+        plot_map(psi_grid, vpa_grid, eig, i_mode)
     plot_convergence(result, eig, i_mode)
 
     plt.show()
@@ -246,28 +246,40 @@ def plot_ns(psi: ArrayComplex,
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 4))
 
-    plotter.axes.plot(LIN_THETA, psi.real, color='red',
+    lin_x: ArrayFloat
+    if (BG_FIELD['MU'].use_spectral_deform) and (not USE_ANALYTIC_CONT):
+        lin_x = np.cos(LIN_THETA)
+    else:
+        lin_x = LIN_THETA
+
+    plotter.axes.plot(lin_x, psi.real, color='red',
                       label=r'stream function $\tilde{\psi}$')
-    plotter.axes.plot(LIN_THETA, vpa.real, color='blue',
+    plotter.axes.plot(lin_x, vpa.real, color='blue',
                       label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
                       + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
     if np.nanmax(np.abs(psi.imag)) > 0:
-        plotter.axes.plot(LIN_THETA, psi.imag, color='red', linestyle=':')
+        plotter.axes.plot(lin_x, psi.imag, color='red', linestyle=':')
 
     if np.nanmax(np.abs(vpa.imag)) > 0:
-        plotter.axes.plot(LIN_THETA, vpa.imag, color='blue', linestyle=':')
+        plotter.axes.plot(lin_x, vpa.imag, color='blue', linestyle=':')
 
     amp_max: float
     amp_min: float
     amp_max, amp_min = amp_range(psi, vpa)
 
-    plotter.axes.set_xlim(0, np.pi)
-    plotter.axes.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
-    plotter.axes.set_xticklabels(['$0$', '$45$', '$90$', '$135$', '$180$'])
     plotter.axes.set_ylim(amp_min, amp_max)
-
-    plotter.axes.set_xlabel('colatitude [degree]', fontsize=16)
     plotter.axes.set_ylabel('amplitude', fontsize=16)
+
+    if (BG_FIELD['MU'].use_spectral_deform) and (not USE_ANALYTIC_CONT):
+        plotter.axes.set_xlim(-1, 1)
+
+        plotter.axes.set_xlabel(r'$s$', fontsize=16)
+    else:
+        plotter.axes.set_xlim(0, np.pi)
+        plotter.axes.set_xticks([0, np.pi/4, np.pi/2, 3*np.pi/4, np.pi])
+        plotter.axes.set_xticklabels(['$0$', '$45$', '$90$', '$135$', '$180$'])
+
+        plotter.axes.set_xlabel('colatitude [degree]', fontsize=16)
 
     if np.isclose(eig.imag, 0):
         plotter.axes.set_title(
@@ -291,7 +303,11 @@ def plot_ns(psi: ArrayComplex,
 
     plotter.axes.tick_params(labelsize=14)
 
-    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[0]
+    name_fig: str = NAME_FIG + f'_{i_mode+1}'
+    if (BG_FIELD['MU'].use_spectral_deform) and (not USE_ANALYTIC_CONT):
+        name_fig += NAME_FIG_SUFFIX[1]
+    else:
+        name_fig += NAME_FIG_SUFFIX[0]
     plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
@@ -376,7 +392,7 @@ def plot_map(psi_grid: ArrayFloat,
                 + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$',
                 fontsize=16)
 
-    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[1]
+    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[2]
     plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
@@ -435,7 +451,7 @@ def plot_convergence(result: DictEigenmodeInfo,
 
     plotter.axes.tick_params(labelsize=14)
 
-    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[2]
+    name_fig: str = NAME_FIG + f'_{i_mode+1}' + NAME_FIG_SUFFIX[3]
     plotter.save(PATH_DIR, name_fig, FIG_DPI)
 
 
@@ -460,7 +476,8 @@ if __name__ == '__main__':
                            f'{E_ETA=}',
                            f'{ROSSBY=}',
                            f'{N_T=}',
-                           f'{N_T_PLOT=}')
+                           f'{N_T_PLOT=}',
+                           f'{USE_ANALYTIC_CONT=}')
 
     basis: ArrayFloat | ArrayComplex = create_basis(
         M_ORDER, N_T, N_T_PLOT, LIN_THETA,

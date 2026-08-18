@@ -39,6 +39,8 @@ def create_basis(
         The values of theta at grid points.
     background_field : DictBackgroundField
         The background field.
+    use_analytic_cont : bool, optional
+        The boolean value to switch whether to use the analytic continuation or not.
 
     Returns
     -------
