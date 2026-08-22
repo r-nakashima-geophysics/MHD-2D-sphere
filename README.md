@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10730383.svg)](https://doi.org/10.5281/zenodo.10730383)
 
-These Python scripts support the findings of our study, Nakashima &amp; Yoshida (2024).
+These Python scripts support the findings of our study: Nakashima &amp; Yoshida (2024), and Nakashima &amp; Yoshida (in prep.).
 
 > Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
 > magnetohydrodynamic waves on a rotating sphere under a non-Malkus field:
@@ -24,6 +24,13 @@ These Python scripts support the findings of our study, Nakashima &amp; Yoshida 
 | A2                     |      sincos_fmreigf |
 | A5                     |    sincos_frobenius |
 | A6                     | sincos_allfrobenius |
+
+> Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+> magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: II.
+> in prep.
+
+| Figure | mhd2dsphere\_\*.py |
+| :----- | -----------------: |
 
 ## Setup
 
@@ -73,7 +80,7 @@ or
 ln -sf common-package/package_common package_common
 ```
 
-The recommended version of the common package is v1.0.18 or later.
+The recommended version of the common package is v1.0.19 or later.
 
 ## Usage
 
