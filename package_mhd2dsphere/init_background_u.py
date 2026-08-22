@@ -2,11 +2,40 @@
 for background zonal flows, U_phi = U_0 U(theta) sin(theta)."""
 
 from package_common.background_field import BackgroundField
+from package_common.common_types import NoReturn
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger
 
 
-def u_rigid(switch_theta: str = 'mu') -> BackgroundField:
+def is_symmetric_u(u_field: BackgroundField) -> bool | NoReturn:
+    """Check whether the background zonal flow is equatorial (anti)symmetric or not.
+
+    Parameters
+    ----------
+    u_field : BackgroundField
+        The instance of the BackgroundField class.
+
+    Returns
+    -------
+    bool
+        The boolean value to check whether the background zonal flow is equatorial
+        (anti)symmetric or not.
+
+    Warnings
+    --------
+    Unknown background zonal flow name
+        If the name of the background zonal flow is undefined.
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    if u_field.name == 'rigid':
+        return True
+
+    logger.error('Unknown background zonal flow name')
+
+
+def u_rigid(switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for the rigid
     body rotation (U=0).
 

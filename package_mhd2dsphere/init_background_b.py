@@ -4,11 +4,53 @@ for toroidal background fields, B_phi = B_0 B(theta) sin(theta)."""
 import numpy as np
 
 from package_common.background_field import BackgroundField
+from package_common.common_types import NoReturn
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger
 
 
-def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
+def is_symmetric_b(b_field: BackgroundField) -> bool | NoReturn:
+    """Check whether the toroidal background field is equatorial
+    (anti)symmetric or not.
+
+    Parameters
+    ----------
+    b_field : BackgroundField
+        The instance of the BackgroundField class.
+
+    Returns
+    -------
+    bool
+        The boolean value to check whether the background field is equatorial
+        (anti)symmetric or not.
+
+    Warnings
+    --------
+    Unknown background field name
+        If the name of the background field is undefined.
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+
+    if b_field.name == 'hydro':
+        return True
+
+    if b_field.name == 'malkus':
+        return True
+
+    if b_field.name == 'sincos':
+        return True
+
+    if b_field.name == 'sin2cos':
+        return True
+
+    if b_field.name.startswith('malsincos'):
+        return False
+
+    logger.error('Unknown background field name')
+
+
+def b_hydro(switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for the
     hydrodynamic case (B=0).
 
@@ -81,7 +123,7 @@ def b_hydro(switch_theta: str = 'mu') -> BackgroundField:
     logger.error('Invalid argument')
 
 
-def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
+def b_malkus(switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for the
     Malkus field (B=1).
 
@@ -153,7 +195,7 @@ def b_malkus(switch_theta: str = 'mu') -> BackgroundField:
     logger.error('Invalid argument')
 
 
-def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
+def b_sincos(switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for B =
     cos(theta).
 
@@ -221,7 +263,7 @@ def b_sincos(switch_theta: str = 'mu') -> BackgroundField:
     logger.error('Invalid argument')
 
 
-def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
+def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for B =
     sin(theta) cos(theta).
 
@@ -289,8 +331,8 @@ def b_sin2cos(switch_theta: str = 'mu') -> BackgroundField:
     logger.error('Invalid argument')
 
 
-def b_malsincos(ratio_sincos2malkus:
-                float, switch_theta: str = 'mu') -> BackgroundField:
+def b_malsincos(ratio_sincos2malkus: float,
+                switch_theta: str = 'mu') -> BackgroundField | NoReturn:
     """Construct an instance of the BackgroundField class for B =
     const * (1 + ratio_sincos2malkus * cos(theta)).
 
@@ -310,6 +352,8 @@ def b_malsincos(ratio_sincos2malkus:
 
     Warnings
     --------
+    Use b_malkus() or b_sincos() instead of b_malsincos()
+        If the ratio_sincos2malkus is 0 or infinity.
     Invalid argument
         If the argument is neither 'mu' nor 'theta'.
 
@@ -321,6 +365,9 @@ def b_malsincos(ratio_sincos2malkus:
     """
 
     logger: DefaultLogger = create_function_name_logger()
+
+    if (ratio_sincos2malkus == 0) or (ratio_sincos2malkus == np.inf):
+        logger.error('Use b_malkus() or b_sincos() instead of b_malsincos()')
 
     name: str = f'malsincos{ratio_sincos2malkus:.2f}'
 
