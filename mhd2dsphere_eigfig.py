@@ -838,7 +838,7 @@ def plot_eig_log(results: DictResult,
         cmap_min = -np.max(np.abs([psm_min, psm_max]))
         cmap_max = np.max(np.abs([psm_min, psm_max]))
         cmap = 'jet'
-        norm = SymLogNorm(linthresh=10**(-2), vmin=cmap_min, vmax=cmap_max)
+        norm = SymLogNorm(10**(-2), vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'pse':
         cmap_min = pse_min
         cmap_max = pse_max

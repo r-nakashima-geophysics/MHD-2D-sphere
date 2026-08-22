@@ -301,7 +301,8 @@ def calc_psm(n_degree: int,
 
     Notes
     -----
-    If n_degree = 0, psm is set to 0. This function is based on Nakashima & Yoshida(in prep.)[2]_.
+    If n_degree = 0, psm is set to 0. This function is based on Nakashima &
+    Yoshida(in prep.)[2]_.
     """
 
     if n_degree == 0:
@@ -612,7 +613,8 @@ def plot_psm(psm: ArrayFloat) -> None:
 
     plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes.set_ylabel(
-        r'$(2\Omega_0R_0)\mathrm{PSM}/(\mathrm{PKE}+\mathrm{PME})$', fontsize=16)
+        r'$(2\Omega_0R_0)\mathrm{PSM}/(\mathrm{PKE}+\mathrm{PME})$',
+        fontsize=16)
     plotter.axes.set_title(
         r'Angular pseudomomentum [$B_{0\phi}=B_0\sin\theta$] : $m=$'
         + f' {M_ORDER}\n', fontsize=13)

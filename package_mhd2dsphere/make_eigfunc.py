@@ -40,7 +40,8 @@ def create_basis(
     background_field : DictBackgroundField
         The background field.
     use_analytic_cont : bool, optional
-        The boolean value to switch whether to use the analytic continuation or not.
+        The boolean value to switch whether to use the analytic continuation or
+        not.
 
     Returns
     -------
@@ -321,12 +322,12 @@ def adjust_sign(psi: ArrayComplex,
 
     if equator > 0:
         return 1
-    elif equator < 0:
+    if equator < 0:
         return -1
-    else:
-        logger: DefaultLogger = create_function_name_logger()
-        logger.warning(
-            'The adjustment of the sign of the eigenfunction is failed')
+
+    logger: DefaultLogger = create_function_name_logger()
+    logger.warning(
+        'The adjustment of the sign of the eigenfunction is failed')
 
     return 1
 

@@ -445,7 +445,8 @@ def plot_convergence(result: DictEigenmodeInfo,
                 + f'{-eig.imag:10.7f} ' + r'$\mathrm{i}$', fontsize=16)
 
     plotter.fig.suptitle(
-        f'Eigenvector [{TEX_BG_FIELD}]' + '\n' + TEXT_TITLE_PARAMS, fontsize=16)
+        f'Eigenvector [{TEX_BG_FIELD}]' + '\n' + TEXT_TITLE_PARAMS,
+        fontsize=16)
 
     plotter.leg = plotter.axes.legend(loc='best', fontsize=14)
 
