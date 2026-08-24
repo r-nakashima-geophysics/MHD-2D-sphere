@@ -107,7 +107,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
+N_T: Final[int] = 1000 if not SWITCH_NY24 else 2000
 
 # The criterion for convergence
 # degree

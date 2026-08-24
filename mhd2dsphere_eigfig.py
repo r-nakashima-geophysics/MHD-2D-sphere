@@ -131,7 +131,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
+N_T: Final[int] = 1000 if not SWITCH_NY24 else 2000
 
 # The criterion for plotting, which is based on the quality factor
 CRITERION_Q: Final[float] = 0
@@ -1331,7 +1331,8 @@ if __name__ == '__main__':
             f'{M_ORDER=}',
             f'{E_ETA=}',
             f'{ROSSBY=}',
-            f'{N_T=}'
+            f'{N_T=}',
+            f'{SWITCH_COLOR=}'
         ]
     else:
         show_param_text = [
@@ -1341,7 +1342,8 @@ if __name__ == '__main__':
             f'{M_ORDER=}',
             f'{E_ETA=}',
             f'{ROSSBY=}',
-            f'{N_T=}'
+            f'{N_T=}',
+            f'{SWITCH_COLOR=}'
         ]
     if SWITCH_PLOT[2]:
         show_param_text.append(f'{ALPHA_CHOSEN=}')
