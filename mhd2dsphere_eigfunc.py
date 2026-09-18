@@ -44,12 +44,12 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_plotter import (Colorbar, DefaultPlotter,
                                             QuadContourSet, create_plotter)
 from package_common.spectral_deform import (ComplexCoordinate,
-                                            init_complex_coordinate_simple)
+                                            init_complex_coordinate_standard)
 from package_common.utils_input import input_value
 from package_mhd2dsphere import init_background_b, init_background_u
-from package_mhd2dsphere.make_eigfunc import (amp_range, choose_eigfunc,
-                                              create_basis, make_eigfunc,
-                                              make_eigfunc_grid)
+from package_mhd2dsphere.create_eigfunc import (amp_range, choose_eigfunc,
+                                                create_basis, create_eigfunc,
+                                                create_eigfunc_grid)
 from package_mhd2dsphere.solve_eig import (prepare_chebyshev_gauss_quad,
                                            wrapper_solve_eig)
 from package_mhd2dsphere.typed_dict import (DictBackgroundField,
@@ -63,10 +63,10 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_standard(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
-    = init_complex_coordinate_simple(-1, 1)
+    = init_complex_coordinate_standard(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
@@ -208,12 +208,12 @@ def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
 
     psi: ArrayComplex
     vpa: ArrayComplex
-    psi, vpa = make_eigfunc(result, M_ORDER, LIN_THETA, basis_func,
-                            background_field=BG_FIELD)
+    psi, vpa = create_eigfunc(result, M_ORDER, LIN_THETA, basis_func,
+                              background_field=BG_FIELD)
 
     psi_grid: ArrayFloat
     vpa_grid: ArrayFloat
-    psi_grid, vpa_grid = make_eigfunc_grid(
+    psi_grid, vpa_grid = create_eigfunc_grid(
         result, M_ORDER, LIN_THETA_SKIP, LIN_PHI, basis_func_skip,
         background_field=BG_FIELD)
 

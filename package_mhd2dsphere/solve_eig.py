@@ -61,9 +61,8 @@ def prepare_chebyshev_gauss_quad(
         The dictionary for the Chebyshev-Gauss quadrature.
     """
 
-    logger: DefaultLogger = create_function_name_logger()
-
     if background_field['NY24']:
+        logger: DefaultLogger = create_function_name_logger()
         logger.info(
             'psm and pse are not calculated when SWITCH_NY24 == True.')
         return None
@@ -500,19 +499,14 @@ def calc_qty(m_order: int,
     even: ArrayFloat = np.zeros(size_mat)
     odd: ArrayFloat = np.zeros(size_mat)
     sym: ArrayStr = np.empty(size_mat, dtype=np.str_)
-    if 'malsincos' in background_field['B'].name:
-        for i_mode in range(size_mat):
+    for i_n in range(int(size_submat/2)):
+        even += np.abs(eig_valvec[2*i_n, :])
+        odd += np.abs(eig_valvec[2*i_n+1, :])
+    for i_mode in range(size_mat):
+        if even[i_mode] > odd[i_mode]:
             sym[i_mode] = 'sinuous'
-    else:
-        for i_n in range(int(size_submat/2)):
-            even += np.abs(eig_valvec[2*i_n, :])
-            odd += np.abs(eig_valvec[2*i_n+1, :])
-
-        for i_mode in range(size_mat):
-            if even[i_mode] > odd[i_mode]:
-                sym[i_mode] = 'sinuous'
-            else:
-                sym[i_mode] = 'varicose'
+        else:
+            sym[i_mode] = 'varicose'
 
     phys_qtys: DictPhysQtys = {
         'pke': pke,

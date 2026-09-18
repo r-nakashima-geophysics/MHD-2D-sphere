@@ -173,14 +173,14 @@ def choose_eigfunc(results: DictResult,
     return result
 
 
-def make_eigfunc(result: DictEigenmodeInfo,
-                 m_order: int,
-                 lin_theta: ArrayFloat,
-                 basis_func: ArrayFloat | ArrayComplex,
-                 *,
-                 background_field: DictBackgroundField) \
+def create_eigfunc(result: DictEigenmodeInfo,
+                   m_order: int,
+                   lin_theta: ArrayFloat,
+                   basis_func: ArrayFloat | ArrayComplex,
+                   *,
+                   background_field: DictBackgroundField) \
         -> tuple[ArrayComplex, ArrayComplex]:
-    """Make an eigenfunction from an eigenvector
+    """Create an eigenfunction from an eigenvector
 
     Parameters
     ----------
@@ -233,15 +233,15 @@ def make_eigfunc(result: DictEigenmodeInfo,
     return psi, vpa
 
 
-def make_eigfunc_grid(result: DictEigenmodeInfo,
-                      m_order: int,
-                      lin_theta: ArrayFloat,
-                      lin_phi: ArrayFloat,
-                      basis_func: ArrayFloat | ArrayComplex,
-                      *,
-                      background_field: DictBackgroundField) \
+def create_eigfunc_grid(result: DictEigenmodeInfo,
+                        m_order: int,
+                        lin_theta: ArrayFloat,
+                        lin_phi: ArrayFloat,
+                        basis_func: ArrayFloat | ArrayComplex,
+                        *,
+                        background_field: DictBackgroundField) \
         -> tuple[ArrayFloat, ArrayFloat]:
-    """Make a meshgrid of an eigenfunction from an eigenvector
+    """Create a meshgrid of an eigenfunction from an eigenvector
 
     Parameters
     ----------
@@ -268,8 +268,8 @@ def make_eigfunc_grid(result: DictEigenmodeInfo,
 
     psi: ArrayComplex
     vpa: ArrayComplex
-    psi, vpa = make_eigfunc(result, m_order, lin_theta, basis_func,
-                            background_field=background_field)
+    psi, vpa = create_eigfunc(result, m_order, lin_theta, basis_func,
+                              background_field=background_field)
 
     grid_phi: ArrayFloat
     grid_phi, _ = np.meshgrid(lin_phi, lin_theta[1:-1])

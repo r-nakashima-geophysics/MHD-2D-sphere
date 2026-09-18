@@ -59,7 +59,7 @@ from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
-                                            init_complex_coordinate_simple)
+                                            init_complex_coordinate_standard)
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
 from package_common.utils_parallel import (SharedInfo, SharedMemory,
@@ -87,10 +87,10 @@ SWITCH_CALC: Final[tuple[bool, bool]] = (True, True)
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_standard(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
-    = init_complex_coordinate_simple(-1, 1)
+    = init_complex_coordinate_standard(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
