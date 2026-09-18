@@ -20,7 +20,6 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 def create_basis(
         m_order: int,
         n_t: int,
-        n_t_plot: int,
         lin_theta: ArrayFloat,
         *,
         background_field: DictBackgroundField,
@@ -33,8 +32,6 @@ def create_basis(
         The zonal wavenumber (order).
     n_t : int
         The truncation degree.
-    n_t_plot : int
-        The truncation degree for plotting.
     lin_theta : ArrayFloat
         The values of theta at grid points.
     background_field : DictBackgroundField
@@ -57,7 +54,6 @@ def create_basis(
         return basis
 
     size_submat: int = n_t + 1
-    max_n_plot: int = n_t_plot + 1
     mu_complex: ComplexCoordinate = background_field['MU']
 
     basis = np.zeros((size_submat, num_theta), dtype=np.complex128)
@@ -76,8 +72,8 @@ def create_basis(
         else:
             s_pos = x_pos
 
-        basis[:max_n_plot, i_theta] = np.array(
-            [heinrichs(i_n, s_pos) for i_n in range(max_n_plot)]
+        basis[:size_submat, i_theta] = np.array(
+            [heinrichs(i_n, s_pos) for i_n in range(size_submat)]
         )
 
     return basis
