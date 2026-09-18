@@ -64,13 +64,14 @@ from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayComplex, ArrayFloat, ArrayStr,
                                          Final, cast)
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import (Axes, Colorbar, DefaultGridPlotter,
+from package_common.default_plotter import (ArrayAxes, ArrayPathCollection,
+                                            Axes, Colorbar, DefaultGridPlotter,
                                             DefaultPlotter, QuadContourSet,
                                             create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import (ComplexCoordinate,
-                                            init_complex_coordinate_simple)
+                                            init_complex_coordinate_standard)
 from package_common.utils_collocation import calc_collocation_point
 from package_common.utils_input import input_value
 from package_common.utils_name import create_function_name_progress_bar
@@ -111,10 +112,10 @@ SWITCH_COLOR: Final[str] = 'ene'
 BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 # For the spectral deformation method
-MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_simple(
+MU_COMPLEX: Final[ComplexCoordinate] = init_complex_coordinate_standard(
     -1, 1, alpha=0, beta_0=0, beta_1=0)
 MU_COMPLEX_UNUSE_SPECTRAL_DEFORM: Final[ComplexCoordinate] \
-    = init_complex_coordinate_simple(-1, 1)
+    = init_complex_coordinate_standard(-1, 1)
 # The boolean value to switch whether to follow Nakashima & Yoshida
 # (2024)[1]_ or not
 # If SWITCH_NY24 is True, BG_FIELD_B, BG_FIELD_U and
@@ -193,6 +194,10 @@ BG_FIELD: Final[DictBackgroundField] = {
     'MU_UNUSE_SPECTRAL_DEFORM': MU_COMPLEX_UNUSE_SPECTRAL_DEFORM,
     'NY24': SWITCH_NY24
 }
+IS_SYMMETRIC_FIELD: Final[bool] = (
+    init_background_b.is_symmetric_b(BG_FIELD_B)
+    and init_background_u.is_symmetric_u(BG_FIELD_U)
+)
 
 TEX_BG_FIELD: Final[str] \
     = r'$B_{0\phi}=B_0\sin\theta\cos\theta$, $U_{0\phi}=0$' \
@@ -270,40 +275,63 @@ def wrapper_plot_eig(results: DictResult,
         The dictionary of parameters.
     """
 
-    plotter_real: DefaultGridPlotter
-    plotter_imag: DefaultGridPlotter
+    plotter_real: DefaultPlotter | DefaultGridPlotter
+    plotter_imag: DefaultPlotter | DefaultGridPlotter
     set_save_fig: set[int]
 
     plotter_real, plotter_imag, set_save_fig \
         = plot_eig(results, dict_params=dict_params)
 
+    real_axes: ArrayAxes = np.empty(2, dtype=object)
+    imag_axes: ArrayAxes = np.empty(2, dtype=object)
+    real_sc: ArrayPathCollection = np.empty(2, dtype=object)
+    imag_sc: ArrayPathCollection = np.empty(2, dtype=object)
+    if IS_SYMMETRIC_FIELD:
+        real_axes[0] = plotter_real.axes[0]
+        real_axes[1] = plotter_real.axes[1]
+        imag_axes[0] = plotter_imag.axes[0]
+        imag_axes[1] = plotter_imag.axes[1]
+        real_sc[0] = plotter_real.sc[0]
+        real_sc[1] = plotter_real.sc[1]
+        imag_sc[0] = plotter_imag.sc[0]
+        imag_sc[1] = plotter_imag.sc[1]
+    else:
+        real_axes[0] = plotter_real.axes
+        real_axes[1] = plotter_real.axes
+        imag_axes[0] = plotter_imag.axes
+        imag_axes[1] = plotter_imag.axes
+        real_sc[0] = plotter_real.sc
+        real_sc[1] = plotter_real.sc
+        imag_sc[0] = plotter_imag.sc
+        imag_sc[1] = plotter_imag.sc
+
     alpha_init: float = dict_params['alpha_init']
     alpha_end: float = dict_params['alpha_end']
 
-    plotter_real.axes[0].set_ylim(EIG_RE_INIT, EIG_RE_END)
-    plotter_real.axes[1].set_ylim(EIG_RE_INIT, EIG_RE_END)
+    real_axes[0].set_ylim(EIG_RE_INIT, EIG_RE_END)
+    real_axes[1].set_ylim(EIG_RE_INIT, EIG_RE_END)
 
-    for axis in (plotter_real.axes[0], plotter_real.axes[1],
-                 plotter_imag.axes[0], plotter_imag.axes[1]):
+    for axis in (real_axes[0], real_axes[1], imag_axes[0], imag_axes[1]):
         axis.set_xlim(alpha_init, alpha_end)
         axis.set_xlabel(TEXT_XLABEL, fontsize=16)
         axis.tick_params(labelsize=14)
 
     if set_save_fig & {1, 2}:
-        plotter_real.axes[0].set_ylabel(
+        real_axes[0].set_ylabel(
             r'$\mathrm{Re}(\lambda)=\mathrm{Re}(\omega)/2\Omega_0$',
             fontsize=16)
-        plotter_imag.axes[0].set_ylabel(
+        imag_axes[0].set_ylabel(
             r'$\mathrm{Im}(\lambda)=\mathrm{Im}(\omega)/2\Omega_0$',
             fontsize=16)
     else:
-        plotter_real.axes[0].set_ylabel(
+        real_axes[0].set_ylabel(
             r'$\lambda=\omega/2\Omega_0$', fontsize=16)
 
-    plotter_real.axes[0].set_title('Sinuous', fontsize=16)
-    plotter_real.axes[1].set_title('Varicose', fontsize=16)
-    plotter_imag.axes[0].set_title('Sinuous', fontsize=16)
-    plotter_imag.axes[1].set_title('Varicose', fontsize=16)
+    if IS_SYMMETRIC_FIELD:
+        real_axes[0].set_title('Sinuous', fontsize=16)
+        real_axes[1].set_title('Varicose', fontsize=16)
+        imag_axes[0].set_title('Sinuous', fontsize=16)
+        imag_axes[1].set_title('Varicose', fontsize=16)
 
     plotter_real.fig.suptitle(TEXT_TITLE, fontsize=16)
     plotter_imag.fig.suptitle(TEXT_TITLE, fontsize=16)
@@ -317,12 +345,12 @@ def wrapper_plot_eig(results: DictResult,
 
     if SWITCH_COLOR in ('ene', 'ohm', 'psm', 'pse', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
-        axpos = plotter_real.axes[0].get_position()
+        axpos = real_axes[0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
             (0.88, axpos.y0, 0.01, axpos.height))
         if set_save_fig & {1, 2}:
             plotter_imag.fig.subplots_adjust(right=0.85)
-            axpos = plotter_imag.axes[0].get_position()
+            axpos = imag_axes[0].get_position()
             cbar_ax_2 = plotter_imag.fig.add_axes(
                 (0.88, axpos.y0, 0.01, axpos.height))
 
@@ -331,7 +359,7 @@ def wrapper_plot_eig(results: DictResult,
     if SWITCH_COLOR == 'ene':
 
         cbar = plotter_real.fig.colorbar(
-            plotter_real.sc[0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
+            real_sc[0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
         cbar.ax.set_yticklabels(
             [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
         cbar.ax.tick_params(labelsize=14)
@@ -339,7 +367,7 @@ def wrapper_plot_eig(results: DictResult,
 
         if 1 in set_save_fig:
             cbar = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0], cax=cbar_ax_2,
+                imag_sc[0], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -347,7 +375,7 @@ def wrapper_plot_eig(results: DictResult,
             cbar.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1], cax=cbar_ax_2,
+                imag_sc[1], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -367,16 +395,16 @@ def wrapper_plot_eig(results: DictResult,
             cbar_extend = 'min'
 
         cbar = plotter_real.fig.colorbar(
-            plotter_real.sc[0], cax=cbar_ax_1, extend=cbar_extend)
+            real_sc[0], cax=cbar_ax_1, extend=cbar_extend)
         cbar.set_label(label=CBAR_LABEL, size=16)
 
         if 1 in set_save_fig:
             cbar = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[0], cax=cbar_ax_2, extend=cbar_extend)
             cbar.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[1], cax=cbar_ax_2, extend=cbar_extend)
             cbar.set_label(label=CBAR_LABEL, size=16)
 
     save_plot_eig(plotter_real, plotter_imag, set_save_fig)
@@ -384,9 +412,10 @@ def wrapper_plot_eig(results: DictResult,
 
 def plot_eig(results: DictResult,
              *,
-             dict_params: DictParams) -> tuple[DefaultGridPlotter,
-                                               DefaultGridPlotter,
-                                               set[int]]:
+             dict_params: DictParams) \
+    -> tuple[DefaultPlotter | DefaultGridPlotter,
+             DefaultPlotter | DefaultGridPlotter,
+             set[int]]:
     """Plot the dispersion diagram for the linear-linear plot.
 
     Parameters
@@ -398,9 +427,9 @@ def plot_eig(results: DictResult,
 
     Returns
     -------
-    plotter_real : DefaultGridPlotter
+    plotter_real : DefaultPlotter | DefaultGridPlotter
         The instance of the DefaultGridPlotter class.
-    plotter_imag : DefaultGridPlotter
+    plotter_imag : DefaultPlotter | DefaultGridPlotter
         The instance of the DefaultGridPlotter class.
     set_save_fig : set[int]
         The set storing the IDs of figures to save.
@@ -421,10 +450,26 @@ def plot_eig(results: DictResult,
     pse_max: float = dict_params['pse_max']
     ohm_max: float = dict_params['ohm_max']
 
-    plotter_real: DefaultGridPlotter \
-        = create_plotter(1, 2, figsize=(10, 7))
-    plotter_imag: DefaultGridPlotter \
-        = create_plotter(1, 2, figsize=(10, 5))
+    plotter_real: DefaultPlotter | DefaultGridPlotter
+    plotter_imag: DefaultPlotter | DefaultGridPlotter
+    real_axes: ArrayAxes = np.empty(2, dtype=object)
+    imag_axes: ArrayAxes = np.empty(2, dtype=object)
+    real_sc: ArrayPathCollection = np.empty(2, dtype=object)
+    imag_sc: ArrayPathCollection = np.empty(2, dtype=object)
+    if IS_SYMMETRIC_FIELD:
+        plotter_real = create_plotter(1, 2, figsize=(10, 7))
+        plotter_imag = create_plotter(1, 2, figsize=(10, 5))
+        real_axes[0] = plotter_real.axes[0]
+        real_axes[1] = plotter_real.axes[1]
+        imag_axes[0] = plotter_imag.axes[0]
+        imag_axes[1] = plotter_imag.axes[1]
+    else:
+        plotter_real = create_plotter(1, 1, figsize=(5, 7))
+        plotter_imag = create_plotter(1, 1, figsize=(5, 5))
+        real_axes[0] = plotter_real.axes
+        real_axes[1] = plotter_real.axes
+        imag_axes[0] = plotter_imag.axes
+        imag_axes[1] = plotter_imag.axes
 
     set_save_fig: set[int] = set()
 
@@ -473,29 +518,29 @@ def plot_eig(results: DictResult,
 
         if SWITCH_COLOR == 'blk':
 
-            plotter_real.axes[0].scatter(
+            real_axes[0].scatter(
                 ones_alpha, dict_eig['s'].real, s=0.1, c='black')
-            plotter_real.axes[1].scatter(
+            real_axes[1].scatter(
                 ones_alpha, dict_eig['v'].real, s=0.1, c='black')
 
             if E_ETA == 0:
                 if not np.all(np.isnan(dict_eig['s_u'])):
-                    plotter_real.axes[0].scatter(
+                    real_axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].real, s=0.2, c='red')
-                    plotter_imag.axes[0].scatter(
+                    imag_axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].imag, s=0.2, c='red')
                     set_save_fig.add(1)
 
                 if not np.all(np.isnan(dict_eig['v_u'])):
-                    plotter_real.axes[1].scatter(
+                    real_axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].real, s=0.2, c='red')
-                    plotter_imag.axes[1].scatter(
+                    imag_axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].imag, s=0.2, c='red')
                     set_save_fig.add(2)
             else:
-                plotter_imag.axes[0].scatter(
+                imag_axes[0].scatter(
                     ones_alpha, dict_eig['s'].imag, s=0.1, c='black')
-                plotter_imag.axes[1].scatter(
+                imag_axes[1].scatter(
                     ones_alpha, dict_eig['v'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2})
 
@@ -522,48 +567,57 @@ def plot_eig(results: DictResult,
                         ))
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
-                plotter_real.axes[0].scatter(
+                real_axes[0].scatter(
                     ones_alpha, dict_eig['s_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1].scatter(
+                real_axes[1].scatter(
                     ones_alpha, dict_eig['v_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
-                plotter_real.sc[0] = plotter_real.axes[0].scatter(
+                real_sc[0] = real_axes[0].scatter(
                     ones_alpha, dict_eig['s_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1].scatter(
+                real_axes[1].scatter(
                     ones_alpha, dict_eig['v_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap, vmin=cmap_min, vmax=cmap_max)
 
                 if not np.all(np.isnan(dict_eig['s_u'])):
-                    plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
+                    imag_sc[0] = imag_axes[0].scatter(
                         ones_alpha, dict_eig['s_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
                 if not np.all(np.isnan(dict_eig['v_u'])):
-                    plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
+                    imag_sc[1] = imag_axes[1].scatter(
                         ones_alpha, dict_eig['v_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
             else:
-                plotter_real.sc[0] = plotter_real.axes[0].scatter(
+                real_sc[0] = real_axes[0].scatter(
                     ones_alpha, dict_eig['s'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
-                plotter_real.axes[1].scatter(
+                real_axes[1].scatter(
                     ones_alpha, dict_eig['v'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
 
-                plotter_imag.sc[0] = plotter_imag.axes[0].scatter(
+                imag_sc[0] = imag_axes[0].scatter(
                     ones_alpha, dict_eig['s'].imag, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
-                plotter_imag.sc[1] = plotter_imag.axes[1].scatter(
+                imag_sc[1] = imag_axes[1].scatter(
                     ones_alpha, dict_eig['v'].imag, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
                 set_save_fig.update({1, 2})
+
+            if IS_SYMMETRIC_FIELD:
+                plotter_real.sc[0] = real_sc[0]
+                plotter_real.sc[1] = real_sc[1]
+                plotter_imag.sc[0] = imag_sc[0]
+                plotter_imag.sc[1] = imag_sc[1]
+            else:
+                plotter_real.sc = real_sc[0]
+                plotter_imag.sc = imag_sc[0]
 
     return plotter_real, plotter_imag, set_save_fig
 
@@ -588,15 +642,52 @@ def wrapper_plot_eig_log(results: DictResult,
     plotter_real, plotter_imag, set_save_fig \
         = plot_eig_log(results, dict_params=dict_params)
 
+    real_axes: ArrayAxes = np.empty((2, 2), dtype=object)
+    imag_axes: ArrayAxes = np.empty((2, 2), dtype=object)
+    real_sc: ArrayPathCollection = np.empty((2, 2), dtype=object)
+    imag_sc: ArrayPathCollection = np.empty((2, 2), dtype=object)
+    if IS_SYMMETRIC_FIELD:
+        real_axes[0, 0] = plotter_real.axes[0, 0]
+        real_axes[0, 1] = plotter_real.axes[0, 1]
+        real_axes[1, 0] = plotter_real.axes[1, 0]
+        real_axes[1, 1] = plotter_real.axes[1, 1]
+        imag_axes[0, 0] = plotter_imag.axes[0, 0]
+        imag_axes[0, 1] = plotter_imag.axes[0, 1]
+        imag_axes[1, 0] = plotter_imag.axes[1, 0]
+        imag_axes[1, 1] = plotter_imag.axes[1, 1]
+        real_sc[0, 0] = plotter_real.sc[0, 0]
+        real_sc[0, 1] = plotter_real.sc[0, 1]
+        real_sc[1, 0] = plotter_real.sc[1, 0]
+        real_sc[1, 1] = plotter_real.sc[1, 1]
+        imag_sc[0, 0] = plotter_imag.sc[0, 0]
+        imag_sc[0, 1] = plotter_imag.sc[0, 1]
+        imag_sc[1, 0] = plotter_imag.sc[1, 0]
+        imag_sc[1, 1] = plotter_imag.sc[1, 1]
+    else:
+        real_axes[0, 0] = plotter_real.axes[0]
+        real_axes[0, 1] = plotter_real.axes[1]
+        real_axes[1, 0] = plotter_real.axes[0]
+        real_axes[1, 1] = plotter_real.axes[1]
+        imag_axes[0, 0] = plotter_imag.axes[0]
+        imag_axes[0, 1] = plotter_imag.axes[1]
+        imag_axes[1, 0] = plotter_imag.axes[0]
+        imag_axes[1, 1] = plotter_imag.axes[1]
+        real_sc[0, 0] = plotter_real.sc[0]
+        real_sc[0, 1] = plotter_real.sc[1]
+        real_sc[1, 0] = plotter_real.sc[0]
+        real_sc[1, 1] = plotter_real.sc[1]
+        imag_sc[0, 0] = plotter_imag.sc[0]
+        imag_sc[0, 1] = plotter_imag.sc[1]
+        imag_sc[1, 0] = plotter_imag.sc[0]
+        imag_sc[1, 1] = plotter_imag.sc[1]
+
     alpha_log_init: float = dict_params['alpha_init']
     alpha_log_end: float = dict_params['alpha_end']
 
     ax_real_all: tuple[Axes, Axes, Axes, Axes] \
-        = (plotter_real.axes[0, 0], plotter_real.axes[0, 1],
-           plotter_real.axes[1, 0], plotter_real.axes[1, 1])
+        = (real_axes[0, 0], real_axes[0, 1], real_axes[1, 0], real_axes[1, 1])
     ax_imag_all: tuple[Axes, Axes, Axes, Axes] \
-        = (plotter_imag.axes[0, 0], plotter_imag.axes[0, 1],
-           plotter_imag.axes[1, 0], plotter_imag.axes[1, 1])
+        = (imag_axes[0, 0], imag_axes[0, 1], imag_axes[1, 0], imag_axes[1, 1])
 
     for axis in ax_real_all:
         axis.set_xlim(alpha_log_init, alpha_log_end)
@@ -610,63 +701,83 @@ def wrapper_plot_eig_log(results: DictResult,
     for axis in (ax_real_all + ax_imag_all):
         axis.set_xscale('log')
 
-    plotter_real.axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
-    plotter_real.axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
-    plotter_imag.axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
-    plotter_imag.axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
+    real_axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
+    real_axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
+    imag_axes[1, 0].set_xlabel(TEXT_XLABEL, fontsize=16)
+    imag_axes[1, 1].set_xlabel(TEXT_XLABEL, fontsize=16)
 
     if set_save_fig & {1, 2, 3, 4}:
-        plotter_real.axes[0, 0].set_ylabel(
+        real_axes[0, 0].set_ylabel(
             r'$|\mathrm{Re}(\lambda)|=|\mathrm{Re}(\omega)/2\Omega_0|$',
             fontsize=16)
-        plotter_real.axes[1, 0].set_ylabel(
+        real_axes[1, 0].set_ylabel(
             r'$|\mathrm{Re}(\lambda)|=|\mathrm{Re}(\omega)/2\Omega_0|$',
             fontsize=16)
-        plotter_imag.axes[0, 0].set_ylabel(
+        imag_axes[0, 0].set_ylabel(
             r'$\mathrm{Im}(\lambda)=\mathrm{Im}(\omega)/2\Omega_0$',
             fontsize=16)
-        plotter_imag.axes[1, 0].set_ylabel(
+        imag_axes[1, 0].set_ylabel(
             r'$\mathrm{Im}(\lambda)=\mathrm{Im}(\omega)/2\Omega_0$',
             fontsize=16)
 
-        plotter_real.axes[0, 0].set_title(
-            r'Sinuous, Retrograde ($\mathrm{Re}(\lambda)<0$)',
-            fontsize=16)
-        plotter_real.axes[0, 1].set_title(
-            r'Sinuous, Prograde ($\mathrm{Re}(\lambda)>0$)',
-            fontsize=16)
-        plotter_real.axes[1, 0].set_title(
-            r'Varicose, Retrograde ($\mathrm{Re}(\lambda)<0$)',
-            fontsize=16)
-        plotter_real.axes[1, 1].set_title(
-            r'Varicose, Prograde ($\mathrm{Re}(\lambda)>0$)',
-            fontsize=16)
-        plotter_imag.axes[0, 0].set_title(
-            r'Sinuous, Retrograde ($\mathrm{Re}(\lambda)<0$)',
-            fontsize=16)
-        plotter_imag.axes[0, 1].set_title(
-            r'Sinuous, Prograde ($\mathrm{Re}(\lambda)>0$)',
-            fontsize=16)
-        plotter_imag.axes[1, 0].set_title(
-            r'Varicose, Retrograde ($\mathrm{Re}(\lambda)<0$)',
-            fontsize=16)
-        plotter_imag.axes[1, 1].set_title(
-            r'Varicose, Prograde ($\mathrm{Re}(\lambda)>0$)',
-            fontsize=16)
+        if IS_SYMMETRIC_FIELD:
+            real_axes[0, 0].set_title(
+                r'Sinuous, Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            real_axes[0, 1].set_title(
+                r'Sinuous, Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
+            real_axes[1, 0].set_title(
+                r'Varicose, Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            real_axes[1, 1].set_title(
+                r'Varicose, Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
+            imag_axes[0, 0].set_title(
+                r'Sinuous, Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            imag_axes[0, 1].set_title(
+                r'Sinuous, Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
+            imag_axes[1, 0].set_title(
+                r'Varicose, Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            imag_axes[1, 1].set_title(
+                r'Varicose, Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
+        else:
+            real_axes[0, 0].set_title(
+                r'Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            real_axes[0, 1].set_title(
+                r'Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
+            imag_axes[0, 0].set_title(
+                r'Retrograde ($\mathrm{Re}(\lambda)<0$)',
+                fontsize=16)
+            imag_axes[0, 1].set_title(
+                r'Prograde ($\mathrm{Re}(\lambda)>0$)',
+                fontsize=16)
     else:
-        plotter_real.axes[0, 0].set_ylabel(
+        real_axes[0, 0].set_ylabel(
             r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
-        plotter_real.axes[1, 0].set_ylabel(
+        real_axes[1, 0].set_ylabel(
             r'$|\lambda|=|\omega/2\Omega_0|$', fontsize=16)
 
-        plotter_real.axes[0, 0].set_title(
-            r'Sinuous, Retrograde ($\lambda<0$)', fontsize=16)
-        plotter_real.axes[0, 1].set_title(
-            r'Sinuous, Prograde ($\lambda>0$)', fontsize=16)
-        plotter_real.axes[1, 0].set_title(
-            r'Varicose, Retrograde ($\lambda<0$)', fontsize=16)
-        plotter_real.axes[1, 1].set_title(
-            r'Varicose, Prograde ($\lambda>0$)', fontsize=16)
+        if IS_SYMMETRIC_FIELD:
+            real_axes[0, 0].set_title(
+                r'Sinuous, Retrograde ($\lambda<0$)', fontsize=16)
+            real_axes[0, 1].set_title(
+                r'Sinuous, Prograde ($\lambda>0$)', fontsize=16)
+            real_axes[1, 0].set_title(
+                r'Varicose, Retrograde ($\lambda<0$)', fontsize=16)
+            real_axes[1, 1].set_title(
+                r'Varicose, Prograde ($\lambda>0$)', fontsize=16)
+        else:
+            real_axes[0, 0].set_title(
+                r'Retrograde ($\lambda<0$)', fontsize=16)
+            real_axes[0, 1].set_title(
+                r'Prograde ($\lambda>0$)', fontsize=16)
 
     for axis in (ax_real_all + ax_imag_all):
         axis.tick_params(labelsize=12)
@@ -684,12 +795,12 @@ def wrapper_plot_eig_log(results: DictResult,
 
     if SWITCH_COLOR in ('ene', 'ohm', 'psm', 'pse', 'qmode'):
         plotter_real.fig.subplots_adjust(right=0.85)
-        axpos1 = plotter_real.axes[0, 0].get_position()
+        axpos1 = real_axes[0, 0].get_position()
         cbar_ax_1 = plotter_real.fig.add_axes(
             (0.88, axpos1.y0, 0.01, axpos1.height))
         if set_save_fig & {1, 2, 3, 4}:
             plotter_imag.fig.subplots_adjust(right=0.85)
-            axpos2 = plotter_imag.axes[0, 0].get_position()
+            axpos2 = imag_axes[0, 0].get_position()
             cbar_ax_2 = plotter_imag.fig.add_axes(
                 (0.88, axpos2.y0, 0.01, axpos2.height))
 
@@ -699,7 +810,7 @@ def wrapper_plot_eig_log(results: DictResult,
     if SWITCH_COLOR == 'ene':
 
         cbar1 = plotter_real.fig.colorbar(
-            plotter_real.sc[0, 0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
+            real_sc[0, 0], cax=cbar_ax_1, ticks=COLOR_TICKS_ATAN)
         cbar1.ax.set_yticklabels(
             [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
         cbar1.ax.tick_params(labelsize=14)
@@ -707,7 +818,7 @@ def wrapper_plot_eig_log(results: DictResult,
 
         if 1 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0, 0], cax=cbar_ax_2,
+                imag_sc[0, 0], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -715,7 +826,7 @@ def wrapper_plot_eig_log(results: DictResult,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0, 1], cax=cbar_ax_2,
+                imag_sc[0, 1], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -723,7 +834,7 @@ def wrapper_plot_eig_log(results: DictResult,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 3 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1, 0], cax=cbar_ax_2,
+                imag_sc[1, 0], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -731,7 +842,7 @@ def wrapper_plot_eig_log(results: DictResult,
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 4 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1, 1], cax=cbar_ax_2,
+                imag_sc[1, 1], cax=cbar_ax_2,
                 ticks=COLOR_TICKS_ATAN)
             cbar2.ax.set_yticklabels(
                 [f'${i_ticks+0.5}$' for i_ticks in COLOR_TICKS])
@@ -751,23 +862,23 @@ def wrapper_plot_eig_log(results: DictResult,
             cbar_extend = 'min'
 
         cbar1 = plotter_real.fig.colorbar(
-            plotter_real.sc[0, 0], cax=cbar_ax_1, extend=cbar_extend)
+            real_sc[0, 0], cax=cbar_ax_1, extend=cbar_extend)
         cbar1.set_label(label=CBAR_LABEL, size=16)
         if 1 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0, 0], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[0, 0], cax=cbar_ax_2, extend=cbar_extend)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 2 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[0, 1], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[0, 1], cax=cbar_ax_2, extend=cbar_extend)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 3 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1, 0], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[1, 0], cax=cbar_ax_2, extend=cbar_extend)
             cbar2.set_label(label=CBAR_LABEL, size=16)
         elif 4 in set_save_fig:
             cbar2 = plotter_imag.fig.colorbar(
-                plotter_imag.sc[1, 1], cax=cbar_ax_2, extend=cbar_extend)
+                imag_sc[1, 1], cax=cbar_ax_2, extend=cbar_extend)
             cbar2.set_label(label=CBAR_LABEL, size=16)
 
     # For Fig. 6 in Nakashima and Yoshida (2024)
@@ -819,10 +930,34 @@ def plot_eig_log(results: DictResult,
     pse_max: float = dict_params['pse_max']
     ohm_log_max: float = dict_params['ohm_max']
 
-    plotter_real: DefaultGridPlotter \
-        = create_plotter(2, 2, figsize=(10, 10))
-    plotter_imag: DefaultGridPlotter \
-        = create_plotter(2, 2, figsize=(10, 10))
+    plotter_real: DefaultPlotter | DefaultGridPlotter
+    plotter_imag: DefaultPlotter | DefaultGridPlotter
+    real_axes: ArrayAxes = np.empty((2, 2), dtype=object)
+    imag_axes: ArrayAxes = np.empty((2, 2), dtype=object)
+    real_sc: ArrayPathCollection = np.empty((2, 2), dtype=object)
+    imag_sc: ArrayPathCollection = np.empty((2, 2), dtype=object)
+    if IS_SYMMETRIC_FIELD:
+        plotter_real = create_plotter(2, 2, figsize=(10, 10))
+        plotter_imag = create_plotter(2, 2, figsize=(10, 10))
+        real_axes[0, 0] = plotter_real.axes[0, 0]
+        real_axes[0, 1] = plotter_real.axes[0, 1]
+        real_axes[1, 0] = plotter_real.axes[1, 0]
+        real_axes[1, 1] = plotter_real.axes[1, 1]
+        imag_axes[0, 0] = plotter_imag.axes[0, 0]
+        imag_axes[0, 1] = plotter_imag.axes[0, 1]
+        imag_axes[1, 0] = plotter_imag.axes[1, 0]
+        imag_axes[1, 1] = plotter_imag.axes[1, 1]
+    else:
+        plotter_real = create_plotter(1, 2, figsize=(10, 5))
+        plotter_imag = create_plotter(1, 2, figsize=(10, 5))
+        real_axes[0, 0] = plotter_real.axes[0]
+        real_axes[0, 1] = plotter_real.axes[1]
+        real_axes[1, 0] = plotter_real.axes[0]
+        real_axes[1, 1] = plotter_real.axes[1]
+        imag_axes[0, 0] = plotter_imag.axes[0]
+        imag_axes[0, 1] = plotter_imag.axes[1]
+        imag_axes[1, 0] = plotter_imag.axes[0]
+        imag_axes[1, 1] = plotter_imag.axes[1]
 
     set_save_fig: set[int] = set()
 
@@ -879,59 +1014,59 @@ def plot_eig_log(results: DictResult,
 
         if SWITCH_COLOR == 'blk':
 
-            plotter_real.axes[0, 0].scatter(
+            real_axes[0, 0].scatter(
                 ones_alpha, dict_eig['sr'].real, s=0.1, c='black')
-            plotter_real.axes[0, 1].scatter(
+            real_axes[0, 1].scatter(
                 ones_alpha, dict_eig['sp'].real, s=0.1, c='black')
-            plotter_real.axes[1, 0].scatter(
+            real_axes[1, 0].scatter(
                 ones_alpha, dict_eig['vr'].real, s=0.1, c='black')
-            plotter_real.axes[1, 1].scatter(
+            real_axes[1, 1].scatter(
                 ones_alpha, dict_eig['vp'].real, s=0.1, c='black')
 
             if E_ETA == 0:
                 if not np.all(np.isnan(dict_eig['sr_u'])):
-                    plotter_real.axes[0, 0].scatter(
+                    real_axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].real,
                         s=0.2, c='red')
-                    plotter_imag.axes[0, 0].scatter(
+                    imag_axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].imag,
                         s=0.2, c='red')
                     set_save_fig.add(1)
 
                 if not np.all(np.isnan(dict_eig['sp_u'])):
-                    plotter_real.axes[0, 1].scatter(
+                    real_axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].real,
                         s=0.2, c='red')
-                    plotter_imag.axes[0, 1].scatter(
+                    imag_axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag,
                         s=0.2, c='red')
                     set_save_fig.add(2)
 
                 if not np.all(np.isnan(dict_eig['vr_u'])):
-                    plotter_real.axes[1, 0].scatter(
+                    real_axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].real,
                         s=0.2, c='red')
-                    plotter_imag.axes[1, 0].scatter(
+                    imag_axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag,
                         s=0.2, c='red')
                     set_save_fig.add(3)
 
                 if not np.all(np.isnan(dict_eig['vp_u'])):
-                    plotter_real.axes[1, 1].scatter(
+                    real_axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].real,
                         s=0.2, c='red')
-                    plotter_imag.axes[1, 1].scatter(
+                    imag_axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag,
                         s=0.2, c='red')
                     set_save_fig.add(4)
             else:
-                plotter_imag.axes[0, 0].scatter(
+                imag_axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].imag, s=0.1, c='black')
-                plotter_imag.axes[0, 1].scatter(
+                imag_axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp'].imag, s=0.1, c='black')
-                plotter_imag.axes[1, 0].scatter(
+                imag_axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr'].imag, s=0.1, c='black')
-                plotter_imag.axes[1, 1].scatter(
+                imag_axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].imag, s=0.1, c='black')
                 set_save_fig.update({1, 2, 3, 4})
 
@@ -959,121 +1094,129 @@ def plot_eig_log(results: DictResult,
                         ))
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
-                plotter_real.axes[0, 0].scatter(
+                real_axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[0, 1].scatter(
+                real_axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1, 0].scatter(
+                real_axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1, 1].scatter(
+                real_axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp_a'].real, s=0.05,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
-                plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
+                real_sc[0, 0] = real_axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[0, 1].scatter(
+                real_axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1, 0].scatter(
+                real_axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
-                plotter_real.axes[1, 1].scatter(
+                real_axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp_na'].real, s=0.2,
                     c=scatter_color, cmap=cmap,
                     vmin=cmap_min, vmax=cmap_max)
 
                 if not np.all(np.isnan(dict_eig['sr_u'])):
-                    plotter_imag.sc[0, 0] \
-                        = plotter_imag.axes[0, 0].scatter(
+                    imag_sc[0, 0] = imag_axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(1)
 
                 if not np.all(np.isnan(dict_eig['sp_u'])):
-                    plotter_imag.sc[0, 1] \
-                        = plotter_imag.axes[0, 1].scatter(
+                    imag_sc[0, 1] \
+                        = imag_axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(2)
 
                 if not np.all(np.isnan(dict_eig['vr_u'])):
-                    plotter_imag.sc[1, 0] \
-                        = plotter_imag.axes[1, 0].scatter(
+                    imag_sc[1, 0] = imag_axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(3)
 
                 if not np.all(np.isnan(dict_eig['vp_u'])):
-                    plotter_imag.sc[1, 1] \
-                        = plotter_imag.axes[1, 1].scatter(
+                    imag_sc[1, 1] = imag_axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp_u'].imag, s=0.1,
                         c=scatter_color, cmap=cmap,
                         vmin=cmap_min, vmax=cmap_max)
                     set_save_fig.add(4)
             else:
-                plotter_real.sc[0, 0] = plotter_real.axes[0, 0].scatter(
+                real_sc[0, 0] = real_axes[0, 0].scatter(
                     ones_alpha, dict_eig['sr'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
-                plotter_real.axes[0, 1].scatter(
+                real_axes[0, 1].scatter(
                     ones_alpha, dict_eig['sp'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
-                plotter_real.axes[1, 0].scatter(
+                real_axes[1, 0].scatter(
                     ones_alpha, dict_eig['vr'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
-                plotter_real.axes[1, 1].scatter(
+                real_axes[1, 1].scatter(
                     ones_alpha, dict_eig['vp'].real, s=0.1,
                     c=scatter_color, cmap=cmap, norm=norm)
 
                 if not np.all(np.isnan(dict_eig['sr_u'])):
-                    plotter_imag.sc[0, 0] = plotter_imag.axes[0, 0].scatter(
+                    imag_sc[0, 0] = imag_axes[0, 0].scatter(
                         ones_alpha, dict_eig['sr'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(1)
                 if not np.all(np.isnan(dict_eig['sp_u'])):
-                    plotter_imag.sc[0, 1] = plotter_imag.axes[0, 1].scatter(
+                    imag_sc[0, 1] = imag_axes[0, 1].scatter(
                         ones_alpha, dict_eig['sp'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(2)
                 if not np.all(np.isnan(dict_eig['vr_u'])):
-                    plotter_imag.sc[1, 0] = plotter_imag.axes[1, 0].scatter(
+                    imag_sc[1, 0] = imag_axes[1, 0].scatter(
                         ones_alpha, dict_eig['vr'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(3)
                 if not np.all(np.isnan(dict_eig['vp_u'])):
-                    plotter_imag.sc[1, 1] = plotter_imag.axes[1, 1].scatter(
+                    imag_sc[1, 1] = imag_axes[1, 1].scatter(
                         ones_alpha, dict_eig['vp'].imag, s=0.1,
                         c=scatter_color, cmap=cmap, norm=norm)
                     set_save_fig.add(4)
 
+            if IS_SYMMETRIC_FIELD:
+                plotter_real.sc[0, 0] = real_sc[0, 0]
+                plotter_real.sc[0, 1] = real_sc[0, 1]
+                plotter_real.sc[1, 0] = real_sc[1, 0]
+                plotter_real.sc[1, 1] = real_sc[1, 1]
+                plotter_imag.sc[0, 0] = imag_sc[0, 0]
+                plotter_imag.sc[0, 1] = imag_sc[0, 1]
+                plotter_imag.sc[1, 0] = imag_sc[1, 0]
+                plotter_imag.sc[1, 1] = imag_sc[1, 1]
+            else:
+                plotter_real.sc[0] = real_sc[0, 0]
+                plotter_real.sc[1] = real_sc[0, 1]
+                plotter_imag.sc[0] = imag_sc[0, 0]
+                plotter_imag.sc[1] = imag_sc[0, 1]
+
     mask_x: ArrayFloat = lin_alpha
-    plotter_imag.axes[0, 0].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
-    plotter_imag.axes[0, 1].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
-    plotter_imag.axes[1, 0].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
-    plotter_imag.axes[1, 1].fill_between(
-        mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
+    imag_axes[0, 0].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
+    imag_axes[0, 1].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
+    imag_axes[1, 0].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
+    imag_axes[1, 1].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
 
     return plotter_real, plotter_imag, set_save_fig
 
 
-def save_plot_eig(plotter_real: DefaultGridPlotter,
-                  plotter_imag: DefaultGridPlotter,
+def save_plot_eig(plotter_real: DefaultPlotter | DefaultGridPlotter,
+                  plotter_imag: DefaultPlotter | DefaultGridPlotter,
                   set_save_fig: set[int],
                   *,
                   switch_log: bool = False) -> None:
@@ -1081,9 +1224,9 @@ def save_plot_eig(plotter_real: DefaultGridPlotter,
 
     Parameters
     ----------
-    plotter_real : DefaultGridPlotter
+    plotter_real : DefaultPlotter | DefaultGridPlotter
         The instance of the DefaultGridPlotter class.
-    plotter_imag : DefaultGridPlotter
+    plotter_imag : DefaultPlotter | DefaultGridPlotter
         The instance of the DefaultGridPlotter class.
     set_save_fig : set[int]
         The set storing the IDs of figures to save.
