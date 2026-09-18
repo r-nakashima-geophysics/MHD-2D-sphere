@@ -45,9 +45,9 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 Examples
 --------
 Run the script with the default value of M_ORDER:
-    $ python3 mhd2dsphere_eigfig.py
+    $ uv run python mhd2dsphere_eigfig.py
 Run the script with a specified value (say M_ORDER = 2):
-    $ python3 mhd2dsphere_eigfig.py 2
+    $ uv run python mhd2dsphere_eigfig.py 2
 """
 
 import multiprocessing
@@ -132,7 +132,7 @@ E_ETA: Final[float] = 0
 ROSSBY: Final[float] = 0
 
 # The truncation degree
-N_T: Final[int] = 1000 if not SWITCH_NY24 else 2000
+N_T: Final[int] = 500 if not SWITCH_NY24 else 2000
 
 # The criterion for plotting, which is based on the quality factor
 CRITERION_Q: Final[float] = 0

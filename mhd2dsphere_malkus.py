@@ -35,9 +35,9 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 Examples
 --------
 Run the script with the default value of M_ORDER:
-    $ python3 mhd2dsphere_malkus.py
+    $ uv run python mhd2dsphere_malkus.py
 Run the script with a specified value (say M_ORDER = 2):
-    $ python3 mhd2dsphere_malkus.py 2
+    $ uv run python mhd2dsphere_malkus.py 2
 """
 
 import math

@@ -28,7 +28,10 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 
 Examples
 --------
-$ python3 mhd2dsphere_eigfunc.py
+Run the script with the default value of ALPHA:
+    $ uv run python mhd2dsphere_eigfunc.py
+Run the script with a specified value (say ALPHA = 1):
+    $ uv run python mhd2dsphere_eigfunc.py 1
 """
 
 from pathlib import Path
