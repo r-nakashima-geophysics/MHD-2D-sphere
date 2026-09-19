@@ -1,6 +1,6 @@
 [project]
 name = "MHD-2D-sphere"
-version = "1.2.1"
+version = "2.0.0"
 description = "These Python scripts support the findings of our study, Nakashima & Yoshida (2024)."
 readme = "README.md"
 requires-python = ">=3.14"
