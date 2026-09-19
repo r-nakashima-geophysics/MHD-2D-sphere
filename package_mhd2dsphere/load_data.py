@@ -104,10 +104,10 @@ def load_results(name_file: str,
         }
 
         results: DictResult = {
-            'lin_alpha': npz_kw['lin_alpha'],
+            'linsp_alpha': npz_kw['linsp_alpha'],
             'eig': npz_kw['eig'],
             'vec_psi': np.array([]),
-            'vec_vpa': np.array([]),
+            'vec_mvp': np.array([]),
             'phys_qtys': phys_qtys
         }
 

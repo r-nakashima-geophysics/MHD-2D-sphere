@@ -369,10 +369,10 @@ def solve_eig(m_order: int,
     size_mat: int = eig_valvec.shape[1]
     size_submat: int = int(size_mat/2)
     result: DictResult = {
-        'lin_alpha': np.array([]),
+        'linsp_alpha': np.array([]),
         'eig': eig_valvec[size_mat, :],
         'vec_psi': eig_valvec[:size_submat, :],
-        'vec_vpa': eig_valvec[size_submat:size_mat, :],
+        'vec_mvp': eig_valvec[size_submat:size_mat, :],
         'phys_qtys': phys_qtys
     }
 
@@ -450,7 +450,7 @@ def calc_qty(m_order: int,
     size_submat: int = int(size_mat/2)
 
     vec_psi: ArrayComplex = eig_valvec[:size_submat, :]
-    vec_vpa: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+    vec_mvp: ArrayComplex = eig_valvec[size_submat:size_mat, :]
 
     pke: ArrayFloat
     pme: ArrayFloat
@@ -468,17 +468,17 @@ def calc_qty(m_order: int,
                 vec_1=vec_psi, vec_2=vec_psi)) + pke + pme
         else:
             psm_1: ArrayComplex = dict_quad['quad_psm_1'].quadrature(
-                vec_1=vec_psi, vec_2=vec_vpa) / alpha
+                vec_1=vec_psi, vec_2=vec_mvp) / alpha
             psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
-                vec_1=vec_vpa, vec_2=vec_vpa) / (alpha**2)
+                vec_1=vec_mvp, vec_2=vec_mvp) / (alpha**2)
             psm = np.real(psm_1 + np.conj(psm_1) + psm_2)
 
             pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
-                vec_1=vec_psi, vec_2=vec_vpa) / alpha
+                vec_1=vec_psi, vec_2=vec_mvp) / alpha
             pse_u2: ArrayComplex = dict_quad['quad_pse_u2'].quadrature(
-                vec_1=vec_vpa, vec_2=vec_vpa) / (alpha**2)
+                vec_1=vec_mvp, vec_2=vec_mvp) / (alpha**2)
             pse_b: ArrayComplex = dict_quad['quad_pse_b'].quadrature(
-                vec_1=vec_vpa, vec_2=vec_vpa)
+                vec_1=vec_mvp, vec_2=vec_mvp)
             pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
                 + pke + pme
 
@@ -494,7 +494,7 @@ def calc_qty(m_order: int,
             ohm *= e_eta
         else:
             ohm = np.real(dict_quad['quad_ohm'].quadrature(
-                vec_1=vec_vpa, vec_2=vec_vpa))
+                vec_1=vec_mvp, vec_2=vec_mvp))
 
     even: ArrayFloat = np.zeros(size_mat)
     odd: ArrayFloat = np.zeros(size_mat)
@@ -557,7 +557,7 @@ def calc_ene(m_order: int,
     size_submat: int = int(size_mat/2)
 
     vec_psi: ArrayComplex = eig_valvec[:size_submat, :]
-    vec_vpa: ArrayComplex = eig_valvec[size_submat:size_mat, :]
+    vec_mvp: ArrayComplex = eig_valvec[size_submat:size_mat, :]
 
     pke: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pme: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
@@ -570,12 +570,12 @@ def calc_ene(m_order: int,
             nn1 = n_degree * (n_degree+1)
 
             pke += nn1 * (np.abs(vec_psi[i_n, :])**2)
-            pme += nn1 * (np.abs(vec_vpa[i_n, :])**2)
+            pme += nn1 * (np.abs(vec_mvp[i_n, :])**2)
     else:
         pke = np.real(dict_quad['quad_pke'].quadrature(
             vec_1=vec_psi, vec_2=vec_psi))
         pme = np.real(dict_quad['quad_pme'].quadrature(
-            vec_1=vec_vpa, vec_2=vec_vpa))
+            vec_1=vec_mvp, vec_2=vec_mvp))
 
     return pke, pme
 

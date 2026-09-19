@@ -20,7 +20,7 @@ from package_mhd2dsphere.typed_dict import (DictBackgroundField,
 def create_basis(
         m_order: int,
         n_t: int,
-        lin_theta: ArrayFloat,
+        linsp_theta: ArrayFloat,
         *,
         background_field: DictBackgroundField,
         use_analytic_cont: bool = True) -> ArrayFloat | ArrayComplex:
@@ -32,7 +32,7 @@ def create_basis(
         The zonal wavenumber (order).
     n_t : int
         The truncation degree.
-    lin_theta : ArrayFloat
+    linsp_theta : ArrayFloat
         The values of theta at grid points.
     background_field : DictBackgroundField
         The background field.
@@ -46,7 +46,7 @@ def create_basis(
         The values of basis functions at grid points.
     """
 
-    num_theta: int = lin_theta.shape[0]
+    num_theta: int = linsp_theta.shape[0]
 
     basis: ArrayFloat | ArrayComplex
     if background_field['NY24']:
@@ -61,7 +61,7 @@ def create_basis(
     x_pos: float
     s_pos: complex | float
     guess: complex
-    for i_theta, theta in enumerate(lin_theta):
+    for i_theta, theta in enumerate(linsp_theta):
         x_pos = np.cos(theta)
         if (mu_complex.use_spectral_deform) and (use_analytic_cont):
             if i_theta == 0:
@@ -157,7 +157,7 @@ def choose_eigfunc(results: DictResult,
         'i_mode': i_chosen,
         'eig': results['eig'][i_chosen],
         'vec_psi': results['vec_psi'][:, i_chosen],
-        'vec_vpa': results['vec_vpa'][:, i_chosen],
+        'vec_mvp': results['vec_mvp'][:, i_chosen],
         'pke': results['phys_qtys']['pke'][i_chosen],
         'pme': results['phys_qtys']['pme'][i_chosen],
         'psm': results['phys_qtys']['psm'][i_chosen],
@@ -171,7 +171,7 @@ def choose_eigfunc(results: DictResult,
 
 def create_eigfunc(result: DictEigenmodeInfo,
                    m_order: int,
-                   lin_theta: ArrayFloat,
+                   linsp_theta: ArrayFloat,
                    basis_func: ArrayFloat | ArrayComplex,
                    *,
                    background_field: DictBackgroundField) \
@@ -184,7 +184,7 @@ def create_eigfunc(result: DictEigenmodeInfo,
         A dictionary of result of an eigenmode which you chose.
     m_order : int
         The zonal wavenumber (order).
-    lin_theta : ArrayFloat
+    linsp_theta : ArrayFloat
         The values of theta at grid points.
     basis_func : ArrayFloat | ArrayComplex
         The values of basis functions at grid points.
@@ -195,18 +195,18 @@ def create_eigfunc(result: DictEigenmodeInfo,
     ----------
     psi : ArrayComplex
         The stream function (psi).
-    vpa : ArrayComplex
+    mvp : ArrayComplex
         The vector potential (a).
     """
 
     vec_psi: ArrayComplex = result['vec_psi']
-    vec_vpa: ArrayComplex = result['vec_vpa']
+    vec_mvp: ArrayComplex = result['vec_mvp']
 
     size_submat: int = vec_psi.shape[0]
-    num_theta: int = lin_theta.shape[0]
+    num_theta: int = linsp_theta.shape[0]
 
-    psi: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
-    vpa: ArrayComplex = np.zeros_like(lin_theta, dtype=np.complex128)
+    psi: ArrayComplex = np.zeros_like(linsp_theta, dtype=np.complex128)
+    mvp: ArrayComplex = np.zeros_like(linsp_theta, dtype=np.complex128)
 
     if background_field['NY24']:
         n_degree: int
@@ -214,25 +214,25 @@ def create_eigfunc(result: DictEigenmodeInfo,
             n_degree = m_order + i_n
 
             psi += vec_psi[i_n] * basis_func[n_degree, :]
-            vpa += vec_vpa[i_n] * basis_func[n_degree, :]
+            mvp += vec_mvp[i_n] * basis_func[n_degree, :]
     else:
         for i_theta in range(num_theta):
 
             psi[i_theta] = basis_func[:, i_theta] @ vec_psi
-            vpa[i_theta] = basis_func[:, i_theta] @ vec_vpa
+            mvp[i_theta] = basis_func[:, i_theta] @ vec_mvp
 
     sign: int = adjust_sign(psi, num_theta)
 
     psi *= sign
-    vpa *= sign
+    mvp *= sign
 
-    return psi, vpa
+    return psi, mvp
 
 
 def create_eigfunc_grid(result: DictEigenmodeInfo,
                         m_order: int,
-                        lin_theta: ArrayFloat,
-                        lin_phi: ArrayFloat,
+                        linsp_theta: ArrayFloat,
+                        linsp_phi: ArrayFloat,
                         basis_func: ArrayFloat | ArrayComplex,
                         *,
                         background_field: DictBackgroundField) \
@@ -245,9 +245,9 @@ def create_eigfunc_grid(result: DictEigenmodeInfo,
         A dictionary of result of an eigenmode which you chose.
     m_order : int
         The zonal wavenumber (order).
-    lin_theta : ArrayFloat
+    linsp_theta : ArrayFloat
         The values of theta at grid points.
-    lin_phi : ArrayFloat
+    linsp_phi : ArrayFloat
         The values of phi at grid points.
     basis_func : ArrayFloat | ArrayComplex
         The values of basis functions at grid points.
@@ -258,30 +258,30 @@ def create_eigfunc_grid(result: DictEigenmodeInfo,
     ----------
     psi_grid.real : ArrayFloat
         The stream function (psi).
-    vpa_grid.real : ArrayFloat
+    mvp_grid.real : ArrayFloat
         The vector potential (a).
     """
 
     psi: ArrayComplex
-    vpa: ArrayComplex
-    psi, vpa = create_eigfunc(result, m_order, lin_theta, basis_func,
+    mvp: ArrayComplex
+    psi, mvp = create_eigfunc(result, m_order, linsp_theta, basis_func,
                               background_field=background_field)
 
     grid_phi: ArrayFloat
-    grid_phi, _ = np.meshgrid(lin_phi, lin_theta[1:-1])
+    grid_phi, _ = np.meshgrid(linsp_phi, linsp_theta[1:-1])
 
     psi_grid: ArrayComplex
-    vpa_grid: ArrayComplex
-    _, psi_grid = np.meshgrid(lin_phi, psi[1:-1])
-    _, vpa_grid = np.meshgrid(lin_phi, vpa[1:-1])
+    mvp_grid: ArrayComplex
+    _, psi_grid = np.meshgrid(linsp_phi, psi[1:-1])
+    _, mvp_grid = np.meshgrid(linsp_phi, mvp[1:-1])
 
     phase: ArrayComplex \
         = np.cos(m_order * grid_phi) + 1j*np.sin(m_order * grid_phi)
 
     psi_grid *= phase
-    vpa_grid *= phase
+    mvp_grid *= phase
 
-    return psi_grid.real, vpa_grid.real
+    return psi_grid.real, mvp_grid.real
 
 
 def adjust_sign(psi: ArrayComplex,
@@ -329,14 +329,14 @@ def adjust_sign(psi: ArrayComplex,
 
 
 def amp_range(psi: ArrayComplex,
-              vpa: ArrayComplex) -> tuple[float, float]:
+              mvp: ArrayComplex) -> tuple[float, float]:
     """Determine the range of amplitude in a 1D plot.
 
     Parameters
     ----------
     psi : ArrayComplex
         The stream function (psi).
-    vpa : ArrayComplex
+    mvp : ArrayComplex
         The vector potential (a).
 
     Returns
@@ -351,12 +351,12 @@ def amp_range(psi: ArrayComplex,
     factor: float = 1.5
 
     psi_real_max: float = np.nanmax(np.abs(psi.real))
-    vpa_real_max: float = np.nanmax(np.abs(vpa.real))
+    mvp_real_max: float = np.nanmax(np.abs(mvp.real))
     psi_imag_max: float = np.nanmax(np.abs(psi.imag))
-    vpa_imag_max: float = np.nanmax(np.abs(vpa.imag))
+    mvp_imag_max: float = np.nanmax(np.abs(mvp.imag))
 
-    amp_max: float = max(psi_real_max, vpa_real_max,
-                         psi_imag_max, vpa_imag_max)
+    amp_max: float = max(psi_real_max, mvp_real_max,
+                         psi_imag_max, mvp_imag_max)
     amp_min: float = -amp_max
 
     amp_max *= factor

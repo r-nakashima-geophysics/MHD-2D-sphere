@@ -144,13 +144,13 @@ CRITERION_C: Final[DictCriterionC] = {
 SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
 SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 
-LIN_THETA: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA)
-LIN_THETA_SKIP: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA_SKIP)
-LIN_PHI: Final[ArrayFloat] = np.linspace(0, 2*np.pi, NUM_PHI)
+LINSP_THETA: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA)
+LINSP_THETA_SKIP: Final[ArrayFloat] = np.linspace(0, np.pi, NUM_THETA_SKIP)
+LINSP_PHI: Final[ArrayFloat] = np.linspace(0, 2*np.pi, NUM_PHI)
 
 GRID_PHI: ArrayFloat
 GRID_THETA: ArrayFloat
-GRID_PHI, GRID_THETA = np.meshgrid(LIN_PHI, LIN_THETA_SKIP[1:-1])
+GRID_PHI, GRID_THETA = np.meshgrid(LINSP_PHI, LINSP_THETA_SKIP[1:-1])
 
 GRID_LAT: Final[ArrayFloat] = np.rad2deg(
     np.full_like(GRID_THETA, np.pi/2) - GRID_THETA)
@@ -209,26 +209,26 @@ def wrapper_plot_eigfunc(result: DictEigenmodeInfo,
     i_mode: int = result['i_mode']
 
     psi: ArrayComplex
-    vpa: ArrayComplex
-    psi, vpa = create_eigfunc(result, M_ORDER, LIN_THETA, basis_func,
+    mvp: ArrayComplex
+    psi, mvp = create_eigfunc(result, M_ORDER, LINSP_THETA, basis_func,
                               background_field=BG_FIELD)
 
     psi_grid: ArrayFloat
-    vpa_grid: ArrayFloat
-    psi_grid, vpa_grid = create_eigfunc_grid(
-        result, M_ORDER, LIN_THETA_SKIP, LIN_PHI, basis_func_skip,
+    mvp_grid: ArrayFloat
+    psi_grid, mvp_grid = create_eigfunc_grid(
+        result, M_ORDER, LINSP_THETA_SKIP, LINSP_PHI, basis_func_skip,
         background_field=BG_FIELD)
 
-    plot_ns(psi, vpa, eig, i_mode)
+    plot_ns(psi, mvp, eig, i_mode)
     if (not BG_FIELD['MU'].use_spectral_deform) or USE_ANALYTIC_CONT:
-        plot_map(psi_grid, vpa_grid, eig, i_mode)
+        plot_map(psi_grid, mvp_grid, eig, i_mode)
     plot_convergence(result, eig, i_mode)
 
     plt.show()
 
 
 def plot_ns(psi: ArrayComplex,
-            vpa: ArrayComplex,
+            mvp: ArrayComplex,
             eig: complex,
             i_mode: int) -> None:
     """Plot a figure of the eigenfunction of a chosen eigenmode
@@ -238,7 +238,7 @@ def plot_ns(psi: ArrayComplex,
     ----------
     psi : ArrayComplex
         The stream function (psi) of an eigenmode which you chose.
-    vpa : ArrayComplex
+    mvp : ArrayComplex
         The vector potential (a) of an eigenmode which you chose.
     eig : complex
         The eigenvalue of an eigenmode which you chose.
@@ -248,26 +248,26 @@ def plot_ns(psi: ArrayComplex,
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 4))
 
-    lin_x: ArrayFloat
+    linsp_x: ArrayFloat
     if (BG_FIELD['MU'].use_spectral_deform) and (not USE_ANALYTIC_CONT):
-        lin_x = np.cos(LIN_THETA)
+        linsp_x = np.cos(LINSP_THETA)
     else:
-        lin_x = LIN_THETA
+        linsp_x = LINSP_THETA
 
-    plotter.axes.plot(lin_x, psi.real, color='red',
+    plotter.axes.plot(linsp_x, psi.real, color='red',
                       label=r'stream function $\tilde{\psi}$')
-    plotter.axes.plot(lin_x, vpa.real, color='blue',
+    plotter.axes.plot(linsp_x, mvp.real, color='blue',
                       label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
                       + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
     if np.nanmax(np.abs(psi.imag)) > 0:
-        plotter.axes.plot(lin_x, psi.imag, color='red', linestyle=':')
+        plotter.axes.plot(linsp_x, psi.imag, color='red', linestyle=':')
 
-    if np.nanmax(np.abs(vpa.imag)) > 0:
-        plotter.axes.plot(lin_x, vpa.imag, color='blue', linestyle=':')
+    if np.nanmax(np.abs(mvp.imag)) > 0:
+        plotter.axes.plot(linsp_x, mvp.imag, color='blue', linestyle=':')
 
     amp_max: float
     amp_min: float
-    amp_max, amp_min = amp_range(psi, vpa)
+    amp_max, amp_min = amp_range(psi, mvp)
 
     plotter.axes.set_ylim(amp_min, amp_max)
     plotter.axes.set_ylabel('amplitude', fontsize=16)
@@ -314,7 +314,7 @@ def plot_ns(psi: ArrayComplex,
 
 
 def plot_map(psi_grid: ArrayFloat,
-             vpa_grid: ArrayFloat,
+             mvp_grid: ArrayFloat,
              eig: complex,
              i_mode: int) -> None:
     """Plot a figure of the eigenfunction of a chosen eigenmode (2D
@@ -324,7 +324,7 @@ def plot_map(psi_grid: ArrayFloat,
     ----------
     psi_grid : ArrayFloat
         A meshgrid of the stream function (psi)
-    vpa_grid : ArrayFloat
+    mvp_grid : ArrayFloat
         A meshgrid of the vector potential (a)
     eig : complex
         An eigenvalue
@@ -338,12 +338,12 @@ def plot_map(psi_grid: ArrayFloat,
                     ccrs.Mollweide(central_longitude=0.0)})
 
     max_psi: float = np.nanmax(np.abs(psi_grid))
-    max_vpa: float = np.nanmax(np.abs(vpa_grid))
+    max_mvp: float = np.nanmax(np.abs(mvp_grid))
 
     level_psi: ArrayFloat \
         = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_vpa: ArrayFloat \
-        = np.arange(-max_vpa, 1.2*max_vpa, 0.2*max_vpa)
+    level_mvp: ArrayFloat \
+        = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
@@ -354,11 +354,11 @@ def plot_map(psi_grid: ArrayFloat,
         transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
 
     contour2: QuadContourSet = plotter.axes[1].contourf(
-        GRID_LON, GRID_LAT, vpa_grid, levels=level_vpa,
+        GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
         transform=ccrs.PlateCarree(),
-        vmin=-max_vpa, vmax=max_vpa, cmap='PiYG_r')
+        vmin=-max_mvp, vmax=max_mvp, cmap='PiYG_r')
     plotter.axes[1].contour(
-        GRID_LON, GRID_LAT, vpa_grid, levels=level_vpa,
+        GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
         transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
 
     plotter.axes[0].gridlines(linestyle=':')
@@ -414,7 +414,7 @@ def plot_convergence(result: DictEigenmodeInfo,
     """
 
     vec_psi: ArrayComplex = result['vec_psi']
-    vec_vpa: ArrayComplex = result['vec_vpa']
+    vec_mvp: ArrayComplex = result['vec_mvp']
 
     size_submat: int = vec_psi.shape[0]
 
@@ -425,7 +425,7 @@ def plot_convergence(result: DictEigenmodeInfo,
         s=5, color='red',
         label=r'stream function $\tilde{\psi}$')
     plotter.axes.scatter(
-        np.arange(size_submat), np.abs(vec_vpa),
+        np.arange(size_submat), np.abs(vec_mvp),
         s=5, marker='s', edgecolors='blue', facecolors='none',
         label=r'vector potential $\mathrm{sgn}(\alpha)\tilde{a}/'
         + r'\sqrt{\rho_0\mu_\mathrm{m}}$')
@@ -481,10 +481,10 @@ if __name__ == '__main__':
                            f'{USE_ANALYTIC_CONT=}')
 
     basis: ArrayFloat | ArrayComplex = create_basis(
-        M_ORDER, N_T, LIN_THETA,
+        M_ORDER, N_T, LINSP_THETA,
         background_field=BG_FIELD, use_analytic_cont=USE_ANALYTIC_CONT)
     basis_skip: ArrayFloat | ArrayComplex = create_basis(
-        M_ORDER, N_T, LIN_THETA_SKIP, background_field=BG_FIELD)
+        M_ORDER, N_T, LINSP_THETA_SKIP, background_field=BG_FIELD)
 
     quad: DictChebyshevGaussQuad | None = prepare_chebyshev_gauss_quad(
         M_ORDER, ROSSBY, SIZE_SUBMAT, background_field=BG_FIELD)

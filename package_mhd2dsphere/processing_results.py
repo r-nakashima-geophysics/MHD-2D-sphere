@@ -28,7 +28,7 @@ def screening_eig_q(results: DictResult,
         The dictionary of the results of the eigenvalue problem.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
     eig: ArrayComplex = results['eig']
     pke: ArrayFloat = results['phys_qtys']['pke']
     pme: ArrayFloat = results['phys_qtys']['pme']
@@ -70,10 +70,10 @@ def screening_eig_q(results: DictResult,
     }
 
     results = {
-        'lin_alpha': lin_alpha,
+        'linsp_alpha': linsp_alpha,
         'eig': eig,
         'vec_psi': results['vec_psi'],
-        'vec_vpa': results['vec_vpa'],
+        'vec_mvp': results['vec_mvp'],
         'phys_qtys': phys_qtys
     }
 
@@ -94,10 +94,10 @@ def pickup_param(results: DictResult) -> DictParams:
         The dictionary of the parameters.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
-    alpha_init: float = lin_alpha[0]
-    alpha_end: float = lin_alpha[-1]
-    num_alpha: int = len(lin_alpha)
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
+    alpha_init: float = linsp_alpha[0]
+    alpha_end: float = linsp_alpha[-1]
+    num_alpha: int = len(linsp_alpha)
 
     psm_min: float = np.nanpercentile(results['phys_qtys']['psm'], 5)
     psm_max: float = np.nanpercentile(results['phys_qtys']['psm'], 95)

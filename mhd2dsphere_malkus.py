@@ -119,11 +119,11 @@ NUM_ALPHA: Final[int] = 1 + round((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + round((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_N: Final[ArrayInt] = np.linspace(
+LINSP_N: Final[ArrayInt] = np.linspace(
     N_INIT, N_END, NUM_N, dtype=np.int_)
-LIN_ALPHA: Final[ArrayFloat] = np.linspace(
+LINSP_ALPHA: Final[ArrayFloat] = np.linspace(
     ALPHA_INIT, ALPHA_END, NUM_ALPHA, dtype=np.float64)
-LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
+LINSP_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
     ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
 TEXT_XLABEL: Final[str] \
@@ -169,11 +169,11 @@ def wrapper_eigene() -> tuple[ArrayFloat,
     progress_bar: ProgressBar = create_function_name_progress_bar(NUM_N)
     progress_bar.start()
     for i_n in range(NUM_N):
-        n_degree = LIN_N[i_n]
+        n_degree = LINSP_N[i_n]
 
         if SWITCH_PLOT[0]:
             for i_alpha in range(NUM_ALPHA):
-                alpha = LIN_ALPHA[i_alpha]
+                alpha = LINSP_ALPHA[i_alpha]
 
                 for name_mode in NAMES_MODE:
                     eig[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
@@ -182,7 +182,7 @@ def wrapper_eigene() -> tuple[ArrayFloat,
         if (SWITCH_PLOT[1] or SWITCH_PLOT[2]
                 or SWITCH_PLOT[3] or SWITCH_PLOT[4]):
             for i_alpha in range(NUM_ALPHA_LOG):
-                alpha = 10**LIN_ALPHA_LOG[i_alpha]
+                alpha = 10**LINSP_ALPHA_LOG[i_alpha]
 
                 for name_mode in NAMES_MODE:
                     ene[i_n, i_alpha, NAMES_MODE.index(name_mode)] \
@@ -369,18 +369,18 @@ def plot_eig(eig: ArrayFloat) -> None:
 
         if i_n not in (0, NUM_N-1):
             plotter.axes.plot(
-                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                LINSP_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes.plot(
-                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                LINSP_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
             plotter.axes.plot(
-                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
+                LINSP_ALPHA, eig[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
             plotter.axes.plot(
-                LIN_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
+                LINSP_ALPHA, eig[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
@@ -433,23 +433,23 @@ def plot_ene(ene: ArrayFloat) -> None:
 
         if (M_ORDER == 1) and (i_n == 0):
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1], linewidth=3)
 
         if i_n not in (0, NUM_N-1):
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, ene[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
@@ -497,39 +497,39 @@ def plot_eig_log(eig_log: ArrayFloat) -> None:
 
         if (M_ORDER == 1) and (i_n == 0):
             plotter.axes[0].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0], label=r'$n=$ 1 fast MR')
             plotter.axes[1].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         elif (M_ORDER == 1) and (i_n == 1):
             plotter.axes[0].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes[1].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1], label=r'$n=$ 2 slow MR')
         elif i_n not in (0, NUM_N-1):
             plotter.axes[0].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes[1].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
             plotter.axes[0].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 -eig_log[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
             plotter.axes[1].loglog(
-                10**LIN_ALPHA_LOG,
+                10**LINSP_ALPHA_LOG,
                 eig_log[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
@@ -586,18 +586,18 @@ def plot_psm(psm: ArrayFloat) -> None:
 
         if i_n not in (0, NUM_N-1):
             plotter.axes.loglog(
-                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes.loglog(
-                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
             plotter.axes.loglog(
-                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
             plotter.axes.loglog(
-                10**LIN_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, psm[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 
@@ -653,23 +653,23 @@ def plot_pse(pse: ArrayFloat) -> None:
 
         if (M_ORDER == 1) and (i_n == 0):
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1], linewidth=3)
 
         if i_n not in (0, NUM_N-1):
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0])
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1])
         else:
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
+                10**LINSP_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('fMR')],
                 color=[1, i_n/NUM_N, 0],
                 label=r'$n=$'+f' {N_INIT+i_n} fast MR')
             plotter.axes.semilogx(
-                10**LIN_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
+                10**LINSP_ALPHA_LOG, pse[i_n, :, NAMES_MODE.index('sMR')],
                 color=[0, i_n/NUM_N, 1],
                 label=r'$n=$'+f' {N_INIT+i_n} slow MR')
 

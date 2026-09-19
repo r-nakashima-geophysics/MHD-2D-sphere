@@ -74,11 +74,11 @@ def create_submat(m_order: int,
     n_t: int
     if background_field['NY24']:
         n_t = size_submat + m_order - 1
-        lin_n: ArrayFloat = np.linspace(
+        linsp_n: ArrayFloat = np.linspace(
             m_order, n_t, size_submat, dtype=np.float64)
 
-        knm: ArrayFloat = np.sqrt((lin_n-m_order) * (lin_n+m_order)
-                                  / ((2*lin_n-1)*(2*lin_n+1)))
+        knm: ArrayFloat = np.sqrt((linsp_n-m_order) * (linsp_n+m_order)
+                                  / ((2*linsp_n-1)*(2*linsp_n+1)))
 
         submat_11 = np.zeros(
             (size_submat, size_submat), dtype=np.float64)

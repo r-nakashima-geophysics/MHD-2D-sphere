@@ -29,10 +29,10 @@ class DictCriterionC(TypedDict):
 class DictResult(TypedDict):
     """Typed dictionary for the results of the eigenvalue problem."""
 
-    lin_alpha: ArrayFloat
+    linsp_alpha: ArrayFloat
     eig: ArrayComplex
     vec_psi: ArrayComplex
-    vec_vpa: ArrayComplex
+    vec_mvp: ArrayComplex
     phys_qtys: DictPhysQtys
 
 
@@ -53,7 +53,7 @@ class DictEigenmodeInfo(TypedDict):
     i_mode: int
     eig: complex
     vec_psi: ArrayComplex
-    vec_vpa: ArrayComplex
+    vec_mvp: ArrayComplex
     pke: float
     pme: float
     psm: float

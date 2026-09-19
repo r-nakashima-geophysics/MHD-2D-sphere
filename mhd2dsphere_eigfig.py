@@ -245,17 +245,17 @@ CBAR_LABEL: Final[str] \
 )
 
 NUM_POINT: Final[int] = 10 * N_T
-LIN_COLLOCATION_S: Final[ArrayFloat] \
+LINSP_COLLOCATION_S: Final[ArrayFloat] \
     = np.array([calc_collocation_point(i_l+1, NUM_POINT+2)
                 for i_l in range(NUM_POINT)])
-LIN_COLLOCATION_MU: Final[ArrayComplex] \
-    = np.array([MU_COMPLEX.value(LIN_COLLOCATION_S[i_l])
+LINSP_COLLOCATION_MU: Final[ArrayComplex] \
+    = np.array([MU_COMPLEX.value(LINSP_COLLOCATION_S[i_l])
                 for i_l in range(NUM_POINT)])
-LIN_BG_FIELD_B: Final[ArrayComplex] \
-    = np.array([BG_FIELD_B.value(LIN_COLLOCATION_MU[i_l])
+LINSP_BG_FIELD_B: Final[ArrayComplex] \
+    = np.array([BG_FIELD_B.value(LINSP_COLLOCATION_MU[i_l])
                 for i_l in range(NUM_POINT)])
-LIN_BG_FIELD_U: Final[ArrayComplex] \
-    = np.array([BG_FIELD_U.value(LIN_COLLOCATION_MU[i_l])
+LINSP_BG_FIELD_U: Final[ArrayComplex] \
+    = np.array([BG_FIELD_U.value(LINSP_COLLOCATION_MU[i_l])
                 for i_l in range(NUM_POINT)])
 
 MASK_Y1: Final[float] = EIG_IM_LOG_MIN
@@ -435,7 +435,7 @@ def plot_eig(results: DictResult,
         The set storing the IDs of figures to save.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
     eig: ArrayComplex = results['eig']
     pke: ArrayFloat = results['phys_qtys']['pke']
     psm: ArrayFloat = results['phys_qtys']['psm']
@@ -499,7 +499,7 @@ def plot_eig(results: DictResult,
         norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'qmode':
         cmap_min = 10**(-6)
-        cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
+        cmap_max = np.max(np.abs(LINSP_BG_FIELD_B**2))
         cmap = 'jet'
         norm = LogNorm(vmin=cmap_min, vmax=cmap_max)
 
@@ -510,7 +510,7 @@ def plot_eig(results: DictResult,
     scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     for i_alpha in range(num_alpha):
-        alpha = lin_alpha[i_alpha]
+        alpha = linsp_alpha[i_alpha]
         ones_alpha = np.full(SIZE_MAT, alpha)
 
         dict_eig = pickup_eig(
@@ -561,9 +561,9 @@ def plot_eig(results: DictResult,
                 if alpha != 0:
                     for i_mode in range(SIZE_MAT):
                         scatter_color[i_mode] = np.min(np.abs(
-                            (M_ORDER*ROSSBY*LIN_BG_FIELD_U
+                            (M_ORDER*ROSSBY*LINSP_BG_FIELD_U
                              - eig[i_alpha, i_mode])**2
-                            / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
+                            / ((M_ORDER*alpha)**2) - (LINSP_BG_FIELD_B**2)
                         ))
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
@@ -915,7 +915,7 @@ def plot_eig_log(results: DictResult,
         The set storing the IDs of figures to save.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
     eig: ArrayComplex = results['eig']
     pke: ArrayFloat = results['phys_qtys']['pke']
     psm: ArrayFloat = results['phys_qtys']['psm']
@@ -986,7 +986,7 @@ def plot_eig_log(results: DictResult,
         norm = Normalize(vmin=cmap_min, vmax=cmap_max)
     elif SWITCH_COLOR == 'qmode':
         cmap_min = 10**(-6)
-        cmap_max = np.max(np.abs(LIN_BG_FIELD_B**2))
+        cmap_max = np.max(np.abs(LINSP_BG_FIELD_B**2))
         cmap = 'jet'
         norm = LogNorm(vmin=cmap_min, vmax=cmap_max)
 
@@ -997,7 +997,7 @@ def plot_eig_log(results: DictResult,
     scatter_color: ArrayFloat = np.empty(SIZE_MAT, dtype=np.float64)
 
     for i_alpha in range(num_alpha_log):
-        alpha = lin_alpha[i_alpha]
+        alpha = linsp_alpha[i_alpha]
         ones_alpha = np.full(SIZE_MAT, alpha)
 
         dict_eig = pickup_eig(
@@ -1088,9 +1088,9 @@ def plot_eig_log(results: DictResult,
                 if alpha != 0:
                     for i_mode in range(SIZE_MAT):
                         scatter_color[i_mode] = np.min(np.abs(
-                            (M_ORDER*ROSSBY*LIN_BG_FIELD_U
+                            (M_ORDER*ROSSBY*LINSP_BG_FIELD_U
                              - eig[i_alpha, i_mode])**2
-                            / ((M_ORDER*alpha)**2) - (LIN_BG_FIELD_B**2)
+                            / ((M_ORDER*alpha)**2) - (LINSP_BG_FIELD_B**2)
                         ))
 
             if (SWITCH_COLOR == 'ene') and (E_ETA == 0):
@@ -1206,7 +1206,7 @@ def plot_eig_log(results: DictResult,
                 plotter_imag.sc[0] = imag_sc[0, 0]
                 plotter_imag.sc[1] = imag_sc[0, 1]
 
-    mask_x: ArrayFloat = lin_alpha
+    mask_x: ArrayFloat = linsp_alpha
     imag_axes[0, 0].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     imag_axes[0, 1].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
     imag_axes[1, 0].fill_between(mask_x, MASK_Y1, MASK_Y2, facecolor='gray')
@@ -1280,9 +1280,9 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
         The dictionary of results of the eigenvalue problem.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
-    i_alpha: int = int(np.argmin(np.abs(lin_alpha - ALPHA_CHOSEN)))
-    alpha: float = lin_alpha[i_alpha]
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
+    i_alpha: int = int(np.argmin(np.abs(linsp_alpha - ALPHA_CHOSEN)))
+    alpha: float = linsp_alpha[i_alpha]
 
     eig: ArrayComplex = results['eig'][i_alpha, :]
     eig_center: complex = (np.nanmax(eig.real)+np.nanmin(eig.real)) / 2 \
@@ -1295,9 +1295,11 @@ def plot_eig_for_an_alpha(results: DictResult) -> None:
         eig_center.real - 1.1*half_width, eig_center.real + 1.1*half_width,
         eig_center.imag - 1.1*half_width, eig_center.imag + 1.1*half_width)
 
-    lin_re: ArrayFloat = np.linspace(eig_range[0], eig_range[1], NUM_EIG_GRID)
-    lin_im: ArrayFloat = np.linspace(eig_range[2], eig_range[3], NUM_EIG_GRID)
-    grid_re, grid_im = np.meshgrid(lin_re, lin_im)
+    linsp_re: ArrayFloat = np.linspace(
+        eig_range[0], eig_range[1], NUM_EIG_GRID)
+    linsp_im: ArrayFloat = np.linspace(
+        eig_range[2], eig_range[3], NUM_EIG_GRID)
+    grid_re, grid_im = np.meshgrid(linsp_re, linsp_im)
 
     pseudospectrum: ArrayFloat = calc_pseudospectrum(alpha, eig_range)
 
@@ -1352,8 +1354,10 @@ def calc_pseudospectrum(
         The minimum singular values on the complex grid.
     """
 
-    lin_re: ArrayFloat = np.linspace(eig_range[0], eig_range[1], NUM_EIG_GRID)
-    lin_im: ArrayFloat = np.linspace(eig_range[2], eig_range[3], NUM_EIG_GRID)
+    linsp_re: ArrayFloat = np.linspace(
+        eig_range[0], eig_range[1], NUM_EIG_GRID)
+    linsp_im: ArrayFloat = np.linspace(
+        eig_range[2], eig_range[3], NUM_EIG_GRID)
 
     submatrices: tuple[ArrayFloat | ArrayComplex,
                        ArrayFloat | ArrayComplex,
@@ -1369,11 +1373,12 @@ def calc_pseudospectrum(
 
     shared_memories: tuple[SharedMemory, ...]
     shared_info: SharedInfo
-    shared_memories, shared_info = create_shared_arrays(lin_re, mat, identity)
+    shared_memories, shared_info = create_shared_arrays(
+        linsp_re, mat, identity)
 
     try:
         args_list: list[tuple[float, SharedInfo]] = [
-            (eig_im, shared_info) for eig_im in lin_im
+            (eig_im, shared_info) for eig_im in linsp_im
         ]
 
         pseudospectrum: ArrayFloat = np.empty(
@@ -1423,11 +1428,11 @@ def worker(args: tuple[float, SharedInfo]) -> ArrayFloat:
     shared_arrays = cast(tuple[ArrayFloat,
                                ArrayFloat | ArrayComplex,
                                ArrayFloat], shared_arrays_tmp)
-    lin_re, mat, identity = shared_arrays
+    linsp_re, mat, identity = shared_arrays
 
     pseudospectrum: ArrayFloat = np.empty(NUM_EIG_GRID, dtype=np.float64)
 
-    for i_re, real in enumerate(lin_re):
+    for i_re, real in enumerate(linsp_re):
         singular_values: ArrayFloat \
             = cast(ArrayFloat,
                    svdvals((real + 1j * eig_im) * identity - mat,

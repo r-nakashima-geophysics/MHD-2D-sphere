@@ -159,9 +159,9 @@ NUM_ALPHA: Final[int] = 1 + round((ALPHA_END-ALPHA_INIT)/ALPHA_STEP)
 NUM_ALPHA_LOG: Final[int] \
     = 1 + round((ALPHA_LOG_END-ALPHA_LOG_INIT)/ALPHA_LOG_STEP)
 
-LIN_ALPHA: Final[ArrayFloat] = np.linspace(
+LINSP_ALPHA: Final[ArrayFloat] = np.linspace(
     ALPHA_INIT, ALPHA_END, NUM_ALPHA, dtype=np.float64)
-LIN_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
+LINSP_ALPHA_LOG: Final[ArrayFloat] = np.linspace(
     ALPHA_LOG_INIT, ALPHA_LOG_END, NUM_ALPHA_LOG, dtype=np.float64)
 
 SIZE_SUBMAT: Final[int] = N_T - M_ORDER + 1 if SWITCH_NY24 else N_T + 1
@@ -170,7 +170,7 @@ SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 DICT_QUAD_4WORKER: DictChebyshevGaussQuad | None = None
 
 
-def wrapper_solve_eig_for_lin_alpha(
+def wrapper_solve_eig_for_linsp_alpha(
         *,
         dict_quad: DictChebyshevGaussQuad | None,
         switch_log: bool = False) -> DictResult:
@@ -206,11 +206,11 @@ def wrapper_solve_eig_for_lin_alpha(
         args_list: list[tuple[float, SharedInfo]]
         if not switch_log:
             num_alpha = NUM_ALPHA
-            args_list = [(LIN_ALPHA[i_alpha], shared_info)
+            args_list = [(LINSP_ALPHA[i_alpha], shared_info)
                          for i_alpha in range(NUM_ALPHA)]
         else:
             num_alpha = NUM_ALPHA_LOG
-            args_list = [(10**LIN_ALPHA_LOG[i_alpha], shared_info)
+            args_list = [(10**LINSP_ALPHA_LOG[i_alpha], shared_info)
                          for i_alpha in range(NUM_ALPHA_LOG)]
 
         eig: ArrayComplex \
@@ -253,10 +253,10 @@ def wrapper_solve_eig_for_lin_alpha(
     }
 
     results: DictResult = {
-        'lin_alpha': LIN_ALPHA if not switch_log else 10**LIN_ALPHA_LOG,
+        'linsp_alpha': LINSP_ALPHA if not switch_log else 10**LINSP_ALPHA_LOG,
         'eig': eig,
         'vec_psi': np.array([]),
-        'vec_vpa': np.array([]),
+        'vec_mvp': np.array([]),
         'phys_qtys': phys_qtys
     }
 
@@ -319,7 +319,7 @@ def worker(args: tuple[float, SharedInfo]) -> DictResult:
                                    dict_quad=dict_quad)
 
     result['vec_psi'] = np.array([])
-    result['vec_vpa'] = np.array([])
+    result['vec_mvp'] = np.array([])
 
     return result
 
@@ -338,7 +338,7 @@ def save_results(results: DictResult,
         plot.
     """
 
-    lin_alpha: ArrayFloat = results['lin_alpha']
+    linsp_alpha: ArrayFloat = results['linsp_alpha']
     eig: ArrayComplex = results['eig']
     pke: ArrayFloat = results['phys_qtys']['pke']
     pme: ArrayFloat = results['phys_qtys']['pme']
@@ -357,7 +357,7 @@ def save_results(results: DictResult,
     path_file: Path = PATH_DIR / name_file
 
     np.savez_compressed(path_file,
-                        lin_alpha=lin_alpha, eig=eig,
+                        linsp_alpha=linsp_alpha, eig=eig,
                         pke=pke, pme=pme, psm=psm, pse=pse,
                         ohm=ohm, sym=sym)
 
@@ -398,10 +398,11 @@ if __name__ == '__main__':
     data: DictResult
 
     if SWITCH_CALC[0]:
-        data = wrapper_solve_eig_for_lin_alpha(dict_quad=quad)
+        data = wrapper_solve_eig_for_linsp_alpha(dict_quad=quad)
         save_results(data)
     if SWITCH_CALC[1]:
-        data = wrapper_solve_eig_for_lin_alpha(dict_quad=quad, switch_log=True)
+        data = wrapper_solve_eig_for_linsp_alpha(
+            dict_quad=quad, switch_log=True)
         save_results(data, switch_log=True)
 
     timer.end()
