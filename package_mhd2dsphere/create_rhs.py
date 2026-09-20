@@ -26,26 +26,29 @@ from package_common.utils_collocation import (create_chebyshev_diff_mat,
 def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
             time: float,
             *,
+            list_m_order: list[int],
             linsp_mu: ArrayFloat,
             m_order: int,
             alpha: float,
             rossby: float) -> ArrayComplex:
     """Create the right-hand side of the governing equation for the stream
-    function.
+    function for a given zonal wavenumber.
 
     Parameters
     ----------
-    fields_value: list[ArrayComplex | ArrayFloat]
-        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
-    time: float
+    fields_value : list[ArrayComplex | ArrayFloat]
+        The list of fields (list of psi, list of mvp, bf_u_sin, bf_b_sin).
+    time : float
         The current time.
-    linsp_mu: ArrayFloat
+    list_m_order : list[int]
+        The list of all the zonal wavenumbers (orders).
+    linsp_mu : ArrayFloat
         The values of mu at grid points.
-    m_order: int
-        The zonal wavenumber(order).
-    alpha: float
+    m_order : int
+        The given zonal wavenumber (order).
+    alpha : float
         The Lehnert number.
-    rossby: float
+    rossby : float
         The Rossby number.
 
     Returns
@@ -54,13 +57,16 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
         The right-hand side of the governing equation for the stream function.
     """
 
+    num_m: int = len(list_m_order)
     size_submat: int = linsp_mu.shape[0]
 
-    psi: ArrayFloat | ArrayComplex
-    mvp: ArrayFloat | ArrayComplex
-    bf_u_sin: ArrayFloat
-    bf_b_sin: ArrayFloat
-    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+    list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
+    list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
+    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+
+    psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
+    mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
 
     bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
     bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
@@ -119,29 +125,32 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
 def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
             time: float,
             *,
+            list_m_order: list[int],
             linsp_mu: ArrayFloat,
             m_order: int,
             alpha: float,
             e_eta: float,
             rossby: float) -> ArrayComplex:
     """Create the right-hand side of the governing equation for the vector
-    potential.
+    potential for a given zonal wavenumber.
 
     Parameters
     ----------
-    fields_value: list[ArrayComplex | ArrayFloat]
-        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
-    time: float
+    fields_value : list[ArrayComplex | ArrayFloat]
+        The list of fields (list of psi, list of mvp, bf_u_sin, bf_b_sin).
+    time : float
         The current time.
-    linsp_mu: ArrayFloat
+    list_m_order : list[int]
+        The list of zonal wavenumbers (orders).
+    linsp_mu : ArrayFloat
         The values of mu at grid points.
-    m_order: int
-        The zonal wavenumber(order).
-    alpha: float
+    m_order : int
+        The given zonal wavenumber (order).
+    alpha : float
         The Lehnert number.
-    e_eta: float
+    e_eta : float
         The magnetic Ekman number.
-    rossby: float
+    rossby : float
         The Rossby number.
 
     Returns
@@ -150,13 +159,16 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
         The right-hand side of the governing equation for the vector potential.
     """
 
+    num_m: int = len(list_m_order)
     size_submat: int = linsp_mu.shape[0]
 
-    psi: ArrayFloat | ArrayComplex
-    mvp: ArrayFloat | ArrayComplex
-    bf_u_sin: ArrayFloat
-    bf_b_sin: ArrayFloat
-    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+    list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
+    list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
+    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+
+    psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
+    mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
 
     bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
     bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
@@ -204,66 +216,90 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
 def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  time: float,
                  *,
+                 list_m_order: list[int],
                  linsp_mu: ArrayFloat) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the background
     zonal flow.
 
     Parameters
     ----------
-    fields_value: list[ArrayComplex | ArrayFloat]
-        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
-    time: float
+    fields_value : list[ArrayComplex | ArrayFloat]
+        The list of fields (list of psi, list of mvp, bf_u_sin, bf_b_sin).
+    time : float
         The current time.
-    linsp_mu: ArrayFloat
+    list_m_order : list[int]
+        The list of all the zonal wavenumbers (orders).
+    linsp_mu : ArrayFloat
         The values of mu at grid points.
 
     Returns
     -------
-    ArrayFloat
+    rhs : ArrayFloat
         The right-hand side of the governing equation for the background zonal
         flow.
     """
 
+    num_m: int = len(list_m_order)
     size_submat: int = linsp_mu.shape[0]
 
+    list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
+    list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
+    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+
+    rhs: ArrayFloat = np.zeros_like(bf_u_sin)
     psi: ArrayFloat | ArrayComplex
     mvp: ArrayFloat | ArrayComplex
-    bf_u_sin: ArrayFloat
-    bf_b_sin: ArrayFloat
-    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+    for i_m, m_order in enumerate(list_m_order):
+        psi = list_psi[i_m]
+        mvp = list_mvp[i_m]
 
-    return np.zeros_like(bf_u_sin)  # under construction
+        rhs += 0  # under construction
+
+    return rhs
 
 
 def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  time: float,
                  *,
+                 list_m_order: list[int],
                  linsp_mu: ArrayFloat) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the toroidal
     background field.
 
     Parameters
     ----------
-    fields_value: list[ArrayComplex | ArrayFloat]
-        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
-    time: float
+    fields_value : list[ArrayComplex | ArrayFloat]
+        The list of fields (list of psi, list of mvp, bf_u_sin, bf_b_sin).
+    time : float
         The current time.
-    linsp_mu: ArrayFloat
+    list_m_order : list[int]
+        The list of all the zonal wavenumbers (orders).
+    linsp_mu : ArrayFloat
         The values of mu at grid points.
 
     Returns
     -------
-    ArrayFloat
+    rhs : ArrayFloat
         The right-hand side of the governing equation for the background
         magnetic field.
     """
 
+    num_m: int = len(list_m_order)
     size_submat: int = linsp_mu.shape[0]
 
+    list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
+    list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
+    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+
+    rhs: ArrayFloat = np.zeros_like(bf_b_sin)
     psi: ArrayFloat | ArrayComplex
     mvp: ArrayFloat | ArrayComplex
-    bf_u_sin: ArrayFloat
-    bf_b_sin: ArrayFloat
-    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+    for i_m, m_order in enumerate(list_m_order):
+        psi = list_psi[i_m]
+        mvp = list_mvp[i_m]
 
-    return np.zeros_like(bf_b_sin)  # under construction
+        rhs += 0  # under construction
+
+    return rhs
