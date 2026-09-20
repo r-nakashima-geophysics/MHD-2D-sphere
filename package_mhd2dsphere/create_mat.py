@@ -151,7 +151,7 @@ def create_submat(m_order: int,
         u_shear_mu: float | complex
         b_shear_mu: float | complex
         for i_l in range(size_submat):
-            s_pos = calc_collocation_point(i_l+1, n_t+2)
+            s_pos = calc_collocation_point(i_l+1, n_t+3)
 
             if mu_complex.use_spectral_deform or (e_eta != 0):
                 mu = mu_complex.value(s_pos)
@@ -185,7 +185,7 @@ def create_submat(m_order: int,
             for i_n in range(size_submat):
                 h_n: float = heinrichs(i_n, s_pos)
                 laplacian: float | complex = spherical_laplacian_heinrichs(
-                    m_order, i_n, s_pos, mu_complex)
+                    m_order, i_n, s_pos, mu_complex=mu_complex)
 
                 submat_11[i_l, i_n] \
                     = rossby*u_mu*laplacian + h_n \
@@ -231,7 +231,7 @@ def create_mat(m_order: int,
                *,
                background_field: DictBackgroundField) \
         -> ArrayFloat | ArrayComplex:
-    """Make the total matrix.
+    """Create the total matrix.
 
     Parameters
     ----------
