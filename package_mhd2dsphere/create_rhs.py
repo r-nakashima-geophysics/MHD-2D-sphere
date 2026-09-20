@@ -1,0 +1,269 @@
+"""A Python module to create the right-hand sides of the governing equations
+for the (quasi-)linear simulation of two-dimensional (2D) incompressible
+magnetohydrodynamic (MHD) waves on a rotating sphere under a toroidal
+background field, B_phi = B_0 B(theta) sin(theta), and a background zonal flow,
+U_phi = U_0 U(theta) sin(theta).
+
+References
+----------
+[1] Ryosuke Nakashima, Shigeo Yoshida, Two-dimensional ideal
+magnetohydrodynamic waves on a rotating sphere under a non-Malkus field: I.
+Continuous spectrum and its ray-theoretical interpretation. Geophysical &
+Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
+10.1080/03091929.2024.2384388
+
+[2] Ryosuke Nakashima, Shigeo Yoshida (in prep.)
+"""
+
+import numpy as np
+
+from package_common.calc_heinrichs import heinrichs
+from package_common.common_types import ArrayComplex, ArrayFloat, cast
+from package_common.utils_collocation import (create_chebyshev_diff_mat,
+                                              spherical_laplacian_heinrichs)
+
+
+def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
+            time: float,
+            *,
+            linsp_mu: ArrayFloat,
+            m_order: int,
+            alpha: float,
+            rossby: float) -> ArrayComplex:
+    """Create the right-hand side of the governing equation for the stream
+    function.
+
+    Parameters
+    ----------
+    fields_value: list[ArrayComplex | ArrayFloat]
+        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
+    time: float
+        The current time.
+    linsp_mu: ArrayFloat
+        The values of mu at grid points.
+    m_order: int
+        The zonal wavenumber(order).
+    alpha: float
+        The Lehnert number.
+    rossby: float
+        The Rossby number.
+
+    Returns
+    -------
+    ArrayComplex
+        The right-hand side of the governing equation for the stream function.
+    """
+
+    size_submat: int = linsp_mu.shape[0]
+
+    psi: ArrayFloat | ArrayComplex
+    mvp: ArrayFloat | ArrayComplex
+    bf_u_sin: ArrayFloat
+    bf_b_sin: ArrayFloat
+    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+
+    bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
+    bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
+
+    diff_mat: ArrayFloat = create_chebyshev_diff_mat(size_submat+2)
+    bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
+    bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
+    bf_u_shear: ArrayFloat = (
+        bf_u_sin_d2[1:-1] * np.sqrt(1-(linsp_mu**2))
+        - (2*linsp_mu/np.sqrt(1-(linsp_mu**2))) * bf_u_sin_d[1:-1]
+        - bf_u / (1-(linsp_mu**2))
+    )
+    bf_b_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
+    bf_b_sin_d2: ArrayFloat = diff_mat @ bf_b_sin_d
+    bf_b_shear: ArrayFloat = (
+        bf_b_sin_d2[1:-1] * np.sqrt(1-(linsp_mu**2))
+        - (2*linsp_mu/np.sqrt(1-(linsp_mu**2))) * bf_b_sin_d[1:-1]
+        - bf_b / (1-(linsp_mu**2))
+    )
+
+    submat_11: ArrayFloat = np.zeros(
+        (size_submat, size_submat), dtype=np.float64)
+    submat_12: ArrayFloat = np.zeros(
+        (size_submat, size_submat), dtype=np.float64)
+    submat_b_11: ArrayFloat = np.zeros(
+        (size_submat, size_submat), dtype=np.float64)
+
+    mu: float
+    h_n: float
+    laplacian: float
+    for i_l in range(size_submat):
+        mu = linsp_mu[i_l]
+
+        for i_n in range(size_submat):
+            h_n = cast(float, heinrichs(i_n, mu))
+            laplacian = cast(
+                float, spherical_laplacian_heinrichs(m_order, i_n, mu))
+
+            submat_11[i_l, i_n] = (
+                rossby * bf_u[i_l] * laplacian + h_n
+                - rossby * bf_u_shear[i_l] * h_n
+            )
+            submat_12[i_l, i_n] \
+                = bf_b[i_l] * laplacian - bf_b_shear[i_l] * h_n
+            submat_b_11[i_l, i_n] = laplacian
+
+    submat_11 = np.linalg.solve(submat_b_11, submat_11).astype(np.float64)
+    submat_12 = np.linalg.solve(submat_b_11, submat_12).astype(np.float64)
+
+    submat_11 *= m_order
+    submat_12 *= -m_order * alpha
+
+    return cast(ArrayComplex, -1j * (submat_11 @ psi + submat_12 @ mvp))
+
+
+def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
+            time: float,
+            *,
+            linsp_mu: ArrayFloat,
+            m_order: int,
+            alpha: float,
+            e_eta: float,
+            rossby: float) -> ArrayComplex:
+    """Create the right-hand side of the governing equation for the vector
+    potential.
+
+    Parameters
+    ----------
+    fields_value: list[ArrayComplex | ArrayFloat]
+        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
+    time: float
+        The current time.
+    linsp_mu: ArrayFloat
+        The values of mu at grid points.
+    m_order: int
+        The zonal wavenumber(order).
+    alpha: float
+        The Lehnert number.
+    e_eta: float
+        The magnetic Ekman number.
+    rossby: float
+        The Rossby number.
+
+    Returns
+    -------
+    ArrayComplex
+        The right-hand side of the governing equation for the vector potential.
+    """
+
+    size_submat: int = linsp_mu.shape[0]
+
+    psi: ArrayFloat | ArrayComplex
+    mvp: ArrayFloat | ArrayComplex
+    bf_u_sin: ArrayFloat
+    bf_b_sin: ArrayFloat
+    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+
+    bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
+    bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
+
+    submat_21: ArrayFloat = np.zeros(
+        (size_submat, size_submat), dtype=np.float64)
+    submat_b_22: ArrayFloat = np.zeros(
+        (size_submat, size_submat), dtype=np.float64)
+
+    submat_22: ArrayComplex | ArrayFloat
+    if e_eta != 0:
+        submat_22 = np.zeros((size_submat, size_submat), dtype=np.complex128)
+    else:
+        submat_22 = np.zeros((size_submat, size_submat), dtype=np.float64)
+
+    mu: float
+    h_n: float
+    laplacian: float
+    for i_l in range(size_submat):
+        mu = linsp_mu[i_l]
+
+        for i_n in range(size_submat):
+            h_n = cast(float, heinrichs(i_n, mu))
+            laplacian = cast(
+                float, spherical_laplacian_heinrichs(m_order, i_n, mu))
+
+            submat_21[i_l, i_n] = bf_b[i_l] * h_n
+            submat_22[i_l, i_n] = m_order * rossby * bf_u[i_l] * h_n
+            if e_eta != 0:
+                submat_22[i_l, i_n] += 1j * e_eta * laplacian
+            submat_b_22[i_l, i_n] = h_n
+
+    submat_21 = np.linalg.solve(submat_b_22, submat_21).astype(np.float64)
+    if e_eta != 0:
+        submat_22 = np.linalg.solve(
+            submat_b_22, submat_22).astype(np.complex128)
+    else:
+        submat_22 = np.linalg.solve(submat_b_22, submat_22).astype(np.float64)
+
+    submat_21 *= -m_order * alpha
+
+    return cast(ArrayComplex, -1j * (submat_21 @ psi + submat_22 @ mvp))
+
+
+def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
+                 time: float,
+                 *,
+                 linsp_mu: ArrayFloat) -> ArrayFloat:
+    """Create the right-hand side of the governing equation for the background
+    zonal flow.
+
+    Parameters
+    ----------
+    fields_value: list[ArrayComplex | ArrayFloat]
+        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
+    time: float
+        The current time.
+    linsp_mu: ArrayFloat
+        The values of mu at grid points.
+
+    Returns
+    -------
+    ArrayFloat
+        The right-hand side of the governing equation for the background zonal
+        flow.
+    """
+
+    size_submat: int = linsp_mu.shape[0]
+
+    psi: ArrayFloat | ArrayComplex
+    mvp: ArrayFloat | ArrayComplex
+    bf_u_sin: ArrayFloat
+    bf_b_sin: ArrayFloat
+    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+
+    return np.zeros_like(bf_u_sin)  # under construction
+
+
+def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
+                 time: float,
+                 *,
+                 linsp_mu: ArrayFloat) -> ArrayFloat:
+    """Create the right-hand side of the governing equation for the toroidal
+    background field.
+
+    Parameters
+    ----------
+    fields_value: list[ArrayComplex | ArrayFloat]
+        The list of fields (psi, mvp, bf_u_sin, bf_b_sin).
+    time: float
+        The current time.
+    linsp_mu: ArrayFloat
+        The values of mu at grid points.
+
+    Returns
+    -------
+    ArrayFloat
+        The right-hand side of the governing equation for the background
+        magnetic field.
+    """
+
+    size_submat: int = linsp_mu.shape[0]
+
+    psi: ArrayFloat | ArrayComplex
+    mvp: ArrayFloat | ArrayComplex
+    bf_u_sin: ArrayFloat
+    bf_b_sin: ArrayFloat
+    psi, mvp, bf_u_sin, bf_b_sin = fields_value
+
+    return np.zeros_like(bf_b_sin)  # under construction
