@@ -146,6 +146,8 @@ def create_submat(m_order: int,
 
         s_pos: float
         mu: float | complex
+        h_n: float | complex
+        laplacian: float | complex
         u_mu: float | complex
         b_mu: float | complex
         u_shear_mu: float | complex
@@ -183,8 +185,8 @@ def create_submat(m_order: int,
                 )
 
             for i_n in range(size_submat):
-                h_n: float = heinrichs(i_n, s_pos)
-                laplacian: float | complex = spherical_laplacian_heinrichs(
+                h_n = heinrichs(i_n, s_pos)
+                laplacian = spherical_laplacian_heinrichs(
                     m_order, i_n, s_pos, mu_complex=mu_complex)
 
                 submat_11[i_l, i_n] \

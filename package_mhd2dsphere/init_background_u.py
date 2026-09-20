@@ -8,7 +8,8 @@ from package_common.utils_name import create_function_name_logger
 
 
 def is_symmetric_u(u_field: BackgroundField) -> bool | NoReturn:
-    """Check whether the background zonal flow is equatorial (anti)symmetric or not.
+    """Check whether the background zonal flow is equatorial (anti)symmetric or
+    not.
 
     Parameters
     ----------
@@ -18,8 +19,8 @@ def is_symmetric_u(u_field: BackgroundField) -> bool | NoReturn:
     Returns
     -------
     bool
-        The boolean value to check whether the background zonal flow is equatorial
-        (anti)symmetric or not.
+        The boolean value to check whether the background zonal flow is
+        equatorial (anti)symmetric or not.
 
     Warnings
     --------
