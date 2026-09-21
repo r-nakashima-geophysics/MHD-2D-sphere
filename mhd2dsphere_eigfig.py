@@ -249,14 +249,11 @@ LINSP_COLLOCATION_S: Final[ArrayFloat] \
     = np.array([calc_collocation_point(i_l, NUM_POINT)
                 for i_l in range(1, NUM_POINT-1)])
 LINSP_COLLOCATION_MU: Final[ArrayComplex] \
-    = np.array([MU_COMPLEX.value(LINSP_COLLOCATION_S[i_l])
-                for i_l in range(1, NUM_POINT-1)])
+    = np.array([MU_COMPLEX.value(s) for s in LINSP_COLLOCATION_S])
 LINSP_BG_FIELD_B: Final[ArrayComplex] \
-    = np.array([BG_FIELD_B.value(LINSP_COLLOCATION_MU[i_l])
-                for i_l in range(1, NUM_POINT-1)])
+    = np.array([BG_FIELD_B.value(mu) for mu in LINSP_COLLOCATION_MU])
 LINSP_BG_FIELD_U: Final[ArrayComplex] \
-    = np.array([BG_FIELD_U.value(LINSP_COLLOCATION_MU[i_l])
-                for i_l in range(1, NUM_POINT-1)])
+    = np.array([BG_FIELD_U.value(mu) for mu in LINSP_COLLOCATION_MU])
 
 MASK_Y1: Final[float] = EIG_IM_LOG_MIN
 MASK_Y2: Final[float] = - MASK_Y1
