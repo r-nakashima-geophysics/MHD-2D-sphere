@@ -28,6 +28,13 @@ def is_symmetric_b(b_field: BackgroundField) -> bool | NoReturn:
     --------
     Unknown background field name
         If the name of the background field is undefined.
+
+    Examples
+    --------
+    >>> from package_mhd2dsphere.init_background_b import is_symmetric_b
+    >>> from package_mhd2dsphere.init_background_b import b_malkus
+    >>is_symmetric_b(b_malkus())> 
+    True
     """
 
     logger: DefaultLogger = create_function_name_logger()

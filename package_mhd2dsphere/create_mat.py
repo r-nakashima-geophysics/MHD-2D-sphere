@@ -153,7 +153,7 @@ def create_submat(m_order: int,
         u_shear_mu: float | complex
         b_shear_mu: float | complex
         for i_l in range(size_submat):
-            s_pos = calc_collocation_point(i_l+1, n_t+3)
+            s_pos = calc_collocation_point(i_l+1, size_submat+2)
 
             if mu_complex.use_spectral_deform or (e_eta != 0):
                 mu = mu_complex.value(s_pos)

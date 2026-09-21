@@ -345,7 +345,6 @@ def amp_range(psi: ArrayComplex,
         The maximum value of the amplitude of the eigenfunction
     amp_min : float
         The minimum value of the amplitude of the eigenfunction
-
     """
 
     factor: float = 1.5

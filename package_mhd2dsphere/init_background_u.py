@@ -26,6 +26,13 @@ def is_symmetric_u(u_field: BackgroundField) -> bool | NoReturn:
     --------
     Unknown background zonal flow name
         If the name of the background zonal flow is undefined.
+
+    Examples
+    --------
+    >>> from package_mhd2dsphere.init_background_u import is_symmetric_u
+    >>> from package_mhd2dsphere.init_background_u import u_rigid
+    >>> is_symmetric_u(u_rigid())
+    True
     """
 
     logger: DefaultLogger = create_function_name_logger()
