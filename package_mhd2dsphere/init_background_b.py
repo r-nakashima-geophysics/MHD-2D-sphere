@@ -366,7 +366,7 @@ def b_malsincos(ratio_sincos2malkus: float,
 
     logger: DefaultLogger = create_function_name_logger()
 
-    if ratio_sincos2malkus in (0, np.inf):
+    if np.isclose(ratio_sincos2malkus, 0) or (ratio_sincos2malkus == np.inf):
         logger.error('Use b_malkus() or b_sincos() instead of b_malsincos()')
 
     name: str = f'malsincos{ratio_sincos2malkus:.2f}'
