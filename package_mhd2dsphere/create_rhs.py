@@ -19,7 +19,7 @@ import numpy as np
 
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import ArrayComplex, ArrayFloat, cast
-from package_common.utils_collocation import (create_chebyshev_diff_mat,
+from package_common.utils_collocation import (create_cheb_diff_mat,
                                               spherical_laplacian_heinrichs)
 
 
@@ -71,7 +71,7 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
     bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
 
-    diff_mat: ArrayFloat = create_chebyshev_diff_mat(size_submat+2)
+    diff_mat: ArrayFloat = create_cheb_diff_mat(size_submat+2)
     bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
     bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
     bf_u_shear: ArrayFloat = (
