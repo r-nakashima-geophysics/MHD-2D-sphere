@@ -50,15 +50,13 @@ def screening_eig_q(results: DictResult,
             + 2 * eig[i_alpha, :].imag * criterion_q
         )
 
-        for i_mode in range(size_mat):
-            if check_q[i_mode] <= 0:
-                eig[i_alpha, i_mode] = np.nan
-                pke[i_alpha, i_mode] = np.nan
-                pme[i_alpha, i_mode] = np.nan
-                psm[i_alpha, i_mode] = np.nan
-                pse[i_alpha, i_mode] = np.nan
-                ohm[i_alpha, i_mode] = np.nan
-                sym[i_alpha, i_mode] = np.nan
+        eig[i_alpha, check_q <= 0] = np.nan
+        pke[i_alpha, check_q <= 0] = np.nan
+        pme[i_alpha, check_q <= 0] = np.nan
+        psm[i_alpha, check_q <= 0] = np.nan
+        pse[i_alpha, check_q <= 0] = np.nan
+        ohm[i_alpha, check_q <= 0] = np.nan
+        sym[i_alpha, check_q <= 0] = np.nan
 
     phys_qtys: DictPhysQtys = {
         'pke': pke,
