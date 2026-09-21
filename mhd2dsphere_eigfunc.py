@@ -44,8 +44,9 @@ from package_common.background_field import BackgroundField
 from package_common.common_types import ArrayComplex, ArrayFloat, Final
 from package_common.decorator_yesno import exe_yes_continue
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import (Colorbar, DefaultPlotter,
-                                            QuadContourSet, create_plotter)
+from package_common.default_plotter import (Colorbar, DefaultGridPlotter,
+                                            DefaultPlotter, QuadContourSet,
+                                            create_plotter)
 from package_common.spectral_deform import (ComplexCoordinate,
                                             init_complex_coordinate_standard)
 from package_common.utils_input import input_value
@@ -332,7 +333,7 @@ def plot_map(psi_grid: ArrayFloat,
         The index of a mode that you chose
     """
 
-    plotter: DefaultPlotter = create_plotter(
+    plotter: DefaultGridPlotter = create_plotter(
         1, 2, figsize=(10, 5),
         subplot_kw={'projection':
                     ccrs.Mollweide(central_longitude=0.0)})

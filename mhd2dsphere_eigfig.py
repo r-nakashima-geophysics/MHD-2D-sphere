@@ -284,6 +284,8 @@ def wrapper_plot_eig(results: DictResult,
     real_sc: ArrayPathCollection = np.empty(2, dtype=object)
     imag_sc: ArrayPathCollection = np.empty(2, dtype=object)
     if IS_SYMMETRIC_FIELD:
+        plotter_real = cast(DefaultGridPlotter, plotter_real)
+        plotter_imag = cast(DefaultGridPlotter, plotter_imag)
         real_axes[0] = plotter_real.axes[0]
         real_axes[1] = plotter_real.axes[1]
         imag_axes[0] = plotter_imag.axes[0]
@@ -293,6 +295,8 @@ def wrapper_plot_eig(results: DictResult,
         imag_sc[0] = plotter_imag.sc[0]
         imag_sc[1] = plotter_imag.sc[1]
     else:
+        plotter_real = cast(DefaultPlotter, plotter_real)
+        plotter_imag = cast(DefaultPlotter, plotter_imag)
         real_axes[0] = plotter_real.axes
         real_axes[1] = plotter_real.axes
         imag_axes[0] = plotter_imag.axes
@@ -608,11 +612,15 @@ def plot_eig(results: DictResult,
                 set_save_fig.update({1, 2})
 
             if IS_SYMMETRIC_FIELD:
+                plotter_real = cast(DefaultGridPlotter, plotter_real)
+                plotter_imag = cast(DefaultGridPlotter, plotter_imag)
                 plotter_real.sc[0] = real_sc[0]
                 plotter_real.sc[1] = real_sc[1]
                 plotter_imag.sc[0] = imag_sc[0]
                 plotter_imag.sc[1] = imag_sc[1]
             else:
+                plotter_real = cast(DefaultPlotter, plotter_real)
+                plotter_imag = cast(DefaultPlotter, plotter_imag)
                 plotter_real.sc = real_sc[0]
                 plotter_imag.sc = imag_sc[0]
 

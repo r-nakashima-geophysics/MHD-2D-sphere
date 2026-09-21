@@ -19,7 +19,7 @@ import numpy as np
 from package_common.background_field import BackgroundField
 from package_common.calc_heinrichs import heinrichs
 from package_common.common_types import (ArrayBool, ArrayComplex, ArrayFloat,
-                                         ArrayStr)
+                                         ArrayStr, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.spectral_deform import ComplexCoordinate
@@ -461,6 +461,7 @@ def calc_qty(m_order: int,
     psm: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pse: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     if not background_field['NY24']:
+        dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
         if alpha == 0:
             psm = np.real(dict_quad['quad_psm_hd'].quadrature(
                 vec_1=vec_psi, vec_2=vec_psi))
@@ -493,6 +494,7 @@ def calc_qty(m_order: int,
                     np.abs(eig_valvec[size_submat+i_n, :])**2)
             ohm *= e_eta
         else:
+            dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
             ohm = np.real(dict_quad['quad_ohm'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp))
 
@@ -572,6 +574,7 @@ def calc_ene(m_order: int,
             pke += nn1 * (np.abs(vec_psi[i_n, :])**2)
             pme += nn1 * (np.abs(vec_mvp[i_n, :])**2)
     else:
+        dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
         pke = np.real(dict_quad['quad_pke'].quadrature(
             vec_1=vec_psi, vec_2=vec_psi))
         pme = np.real(dict_quad['quad_pme'].quadrature(
