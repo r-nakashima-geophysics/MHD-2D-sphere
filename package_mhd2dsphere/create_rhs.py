@@ -129,7 +129,6 @@ def wrapper_rhs(name: str,
                               time: float) -> ArrayFloat:
             return rhs_bf_u_sin(fields_value,
                                 list_m_order=list_m_order,
-                                linsp_mu=linsp_mu,
                                 switch_quasi_lin=switch_quasi_lin,
                                 common_parts=common_parts)
 
@@ -140,7 +139,6 @@ def wrapper_rhs(name: str,
                               time: float) -> ArrayFloat:
             return rhs_bf_b_sin(fields_value,
                                 list_m_order=list_m_order,
-                                linsp_mu=linsp_mu,
                                 switch_quasi_lin=switch_quasi_lin,
                                 common_parts=common_parts)
 
@@ -218,26 +216,20 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
         (size_submat, size_submat), dtype=np.float64)
     submat_12: ArrayFloat = np.zeros(
         (size_submat, size_submat), dtype=np.float64)
-    submat_b_11: ArrayFloat = np.zeros(
-        (size_submat, size_submat), dtype=np.float64)
 
-    h_n: float
-    laplacian: float
-    for i_l in range(size_submat):
-        for i_n in range(size_submat):
-            h_n = common_parts["heinrichs"][i_n, i_l]
-            laplacian = common_parts["laplacian"][i_n, i_l]
+    hein: ArrayFloat = common_parts["heinrichs"]
+    laplacian: ArrayFloat = common_parts["laplacian"]
+    for i_mu in range(size_submat):
+        submat_11[i_mu, :] = (
+            rossby * bf_u[i_mu] * laplacian[:, i_mu] + hein[:, i_mu]
+            - rossby * bf_u_shear[i_mu] * hein[:, i_mu]
+        )
+        submat_12[i_mu, :] = bf_b[i_mu] * laplacian[:, i_mu] \
+            - bf_b_shear[i_mu] * hein[:, i_mu]
 
-            submat_11[i_l, i_n] = (
-                rossby * bf_u[i_l] * laplacian + h_n
-                - rossby * bf_u_shear[i_l] * h_n
-            )
-            submat_12[i_l, i_n] \
-                = bf_b[i_l] * laplacian - bf_b_shear[i_l] * h_n
-            submat_b_11[i_l, i_n] = laplacian
-
-    submat_11 = np.linalg.solve(submat_b_11, submat_11).astype(np.float64)
-    submat_12 = np.linalg.solve(submat_b_11, submat_12).astype(np.float64)
+    submat_b_11 = laplacian.T
+    submat_11 = np.linalg.solve(submat_b_11, submat_11)
+    submat_12 = np.linalg.solve(submat_b_11, submat_12)
 
     submat_11 *= m_order
     submat_12 *= -m_order * alpha
@@ -298,34 +290,23 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
 
     submat_21: ArrayFloat = np.zeros(
         (size_submat, size_submat), dtype=np.float64)
-    submat_b_22: ArrayFloat = np.zeros(
-        (size_submat, size_submat), dtype=np.float64)
-
     submat_22: ArrayComplex | ArrayFloat
     if e_eta != 0:
         submat_22 = np.zeros((size_submat, size_submat), dtype=np.complex128)
     else:
         submat_22 = np.zeros((size_submat, size_submat), dtype=np.float64)
 
-    h_n: float
-    laplacian: float
-    for i_l in range(size_submat):
-        for i_n in range(size_submat):
-            h_n = common_parts["heinrichs"][i_n, i_l]
-            laplacian = common_parts["laplacian"][i_n, i_l]
+    hein: ArrayFloat = common_parts["heinrichs"]
+    laplacian: ArrayFloat = common_parts["laplacian"]
+    for i_mu in range(size_submat):
+        submat_21[i_mu, :] = bf_b[i_mu] * hein[:, i_mu]
+        submat_22[i_mu, :] = m_order * rossby * bf_u[i_mu] * hein[:, i_mu]
+        if e_eta != 0:
+            submat_22[i_mu, :] += 1j * e_eta * laplacian[:, i_mu]
 
-            submat_21[i_l, i_n] = bf_b[i_l] * h_n
-            submat_22[i_l, i_n] = m_order * rossby * bf_u[i_l] * h_n
-            if e_eta != 0:
-                submat_22[i_l, i_n] += 1j * e_eta * laplacian
-            submat_b_22[i_l, i_n] = h_n
-
-    submat_21 = np.linalg.solve(submat_b_22, submat_21).astype(np.float64)
-    if e_eta != 0:
-        submat_22 = np.linalg.solve(
-            submat_b_22, submat_22).astype(np.complex128)
-    else:
-        submat_22 = np.linalg.solve(submat_b_22, submat_22).astype(np.float64)
+    submat_b_22: ArrayFloat = hein.T
+    submat_21 = np.linalg.solve(submat_b_22, submat_21)
+    submat_22 = np.linalg.solve(submat_b_22, submat_22)
 
     submat_21 *= -m_order * alpha
 
@@ -335,7 +316,6 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
 def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  *,
                  list_m_order: list[int],
-                 linsp_mu: ArrayFloat,
                  switch_quasi_lin: bool,
                  common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the background
@@ -347,8 +327,6 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
         The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
-    linsp_mu : ArrayFloat
-        The values of mu at grid points.
     switch_quasi_lin: bool
         The boolean value to switch whether to perform quasi-linear simulations
         or not.
@@ -388,7 +366,6 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
 def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  *,
                  list_m_order: list[int],
-                 linsp_mu: ArrayFloat,
                  switch_quasi_lin: bool,
                  common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the toroidal
@@ -400,8 +377,6 @@ def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
         The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
-    linsp_mu : ArrayFloat
-        The values of mu at grid points.
     switch_quasi_lin : bool
         The boolean value to switch whether to perform quasi-linear simulations
         or not.
