@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import TypedDict
 
 from package_common.background_field import BackgroundField
-from package_common.common_types import ArrayComplex, ArrayFloat, ArrayStr
+from package_common.common_types import (ArrayAny, ArrayComplex, ArrayFloat,
+                                         ArrayStr)
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_collocation import ChebyshevGaussQuad
 
@@ -104,3 +105,7 @@ class DictRhsCommonParts(TypedDict):
     diff_mat: ArrayFloat
     heinrichs: ArrayFloat
     laplacian: ArrayFloat
+    lu_submat_b_11: ArrayFloat
+    piv_submat_b_11: ArrayAny
+    lu_submat_b_22: ArrayFloat
+    piv_submat_b_22: ArrayAny

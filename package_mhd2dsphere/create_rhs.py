@@ -16,9 +16,11 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 """
 
 import numpy as np
+from scipy.linalg import lu_factor, lu_solve
 
 from package_common.calc_heinrichs import heinrichs
-from package_common.common_types import ArrayComplex, ArrayFloat, cast
+from package_common.common_types import (ArrayAny, ArrayComplex, ArrayFloat,
+                                         cast)
 from package_common.default_logger import DefaultLogger
 from package_common.utils_collocation import (create_cheb_diff_mat,
                                               spherical_laplacian_heinrichs)
@@ -91,10 +93,21 @@ def wrapper_rhs(name: str,
              for i_n in range(size_submat)]
         )
 
+    lu_submat_b_11: ArrayFloat
+    piv_submat_b_11: ArrayAny
+    lu_submat_b_11, piv_submat_b_11 = lu_factor(laplacian.T)
+    lu_submat_b_22: ArrayFloat
+    piv_submat_b_22: ArrayAny
+    lu_submat_b_22, piv_submat_b_22 = lu_factor(hein.T)
+
     common_parts: DictRhsCommonParts = {
         "diff_mat": diff_mat,
         "heinrichs": hein,
-        "laplacian": laplacian
+        "laplacian": laplacian,
+        "lu_submat_b_11": lu_submat_b_11,
+        "piv_submat_b_11": piv_submat_b_11,
+        "lu_submat_b_22": lu_submat_b_22,
+        "piv_submat_b_22": piv_submat_b_22
     }
 
     if name == 'psi':
@@ -183,7 +196,6 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     """
 
     num_m: int = len(list_m_order)
-    size_submat: int = linsp_mu.shape[0]
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
@@ -223,10 +235,11 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
         bf_b[:, np.newaxis] * laplacian
         - bf_b_shear[:, np.newaxis] * hein
     )
-    submat_b_11 = laplacian
 
-    submat_11 = np.linalg.solve(submat_b_11, submat_11)
-    submat_12 = np.linalg.solve(submat_b_11, submat_12)
+    lu_submat_b_11: ArrayFloat = common_parts["lu_submat_b_11"]
+    piv_submat_b_11: ArrayAny = common_parts["piv_submat_b_11"]
+    submat_11 = lu_solve((lu_submat_b_11, piv_submat_b_11), submat_11)
+    submat_12 = lu_solve((lu_submat_b_11, piv_submat_b_11), submat_12)
 
     submat_11 *= m_order
     submat_12 *= -m_order * alpha
@@ -272,7 +285,6 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     """
 
     num_m: int = len(list_m_order)
-    size_submat: int = linsp_mu.shape[0]
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
@@ -293,10 +305,11 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
         m_order * rossby * bf_u[:, np.newaxis] * hein
         + 1j * e_eta * laplacian
     )
-    submat_b_22: ArrayFloat = hein
 
-    submat_21 = np.linalg.solve(submat_b_22, submat_21)
-    submat_22 = np.linalg.solve(submat_b_22, submat_22)
+    lu_submat_b_22: ArrayFloat = common_parts["lu_submat_b_22"]
+    piv_submat_b_22: ArrayAny = common_parts["piv_submat_b_22"]
+    submat_21 = lu_solve((lu_submat_b_22, piv_submat_b_22), submat_21)
+    submat_22 = lu_solve((lu_submat_b_22, piv_submat_b_22), submat_22)
 
     submat_21 *= -m_order * alpha
 
