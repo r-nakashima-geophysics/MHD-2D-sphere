@@ -212,22 +212,19 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
         - bf_b / (1-(linsp_mu**2))
     )
 
-    submat_11: ArrayFloat = np.zeros(
-        (size_submat, size_submat), dtype=np.float64)
-    submat_12: ArrayFloat = np.zeros(
-        (size_submat, size_submat), dtype=np.float64)
+    hein: ArrayFloat = common_parts["heinrichs"].T
+    laplacian: ArrayFloat = common_parts["laplacian"].T
 
-    hein: ArrayFloat = common_parts["heinrichs"]
-    laplacian: ArrayFloat = common_parts["laplacian"]
-    for i_mu in range(size_submat):
-        submat_11[i_mu, :] = (
-            rossby * bf_u[i_mu] * laplacian[:, i_mu] + hein[:, i_mu]
-            - rossby * bf_u_shear[i_mu] * hein[:, i_mu]
-        )
-        submat_12[i_mu, :] = bf_b[i_mu] * laplacian[:, i_mu] \
-            - bf_b_shear[i_mu] * hein[:, i_mu]
+    submat_11: ArrayFloat = (
+        rossby * bf_u[:, np.newaxis] * laplacian + hein
+        - rossby * bf_u_shear[:, np.newaxis] * hein
+    )
+    submat_12: ArrayFloat = (
+        bf_b[:, np.newaxis] * laplacian
+        - bf_b_shear[:, np.newaxis] * hein
+    )
+    submat_b_11 = laplacian
 
-    submat_b_11 = laplacian.T
     submat_11 = np.linalg.solve(submat_b_11, submat_11)
     submat_12 = np.linalg.solve(submat_b_11, submat_12)
 
@@ -288,23 +285,16 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
     bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
 
-    submat_21: ArrayFloat = np.zeros(
-        (size_submat, size_submat), dtype=np.float64)
-    submat_22: ArrayComplex | ArrayFloat
-    if e_eta != 0:
-        submat_22 = np.zeros((size_submat, size_submat), dtype=np.complex128)
-    else:
-        submat_22 = np.zeros((size_submat, size_submat), dtype=np.float64)
+    hein: ArrayFloat = common_parts["heinrichs"].T
+    laplacian: ArrayFloat = common_parts["laplacian"].T
 
-    hein: ArrayFloat = common_parts["heinrichs"]
-    laplacian: ArrayFloat = common_parts["laplacian"]
-    for i_mu in range(size_submat):
-        submat_21[i_mu, :] = bf_b[i_mu] * hein[:, i_mu]
-        submat_22[i_mu, :] = m_order * rossby * bf_u[i_mu] * hein[:, i_mu]
-        if e_eta != 0:
-            submat_22[i_mu, :] += 1j * e_eta * laplacian[:, i_mu]
+    submat_21: ArrayFloat = bf_b[:, np.newaxis] * hein
+    submat_22: ArrayComplex = (
+        m_order * rossby * bf_u[:, np.newaxis] * hein
+        + 1j * e_eta * laplacian
+    )
+    submat_b_22: ArrayFloat = hein
 
-    submat_b_22: ArrayFloat = hein.T
     submat_21 = np.linalg.solve(submat_b_22, submat_21)
     submat_22 = np.linalg.solve(submat_b_22, submat_22)
 
