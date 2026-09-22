@@ -46,7 +46,7 @@ from package_mhd2dsphere.create_rhs import wrapper_rhs
 # ========== Parameters ========== #
 
 # The zonal wavenumbers (orders)
-M_ORDERS: Final[list[int]] = [1, 2, 3]
+M_ORDERS: Final[list[int]] = [2, 1, 3]
 
 # The Lehnert number
 ALPHA: Final[float] = 0.1
@@ -68,7 +68,7 @@ DT: Final[float] = 1e-3
 INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 INIT_BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 DICT_INIT_PSI: Final[dict[int, ArrayFloat]] = {
-    M_ORDERS[1]: init_linsim.init_spherical_harmonics(N_T+1, 3, M_ORDERS[1])
+    M_ORDERS[0]: init_linsim.init_spherical_harmonics(N_T+1, 3, M_ORDERS[0])
 }
 DICT_INIT_MVP: Final[dict[int, Any]] = {}
 
@@ -142,9 +142,9 @@ def initialize_fields(psi: list[Field],
             mvp[i_m].value += DICT_INIT_MVP[m_order]
 
     bf_u_sin.value += np.array(
-        [INIT_BG_FIELD_U.r_value(mu) for mu in LINSP_MU])
+        [INIT_BG_FIELD_U.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
     bf_b_sin.value += np.array(
-        [INIT_BG_FIELD_B.r_value(mu) for mu in LINSP_MU])
+        [INIT_BG_FIELD_B.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
 
     return psi, mvp, bf_u_sin, bf_b_sin
 
