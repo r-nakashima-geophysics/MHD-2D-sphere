@@ -341,10 +341,8 @@ def plot_map(psi_grid: ArrayFloat,
     max_psi: float = np.nanmax(np.abs(psi_grid))
     max_mvp: float = np.nanmax(np.abs(mvp_grid))
 
-    level_psi: ArrayFloat \
-        = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_mvp: ArrayFloat \
-        = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    level_psi: ArrayFloat = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
+    level_mvp: ArrayFloat = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
@@ -352,7 +350,7 @@ def plot_map(psi_grid: ArrayFloat,
         vmin=-max_psi, vmax=max_psi, cmap='bwr_r')
     plotter.axes[0].contour(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
-        transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
+        transform=ccrs.PlateCarree(), colors='k', linewidths=0.8)
 
     contour2: QuadContourSet = plotter.axes[1].contourf(
         GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
@@ -360,7 +358,7 @@ def plot_map(psi_grid: ArrayFloat,
         vmin=-max_mvp, vmax=max_mvp, cmap='PiYG_r')
     plotter.axes[1].contour(
         GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
-        transform=ccrs.PlateCarree(), colors='k',  linewidths=0.8)
+        transform=ccrs.PlateCarree(), colors='k', linewidths=0.8)
 
     plotter.axes[0].gridlines(linestyle=':')
     plotter.axes[1].gridlines(linestyle=':')
