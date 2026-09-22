@@ -205,46 +205,45 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
     mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
 
-    bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
-    bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
+    sin: ArrayFloat = np.sqrt(1-(linsp_mu**2))
+    bf_u: ArrayFloat = bf_u_sin / sin
+    bf_b: ArrayFloat = bf_b_sin / sin
 
     diff_mat: ArrayFloat = common_parts["diff_mat"]
     bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
     bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
     bf_u_shear: ArrayFloat = (
-        bf_u_sin_d2[1:-1] * np.sqrt(1-(linsp_mu**2))
-        - (2*linsp_mu/np.sqrt(1-(linsp_mu**2))) * bf_u_sin_d[1:-1]
-        - bf_u / (1-(linsp_mu**2))
+        bf_u_sin_d2[1:-1] * sin
+        - (2*linsp_mu/sin) * bf_u_sin_d[1:-1]
+        - bf_u / (sin**2)
     )
     bf_b_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
     bf_b_sin_d2: ArrayFloat = diff_mat @ bf_b_sin_d
     bf_b_shear: ArrayFloat = (
-        bf_b_sin_d2[1:-1] * np.sqrt(1-(linsp_mu**2))
-        - (2*linsp_mu/np.sqrt(1-(linsp_mu**2))) * bf_b_sin_d[1:-1]
-        - bf_b / (1-(linsp_mu**2))
+        bf_b_sin_d2[1:-1] * sin
+        - (2*linsp_mu/sin) * bf_b_sin_d[1:-1]
+        - bf_b / (sin**2)
     )
 
     hein: ArrayFloat = common_parts["heinrichs"].T
     laplacian: ArrayFloat = common_parts["laplacian"].T
 
-    submat_11: ArrayFloat = (
+    submat_11: ArrayFloat = m_order * (
         rossby * bf_u[:, np.newaxis] * laplacian + hein
         - rossby * bf_u_shear[:, np.newaxis] * hein
     )
-    submat_12: ArrayFloat = (
+    submat_12: ArrayFloat = -m_order * alpha * (
         bf_b[:, np.newaxis] * laplacian
         - bf_b_shear[:, np.newaxis] * hein
     )
 
+    rhs: ArrayComplex = cast(ArrayComplex,
+                             -1j * (submat_11 @ psi + submat_12 @ mvp))
+
     lu_submat_b_11: ArrayFloat = common_parts["lu_submat_b_11"]
     piv_submat_b_11: ArrayAny = common_parts["piv_submat_b_11"]
-    submat_11 = lu_solve((lu_submat_b_11, piv_submat_b_11), submat_11)
-    submat_12 = lu_solve((lu_submat_b_11, piv_submat_b_11), submat_12)
 
-    submat_11 *= m_order
-    submat_12 *= -m_order * alpha
-
-    return cast(ArrayComplex, -1j * (submat_11 @ psi + submat_12 @ mvp))
+    return lu_solve((lu_submat_b_11, piv_submat_b_11), rhs)
 
 
 def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
@@ -294,26 +293,25 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
     mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
 
-    bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
-    bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
+    sin: ArrayFloat = np.sqrt(1-(linsp_mu**2))
+    bf_u: ArrayFloat = bf_u_sin / sin
+    bf_b: ArrayFloat = bf_b_sin / sin
 
     hein: ArrayFloat = common_parts["heinrichs"].T
     laplacian: ArrayFloat = common_parts["laplacian"].T
 
-    submat_21: ArrayFloat = bf_b[:, np.newaxis] * hein
+    submat_21: ArrayFloat = -m_order * alpha * bf_b[:, np.newaxis] * hein
     submat_22: ArrayComplex = (
         m_order * rossby * bf_u[:, np.newaxis] * hein
         + 1j * e_eta * laplacian
     )
 
+    rhs: ArrayComplex = -1j * (submat_21 @ psi + submat_22 @ mvp)
+
     lu_submat_b_22: ArrayFloat = common_parts["lu_submat_b_22"]
     piv_submat_b_22: ArrayAny = common_parts["piv_submat_b_22"]
-    submat_21 = lu_solve((lu_submat_b_22, piv_submat_b_22), submat_21)
-    submat_22 = lu_solve((lu_submat_b_22, piv_submat_b_22), submat_22)
 
-    submat_21 *= -m_order * alpha
-
-    return cast(ArrayComplex, -1j * (submat_21 @ psi + submat_22 @ mvp))
+    return lu_solve((lu_submat_b_22, piv_submat_b_22), rhs)
 
 
 def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
