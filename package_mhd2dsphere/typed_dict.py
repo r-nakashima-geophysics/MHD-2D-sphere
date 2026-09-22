@@ -96,3 +96,11 @@ class DictParams(TypedDict):
     pse_min: float
     pse_max: float
     ohm_max: float
+
+
+class DictRhsCommonParts(TypedDict):
+    """Typed dictionary for the right-hand side of the governing equations."""
+
+    diff_mat: ArrayFloat
+    heinrichs: ArrayFloat
+    laplacian: ArrayFloat

@@ -22,12 +22,14 @@ from package_common.common_types import ArrayComplex, ArrayFloat, cast
 from package_common.default_logger import DefaultLogger
 from package_common.utils_collocation import (create_cheb_diff_mat,
                                               spherical_laplacian_heinrichs)
+from package_common.utils_debug import under_construction_log
 from package_common.utils_name import create_function_name_logger
 from package_common.utils_simulation import Rhs
+from package_mhd2dsphere.typed_dict import DictRhsCommonParts
 
 
 def wrapper_rhs(name: str,
-                m_order: int | None = None,
+                m_order: int = 0,
                 *,
                 list_m_order: list[int],
                 linsp_mu: ArrayFloat,
@@ -42,10 +44,10 @@ def wrapper_rhs(name: str,
     ----------
     name : str
         The name of the field.
-    m_order : int | None, optional, default None.
-        The given zonal wavenumber(order).
+    m_order : int | None, optional, default 0.
+        The given zonal wavenumber (order).
     list_m_order : list[int]
-        The list of all the zonal wavenumbers(orders).
+        The list of all the zonal wavenumbers (orders).
     linsp_mu : ArrayFloat
         The values of mu at grid points.
     alpha : float
@@ -66,41 +68,61 @@ def wrapper_rhs(name: str,
     Warnings
     --------
     Invalid argument
-            If m_order is None when `name` is "psi" or "mvp".
+            If m_order is 0 when `name` is 'psi' or 'mvp'.
     Unknown name
         If the name is undefined
     """
 
-    if (name == 'psi') or (name == 'mvp'):
+    if ((name == 'psi') or (name == 'mvp')) and (m_order == 0):
+        logger: DefaultLogger = create_function_name_logger()
+        logger.error('Invalid argument')
 
-        if m_order is None:
-            logger: DefaultLogger = create_function_name_logger()
-            logger.error('Invalid argument')
+    size_submat: int = linsp_mu.shape[0]
+    diff_mat: ArrayFloat = create_cheb_diff_mat(size_submat+2)
 
-        elif name == 'psi':
-            def func_rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
-                             time: float) -> ArrayComplex | ArrayFloat:
-                return rhs_psi(fields_value,
-                               list_m_order=list_m_order,
-                               linsp_mu=linsp_mu,
-                               m_order=m_order,
-                               alpha=alpha,
-                               rossby=rossby)
+    hein: ArrayFloat = np.empty((size_submat, size_submat))
+    laplacian: ArrayFloat = np.empty((size_submat, size_submat))
+    for i_mu, mu in enumerate(linsp_mu):
+        hein[:size_submat, i_mu] = np.array(
+            [cast(float, heinrichs(i_n, mu)) for i_n in range(size_submat)]
+        )
+        laplacian[:size_submat, i_mu] = np.array(
+            [cast(float, spherical_laplacian_heinrichs(m_order, i_n, mu))
+             for i_n in range(size_submat)]
+        )
 
-            return func_rhs_psi
+    common_parts: DictRhsCommonParts = {
+        "diff_mat": diff_mat,
+        "heinrichs": hein,
+        "laplacian": laplacian
+    }
 
-        elif name == 'mvp':
-            def func_rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
-                             time: float) -> ArrayComplex | ArrayFloat:
-                return rhs_mvp(fields_value,
-                               list_m_order=list_m_order,
-                               linsp_mu=linsp_mu,
-                               m_order=m_order,
-                               alpha=alpha,
-                               e_eta=e_eta,
-                               rossby=rossby)
+    if name == 'psi':
+        def func_rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
+                         time: float) -> ArrayComplex | ArrayFloat:
+            return rhs_psi(fields_value,
+                           list_m_order=list_m_order,
+                           linsp_mu=linsp_mu,
+                           m_order=m_order,
+                           alpha=alpha,
+                           rossby=rossby,
+                           common_parts=common_parts)
 
-            return func_rhs_mvp
+        return func_rhs_psi
+
+    elif name == 'mvp':
+        def func_rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
+                         time: float) -> ArrayComplex | ArrayFloat:
+            return rhs_mvp(fields_value,
+                           list_m_order=list_m_order,
+                           linsp_mu=linsp_mu,
+                           m_order=m_order,
+                           alpha=alpha,
+                           e_eta=e_eta,
+                           rossby=rossby,
+                           common_parts=common_parts)
+
+        return func_rhs_mvp
 
     elif name == 'bf_u_sin':
         def func_rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
@@ -108,7 +130,8 @@ def wrapper_rhs(name: str,
             return rhs_bf_u_sin(fields_value,
                                 list_m_order=list_m_order,
                                 linsp_mu=linsp_mu,
-                                switch_quasi_lin=switch_quasi_lin)
+                                switch_quasi_lin=switch_quasi_lin,
+                                common_parts=common_parts)
 
         return func_rhs_bf_u_sin
 
@@ -118,7 +141,8 @@ def wrapper_rhs(name: str,
             return rhs_bf_b_sin(fields_value,
                                 list_m_order=list_m_order,
                                 linsp_mu=linsp_mu,
-                                switch_quasi_lin=switch_quasi_lin)
+                                switch_quasi_lin=switch_quasi_lin,
+                                common_parts=common_parts)
 
         return func_rhs_bf_b_sin
 
@@ -132,7 +156,8 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
             linsp_mu: ArrayFloat,
             m_order: int,
             alpha: float,
-            rossby: float) -> ArrayComplex:
+            rossby: float,
+            common_parts: DictRhsCommonParts) -> ArrayComplex:
     """Create the right-hand side of the governing equation for the stream
     function for a given zonal wavenumber.
 
@@ -150,6 +175,8 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
         The Lehnert number.
     rossby : float
         The Rossby number.
+    common_parts : DictRhsCommonParts
+        The common parts in the right-hand sides of the governing equations.
 
     Returns
     -------
@@ -171,7 +198,7 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     bf_u: ArrayFloat = bf_u_sin / np.sqrt(1-(linsp_mu**2))
     bf_b: ArrayFloat = bf_b_sin / np.sqrt(1-(linsp_mu**2))
 
-    diff_mat: ArrayFloat = create_cheb_diff_mat(size_submat+2)
+    diff_mat: ArrayFloat = common_parts["diff_mat"]
     bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
     bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
     bf_u_shear: ArrayFloat = (
@@ -194,16 +221,12 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     submat_b_11: ArrayFloat = np.zeros(
         (size_submat, size_submat), dtype=np.float64)
 
-    mu: float
     h_n: float
     laplacian: float
     for i_l in range(size_submat):
-        mu = linsp_mu[i_l]
-
         for i_n in range(size_submat):
-            h_n = cast(float, heinrichs(i_n, mu))
-            laplacian = cast(
-                float, spherical_laplacian_heinrichs(m_order, i_n, mu))
+            h_n = common_parts["heinrichs"][i_n, i_l]
+            laplacian = common_parts["laplacian"][i_n, i_l]
 
             submat_11[i_l, i_n] = (
                 rossby * bf_u[i_l] * laplacian + h_n
@@ -229,7 +252,8 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
             m_order: int,
             alpha: float,
             e_eta: float,
-            rossby: float) -> ArrayComplex:
+            rossby: float,
+            common_parts: DictRhsCommonParts) -> ArrayComplex:
     """Create the right-hand side of the governing equation for the vector
     potential for a given zonal wavenumber.
 
@@ -249,6 +273,8 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
         The magnetic Ekman number.
     rossby : float
         The Rossby number.
+    common_parts : DictRhsCommonParts
+        The common parts in the right-hand sides of the governing equations.
 
     Returns
     -------
@@ -281,16 +307,12 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     else:
         submat_22 = np.zeros((size_submat, size_submat), dtype=np.float64)
 
-    mu: float
     h_n: float
     laplacian: float
     for i_l in range(size_submat):
-        mu = linsp_mu[i_l]
-
         for i_n in range(size_submat):
-            h_n = cast(float, heinrichs(i_n, mu))
-            laplacian = cast(
-                float, spherical_laplacian_heinrichs(m_order, i_n, mu))
+            h_n = common_parts["heinrichs"][i_n, i_l]
+            laplacian = common_parts["laplacian"][i_n, i_l]
 
             submat_21[i_l, i_n] = bf_b[i_l] * h_n
             submat_22[i_l, i_n] = m_order * rossby * bf_u[i_l] * h_n
@@ -314,7 +336,8 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  *,
                  list_m_order: list[int],
                  linsp_mu: ArrayFloat,
-                 switch_quasi_lin: bool) -> ArrayFloat:
+                 switch_quasi_lin: bool,
+                 common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the background
     zonal flow.
 
@@ -329,6 +352,8 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
     switch_quasi_lin: bool
         The boolean value to switch whether to perform quasi-linear simulations
         or not.
+    common_parts : DictRhsCommonParts
+        The common parts in the right-hand sides of the governing equations.
 
     Returns
     -------
@@ -354,7 +379,8 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
         psi = list_psi[i_m]
         mvp = list_mvp[i_m]
 
-        rhs += 0  # under construction
+        under_construction_log()
+        rhs += 0
 
     return rhs
 
@@ -363,7 +389,8 @@ def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
                  *,
                  list_m_order: list[int],
                  linsp_mu: ArrayFloat,
-                 switch_quasi_lin: bool) -> ArrayFloat:
+                 switch_quasi_lin: bool,
+                 common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the toroidal
     background field.
 
@@ -378,6 +405,8 @@ def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
     switch_quasi_lin : bool
         The boolean value to switch whether to perform quasi-linear simulations
         or not.
+    common_parts : DictRhsCommonParts
+        The common parts in the right-hand sides of the governing equations.
 
     Returns
     -------
@@ -403,6 +432,7 @@ def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
         psi = list_psi[i_m]
         mvp = list_mvp[i_m]
 
-        rhs += 0  # under construction
+        under_construction_log()
+        rhs += 0
 
     return rhs
