@@ -15,7 +15,6 @@ from package_common.utils_name import create_function_name_logger
 
 
 def init_spherical_harmonics(size_submat: int,
-                             *,
                              n_degree: int,
                              m_order: int) -> ArrayFloat:
     """Compute the Heinrichs expansion coefficients of the spherical harmonics.
@@ -39,7 +38,8 @@ def init_spherical_harmonics(size_submat: int,
     Not supported
         If `m_order` is 1 or 0.
     Invalid argument
-        If `size_submat` is not positive.
+        If `size_submat` is not positive, or `n_degree` is smaller than
+        `m_order`.
 
     Examples
     --------
