@@ -19,8 +19,8 @@ import numpy as np
 from scipy.linalg import lu_factor, lu_solve
 
 from package_common.calc_heinrichs import heinrichs
-from package_common.common_types import (ArrayAny, ArrayComplex, ArrayFloat,
-                                         cast)
+from package_common.common_types import (Any, ArrayAny, ArrayComplex,
+                                         ArrayFloat, cast)
 from package_common.default_logger import DefaultLogger
 from package_common.utils_collocation import (create_cheb_diff_mat,
                                               spherical_laplacian_heinrichs)
@@ -112,7 +112,8 @@ def wrapper_rhs(name: str,
 
     if name == 'psi':
         def func_rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
-                         time: float) -> ArrayComplex | ArrayFloat:
+                         time: float,
+                         *args: Any) -> ArrayComplex | ArrayFloat:
             return rhs_psi(fields_value,
                            list_m_order=list_m_order,
                            linsp_mu=linsp_mu,
@@ -125,7 +126,8 @@ def wrapper_rhs(name: str,
 
     elif name == 'mvp':
         def func_rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
-                         time: float) -> ArrayComplex | ArrayFloat:
+                         time: float,
+                         *args: Any) -> ArrayComplex | ArrayFloat:
             return rhs_mvp(fields_value,
                            list_m_order=list_m_order,
                            linsp_mu=linsp_mu,
@@ -139,7 +141,8 @@ def wrapper_rhs(name: str,
 
     elif name == 'bf_u_sin':
         def func_rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                              time: float) -> ArrayFloat:
+                              time: float,
+                              *args: Any) -> ArrayFloat:
             return rhs_bf_u_sin(fields_value,
                                 list_m_order=list_m_order,
                                 switch_quasi_lin=switch_quasi_lin,
@@ -149,7 +152,8 @@ def wrapper_rhs(name: str,
 
     elif name == 'bf_b_sin':
         def func_rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                              time: float) -> ArrayFloat:
+                              time: float,
+                              *args: Any) -> ArrayFloat:
             return rhs_bf_b_sin(fields_value,
                                 list_m_order=list_m_order,
                                 switch_quasi_lin=switch_quasi_lin,
