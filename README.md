@@ -51,15 +51,15 @@ uv sync
 Additionally, the scripts require the common package, `r-nakashima-geophysics/common-package` ([https://github.com/r-nakashima-geophysics/common-package.git](https://github.com/r-nakashima-geophysics/common-package.git)). Place the directory `common-package/package_common` in the same parent directory as the scripts `mhd2dsphere_*.py`:
 
 ```
-.
-├── input
+MHD-2D-sphere/
+├── input/
 ├── mhd2dsphere_*.py
-├── package_common
+├── package_common/
 │   └── *.py
-├── package_mhd2dsphere
+├── package_mhd2dsphere/
 │   └── *.py
 ├── README.md
-└── *
+└── ...
 ```
 
 You can do this with:
