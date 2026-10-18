@@ -287,7 +287,7 @@ def wrapper_time_integrate(psi: list[Field],
                     switch_quasi_lin=SWITCH_QUASI_LIN)
     ]
 
-    inverpan_mat: ArrayFloat = create_cheb_invexpan_mat(SIZE_SUBMAT)
+    invexpan_mat: ArrayFloat = create_cheb_invexpan_mat(SIZE_SUBMAT)
 
     progress_bar: ProgressBar \
         = create_function_name_progress_bar(NUM_STEP)
@@ -297,7 +297,7 @@ def wrapper_time_integrate(psi: list[Field],
         time_integrate(fields, DT, rhss)
 
         if i_step % SAVE_INTERVAL == 0:
-            plot_map(fields, i_step, inverpan_mat)
+            plot_map(fields, i_step, invexpan_mat)
 
         progress_bar.update(i_step)
 
