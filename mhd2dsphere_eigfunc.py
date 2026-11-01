@@ -108,12 +108,13 @@ R_C: Final[float] = 100
 
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_eigfunc'
-NAME_FIG: Final[str] \
-    = f'MHD2Dsphere_eigfunc_NY24_m={M_ORDER}_a={ALPHA}_E={E_ETA}_N={N_T}' \
-    if SWITCH_NY24 \
-    else f'MHD2Dsphere_eigfunc_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m={M_ORDER}_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+NAME_FIG: Final[str] = (
+    f'MHD2Dsphere_eigfunc_NY24_m={M_ORDER}_a={ALPHA}_E={E_ETA}_N={N_T}'
+    if SWITCH_NY24
+    else f'MHD2Dsphere_eigfunc_B{BG_FIELD_B.name}U{BG_FIELD_U.name}'
+    + f'_m={M_ORDER}_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}'
     + f'_{MU_COMPLEX.name}'
+)
 NAME_FIG_SUFFIX: Final[tuple[str, str, str, str]] \
     = ('_1d.png', '_s1d.png', '_2d.png', '_conv.png')
 FIG_DPI: Final[int] = 600

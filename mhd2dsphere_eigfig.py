@@ -152,12 +152,13 @@ NUM_EIG_GRID: Final[int] = 100
 
 # The paths and filenames of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_eig'
-NAME_FILE: Final[str] \
-    = f'MHD2Dsphere_eig_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}' \
-    if SWITCH_NY24 \
-    else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}' \
-    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}' \
+NAME_FILE: Final[str] = (
+    f'MHD2Dsphere_eig_NY24_m={M_ORDER}_E={E_ETA}_N={N_T}'
+    if SWITCH_NY24
+    else f'MHD2Dsphere_eig_B{BG_FIELD_B.name}U{BG_FIELD_U.name}'
+    + f'_m={M_ORDER}_E={E_ETA}_R={ROSSBY}_N={N_T}'
     + f'_{MU_COMPLEX.name}'
+)
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '_log.npz')
 
 # The paths and filenames of outputs
