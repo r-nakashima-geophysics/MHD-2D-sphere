@@ -20,7 +20,7 @@ No saved file
     If all of the boolean values to switch whether to calculate or not are
     False.
 Invalid settings
-    If E_ETA != 0 and the spectral deformation method is used.
+    If `E_ETA` is not 0 and the spectral deformation method is used.
 
 Notes
 -----
@@ -39,9 +39,9 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 
 Examples
 --------
-Run the script with the default value of M_ORDER:
+Run the script with the default value of `M_ORDER`:
     $ uv run python mhd2dsphere_eig.py
-Run the script with a specified value (say M_ORDER = 2):
+Run the script with a specified value of `M_ORDER` (say 2):
     $ uv run python mhd2dsphere_eig.py 2
 """
 
