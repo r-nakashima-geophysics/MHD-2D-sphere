@@ -153,7 +153,7 @@ def load_linsim_results(path_dir: Path,
 
         result: DictLinsimResults = {
             'm_orders': npz_kw['m_orders'],
-            'linsp_theta': npz_kw['linsp_theta'],
+            'linsp_mu': npz_kw['linsp_mu'],
             'time': npz_kw['time'],
             'psi': npz_kw['psi'],
             'mvp': npz_kw['mvp'],

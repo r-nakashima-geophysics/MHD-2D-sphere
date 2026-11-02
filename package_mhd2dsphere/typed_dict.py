@@ -115,7 +115,7 @@ class DictLinsimResults(TypedDict):
     """Typed dictionary for the simulation results."""
 
     m_orders: ArrayInt
-    linsp_theta: ArrayFloat
+    linsp_mu: ArrayFloat
     time: ArrayFloat
     psi: ArrayComplex
     mvp: ArrayComplex
