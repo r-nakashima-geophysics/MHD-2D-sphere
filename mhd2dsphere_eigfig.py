@@ -44,9 +44,9 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 
 Examples
 --------
-Run the script with the default value of M_ORDER:
+Run the script with the default value of `M_ORDER`:
     $ uv run python mhd2dsphere_eigfig.py
-Run the script with a specified value (say M_ORDER = 2):
+Run the script with a specified value of `M_ORDER` (say 2):
     $ uv run python mhd2dsphere_eigfig.py 2
 """
 
