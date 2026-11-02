@@ -3,14 +3,19 @@ two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
-This script can create up to ... figures:
+This script outputs two npz files of results, which include values for the
+stream function, vector potential, background fields, and information on
+simulation settings.
 
-Warnings
---------
+Parameters
+----------
+ID : str
+    The run index.
 
 Notes
 -----
-All parameters are described within the script.
+All other parameters aside from command line arguments are described within the
+script.
 
 References
 ----------
@@ -24,32 +29,36 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 
 Examples
 --------
-$ uv run python mhd2dsphere_linsim.py
+Run the script with the default value of `ID`.
+    $ uv run python mhd2dsphere_linsim.py
+Run the script with a specified value of `ID` (say 0001):
+    $ uv run python mhd2dsphere_linsim.py 0001
 """
 
+import os
 import time
 from pathlib import Path
 
-import cartopy.crs as ccrs
 import numpy as np
 
 from package_common.background_field import BackgroundField
-from package_common.common_types import (Any, ArrayComplex, ArrayFloat, Final,
-                                         cast)
+from package_common.common_types import Any, ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
-from package_common.default_plotter import (Colorbar, DefaultGridPlotter,
-                                            QuadContourSet, create_plotter)
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
-from package_common.utils_collocation import (calc_collocation_point,
-                                              create_cheb_invexpan_mat)
+from package_common.utils_collocation import calc_collocation_point
+from package_common.utils_input import input_string
 from package_common.utils_name import create_function_name_progress_bar
+from package_common.utils_output import output_info
 from package_common.utils_simulation import Field, Rhs, time_integrate
 from package_mhd2dsphere import (init_background_b, init_background_u,
                                  init_linsim)
 from package_mhd2dsphere.create_rhs import wrapper_rhs
 
 # ========== Parameters ========== #
+
+# the run index
+ID: Final[str] = input_string(str(int(time.time())))
 
 # The zonal wavenumbers (orders)
 M_ORDERS: Final[list[int]] = [2, ]
@@ -71,6 +80,7 @@ NUM_STEP: Final[int] = 10**4
 DT: Final[float] = 1e-2
 SAVE_INTERVAL: Final[int] = 100
 
+# --- [start] output info --- #
 # Initial conditions
 INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 INIT_BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
@@ -82,23 +92,16 @@ DICT_INIT_MVP: Final[dict[int, Any]] = {}
 # The boolean value to switch whether to perform quasi-linear simulations or
 # not.
 SWITCH_QUASI_LIN: Final[bool] = False
-
-# The number of grid points in the phi direction
-NUM_PHI: Final[int] = 361
-
-# The maximum values for the color scales
-MAX_PSI: Final[float] = 5
-MAX_MVP: Final[float] = 5
+# --- [end] output info --- #
 
 # The paths and filenames of outputs
-NAME_DIR: Final[str] = (
+PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_linsim'
+NAME_FILE: Final[str] = (
     f'MHD2Dsphere_linsim'
-    + f'_m={M_ORDERS}_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}'
-    + f'_{time.time()}'
+    + f'_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}_dt={DT}_#{ID}'
 )
-PATH_DIR: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_linsim' / NAME_DIR
-NAME_FIG_SUFFIX: Final[str] = '.png'
-FIG_DPI: Final[int] = 600
+NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '.txt')
+
 
 # ================================ #
 
@@ -108,19 +111,6 @@ SIZE_MAT: Final[int] = 2 * SIZE_SUBMAT
 LINSP_MU: Final[ArrayFloat] = np.array([
     calc_collocation_point(i_l+1, SIZE_SUBMAT+2)
     for i_l in range(SIZE_SUBMAT)])
-LINSP_THETA: Final[ArrayFloat] = np.arccos(LINSP_MU)
-LINSP_PHI: Final[ArrayFloat] = np.linspace(0, 2*np.pi, NUM_PHI)
-
-GRID_PHI: ArrayFloat
-GRID_THETA: ArrayFloat
-GRID_PHI, GRID_THETA = np.meshgrid(LINSP_PHI, LINSP_THETA)
-
-GRID_LAT: Final[ArrayFloat] = np.rad2deg(
-    np.full_like(GRID_THETA, np.pi/2) - GRID_THETA)
-GRID_LON: Final[ArrayFloat] = np.rad2deg(GRID_PHI)
-
-TEXT_TITLE: Final[str] = r'$|\alpha|=$' + f' {ALPHA}, ' \
-    + r'$E_\eta=$' + f' {E_ETA}, ' + r'$R=$' + f' {ROSSBY}'
 
 
 def initialize_fields(psi: list[Field],
@@ -163,96 +153,13 @@ def initialize_fields(psi: list[Field],
     return psi, mvp, bf_u_sin, bf_b_sin
 
 
-def plot_map(fields: list[Field],
-             i_step: int,
-             inverpan_mat: ArrayFloat) -> None:
-    """Plot figures of the fields (2D contour map).
-
-    Parameters
-    ----------
-    fields : list[Field]
-        The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
-    i_step : int
-        The current time step.
-    inverpan_mat : ArrayFloat
-        The inverse Chebyshev expansion matrix.
-    """
-
-    num_m: int = len(M_ORDERS)
-
-    list_psi: list[Field] = fields[0:num_m]
-    list_mvp: list[Field] = fields[num_m:2*num_m]
-    bf_u_sin: Field = fields[2*num_m]
-    bf_b_sin: Field = fields[2*num_m+1]
-
-    psi: ArrayComplex
-    mvp: ArrayComplex
-    phase: ArrayComplex
-    psi_grid: ArrayFloat = np.zeros_like(GRID_PHI)
-    mvp_grid: ArrayFloat = np.zeros_like(GRID_PHI)
-    for i_m, m_order in enumerate(M_ORDERS):
-        psi = cast(ArrayComplex, inverpan_mat @ list_psi[i_m].value)
-        mvp = cast(ArrayComplex, inverpan_mat @ list_mvp[i_m].value)
-        psi *= (1-LINSP_MU**2)
-        mvp *= (1-LINSP_MU**2)
-
-        phase = np.cos(m_order * GRID_PHI) + 1j*np.sin(m_order * GRID_PHI)
-        psi_grid += np.real(psi[:, np.newaxis] * phase)
-        mvp_grid += np.real(mvp[:, np.newaxis] * phase)
-
-    plotter: DefaultGridPlotter = create_plotter(
-        1, 2, figsize=(10, 5),
-        subplot_kw={'projection':
-                    ccrs.Mollweide(central_longitude=0.0)})
-
-    level_psi: ArrayFloat = np.arange(-MAX_PSI, 1.2*MAX_PSI, 0.2*MAX_PSI)
-    level_mvp: ArrayFloat = np.arange(-MAX_MVP, 1.2*MAX_MVP, 0.2*MAX_MVP)
-
-    contour1: QuadContourSet = plotter.axes[0].contourf(
-        GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
-        transform=ccrs.PlateCarree(),
-        vmin=-MAX_PSI, vmax=MAX_PSI, cmap='bwr_r', extend='both')
-    plotter.axes[0].contour(
-        GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
-        transform=ccrs.PlateCarree(), colors='k', linewidths=0.8)
-
-    contour2: QuadContourSet = plotter.axes[1].contourf(
-        GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
-        transform=ccrs.PlateCarree(),
-        vmin=-MAX_MVP, vmax=MAX_MVP, cmap='PiYG_r', extend='both')
-    plotter.axes[1].contour(
-        GRID_LON, GRID_LAT, mvp_grid, levels=level_mvp,
-        transform=ccrs.PlateCarree(), colors='k', linewidths=0.8)
-
-    plotter.axes[0].gridlines(linestyle=':')
-    plotter.axes[1].gridlines(linestyle=':')
-
-    cbar1: Colorbar = plotter.fig.colorbar(
-        contour1, ax=plotter.axes[0], orientation='horizontal')
-    cbar2: Colorbar = plotter.fig.colorbar(
-        contour2, ax=plotter.axes[1], orientation='horizontal')
-    cbar1.ax.tick_params(labelsize=14)
-    cbar2.ax.tick_params(labelsize=14)
-
-    plotter.axes[0].set_title(r'stream function $\psi_1$', fontsize=16)
-    plotter.axes[1].set_title(
-        r'vector potential $\mathrm{sgn}(\alpha)a_1'
-        + r'/\sqrt{\rho_0\mu_\mathrm{m}}$', fontsize=16)
-
-    plotter.fig.suptitle(
-        TEXT_TITLE + '\n\n' +
-        r'$\tau=2\Omega_0 t=$' + f' {bf_u_sin.time:7.3f}',
-        fontsize=16)
-
-    name_fig: str = f'{i_step:0>6}' + NAME_FIG_SUFFIX
-    plotter.save(PATH_DIR, name_fig, FIG_DPI, mute_log_message=True)
-    plotter.close()
-
-
 def wrapper_time_integrate(psi: list[Field],
                            mvp: list[Field],
                            bf_u_sin: Field,
-                           bf_b_sin: Field) -> None:
+                           bf_b_sin: Field) -> tuple[list[Field],
+                                                     list[Field],
+                                                     Field,
+                                                     Field]:
     """Perform time integration for the (quasi-)linear simulation.
 
     Parameters
@@ -287,8 +194,6 @@ def wrapper_time_integrate(psi: list[Field],
                     switch_quasi_lin=SWITCH_QUASI_LIN)
     ]
 
-    invexpan_mat: ArrayFloat = create_cheb_invexpan_mat(SIZE_SUBMAT)
-
     progress_bar: ProgressBar \
         = create_function_name_progress_bar(NUM_STEP)
     progress_bar.start()
@@ -296,10 +201,49 @@ def wrapper_time_integrate(psi: list[Field],
 
         time_integrate(fields, DT, rhss)
 
-        if i_step % SAVE_INTERVAL == 0:
-            plot_map(fields, i_step, invexpan_mat)
+        if (i_step+1) % SAVE_INTERVAL == 0:
+            for field in fields:
+                field.store()
 
         progress_bar.update(i_step)
+
+    return psi, mvp, bf_u_sin, bf_b_sin
+
+
+def save_results(psi: list[Field],
+                 mvp: list[Field],
+                 bf_u_sin: Field,
+                 bf_b_sin: Field) -> None:
+    """Save npz files of the simulation results.
+
+    Parameters
+    ----------
+    psi : list[Field]
+        The list of the stream function (psi).
+    mvp : list[Field]
+        The list of the vector potential (a).
+    bf_u_sin : Field
+        The background zonal flow.
+    bf_b_sin : Field
+        The toroidal background field.
+    """
+
+    os.makedirs(PATH_DIR, exist_ok=True)
+
+    name_file: str = NAME_FILE + NAME_FILE_SUFFIX[0]
+    path_file: Path = PATH_DIR / name_file
+
+    np.savez_compressed(
+        path_file,
+        m_orders=np.array(M_ORDERS),
+        linsp_theta=LINSP_MU,
+        time=Field.storage_time,
+        psi=np.array([field.storage_value for field in psi]),
+        mvp=np.array([field.storage_value for field in mvp]),
+        bf_u_sin=bf_u_sin.storage_value,
+        bf_b_sin=bf_b_sin.storage_value)
+
+    DefaultLogger(name_file).info('Saved')
 
 
 if __name__ == '__main__':
@@ -317,15 +261,23 @@ if __name__ == '__main__':
                        f'{DT=}',
                        f'{SWITCH_QUASI_LIN=}')
 
+    path_info: Path = PATH_DIR / (NAME_FILE + NAME_FILE_SUFFIX[1])
+    output_info(Path(__file__), path_info)
+
     Field.set_class_variable(SIZE_SUBMAT)
-    psi: list[Field] = [Field('psi', dtype=np.complex128) for _ in M_ORDERS]
-    mvp: list[Field] = [Field('mvp', dtype=np.complex128) for _ in M_ORDERS]
+    psi: list[Field] = [
+        Field(f'psi_{m}', dtype=np.complex128) for m in M_ORDERS]
+    mvp: list[Field] = [
+        Field(f'mvp_{m}', dtype=np.complex128) for m in M_ORDERS]
     bf_u_sin: Field = Field('bf_u_sin')
     bf_b_sin: Field = Field('bf_b_sin')
 
     psi, mvp, bf_u_sin, bf_b_sin = initialize_fields(
         psi, mvp, bf_u_sin, bf_b_sin)
 
-    wrapper_time_integrate(psi, mvp, bf_u_sin, bf_b_sin)
+    psi, mvp, bf_u_sin, bf_b_sin = wrapper_time_integrate(
+        psi, mvp, bf_u_sin, bf_b_sin)
+
+    save_results(psi, mvp, bf_u_sin, bf_b_sin)
 
     timer.end()
