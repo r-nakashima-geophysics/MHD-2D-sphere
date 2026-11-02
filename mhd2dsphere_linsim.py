@@ -75,12 +75,12 @@ ROSSBY: Final[float] = 0
 # The truncation degree
 N_T: Final[int] = 500
 
+# --- [start] output info --- #
 # Time step
 NUM_STEP: Final[int] = 10**4
 DT: Final[float] = 1e-2
 SAVE_INTERVAL: Final[int] = 100
 
-# --- [start] output info --- #
 # Initial conditions
 INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 INIT_BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
@@ -98,7 +98,7 @@ SWITCH_QUASI_LIN: Final[bool] = False
 PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_linsim'
 NAME_FILE: Final[str] = (
     f'MHD2Dsphere_linsim'
-    + f'_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}_dt={DT}_#{ID}'
+    + f'_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}_#{ID}'
 )
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '.txt')
 
@@ -149,6 +149,9 @@ def initialize_fields(psi: list[Field],
         [INIT_BG_FIELD_U.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
     bf_b_sin.value += np.array(
         [INIT_BG_FIELD_B.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
+
+    for field in [*psi, *mvp, bf_u_sin, bf_b_sin]:
+        field.store()
 
     return psi, mvp, bf_u_sin, bf_b_sin
 
@@ -235,11 +238,11 @@ def save_results(psi: list[Field],
 
     np.savez_compressed(
         path_file,
-        m_orders=np.array(M_ORDERS),
-        linsp_theta=LINSP_MU,
+        m_orders=M_ORDERS,
+        linsp_mu=LINSP_MU,
         time=Field.storage_time,
-        psi=np.array([field.storage_value for field in psi]),
-        mvp=np.array([field.storage_value for field in mvp]),
+        psi=[field.storage_value for field in psi],
+        mvp=[field.storage_value for field in mvp],
         bf_u_sin=bf_u_sin.storage_value,
         bf_b_sin=bf_b_sin.storage_value)
 
@@ -252,7 +255,8 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
-    logger.show_params(f'{M_ORDERS=}',
+    logger.show_params(f'{ID=}',
+                       f'{M_ORDERS=}',
                        f'{ALPHA=}',
                        f'{E_ETA=}',
                        f'{ROSSBY=}',

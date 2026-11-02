@@ -5,7 +5,7 @@ from typing import TypedDict
 
 from package_common.background_field import BackgroundField
 from package_common.common_types import (ArrayAny, ArrayComplex, ArrayFloat,
-                                         ArrayStr)
+                                         ArrayInt, ArrayStr)
 from package_common.spectral_deform import ComplexCoordinate
 from package_common.utils_collocation import ChebyshevGaussQuad
 
@@ -109,3 +109,15 @@ class DictRhsCommonParts(TypedDict):
     piv_submat_b_11: ArrayAny
     lu_submat_b_22: ArrayFloat
     piv_submat_b_22: ArrayAny
+
+
+class DictLinsimResults(TypedDict):
+    """Typed dictionary for the simulation results."""
+
+    m_orders: ArrayInt
+    linsp_theta: ArrayFloat
+    time: ArrayFloat
+    psi: ArrayComplex
+    mvp: ArrayComplex
+    bf_u_sin: ArrayComplex
+    bf_b_sin: ArrayComplex

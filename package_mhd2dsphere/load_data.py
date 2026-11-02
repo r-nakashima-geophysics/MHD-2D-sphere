@@ -10,8 +10,8 @@ import numpy as np
 
 from package_common.default_logger import DefaultLogger
 from package_common.utils_name import create_function_name_logger
-from package_mhd2dsphere.typed_dict import (DictFileInfo, DictPhysQtys,
-                                            DictResult)
+from package_mhd2dsphere.typed_dict import (DictFileInfo, DictLinsimResults,
+                                            DictPhysQtys, DictResult)
 
 
 def wrapper_load_results(switch_plot: tuple[bool, bool, bool],
@@ -63,7 +63,7 @@ def load_results(name_file: str,
     Parameters
     ----------
     name_file : str
-        The name of a loaded file.
+        The name of the loaded file.
     info_load : DictFileInfo
         The information of the loaded files.
 
@@ -112,3 +112,53 @@ def load_results(name_file: str,
         }
 
     return results
+
+
+def load_linsim_results(path_dir: Path, 
+                        name_file: str) -> DictLinsimResults:
+    """Load a npz file of the simulation results.
+
+    Parameters
+    ----------
+    path_dir : Path
+        The directory of the loaded file.
+    name_file : str
+        The name of the loaded file.
+
+    Returns
+    -------
+    result : DictLinsimResults
+        The dictionary of the simulation results.
+    
+    Warnings
+    --------
+    File not found
+        If there are no output files of mhd2dsphere_linsim.py with the same
+        parameters.
+    """
+
+    logger: DefaultLogger = create_function_name_logger()
+    file_logger: DefaultLogger = DefaultLogger(name_file)
+
+    path_file: Path = path_dir / name_file
+
+    file_logger.info('Start loading')
+    
+    if not path_file.exists():
+        logger.error('File not found')
+
+    with np.load(path_file) as npz_kw:
+
+        file_logger.info('Loaded')
+
+        result: DictLinsimResults = {
+            'm_orders': npz_kw['m_orders'],
+            'linsp_theta': npz_kw['linsp_theta'],
+            'time': npz_kw['time'],
+            'psi': npz_kw['psi'],
+            'mvp': npz_kw['mvp'],
+            'bf_u_sin': npz_kw['bf_u_sin'],
+            'bf_b_sin': npz_kw['bf_b_sin']
+        }
+
+    return result
