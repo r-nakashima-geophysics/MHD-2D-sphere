@@ -231,8 +231,6 @@ def save_results(psi: list[Field],
         The toroidal background field.
     """
 
-    os.makedirs(PATH_DIR, exist_ok=True)
-
     name_file: str = NAME_FILE + NAME_FILE_SUFFIX[0]
     path_file: Path = PATH_DIR / name_file
 
@@ -265,6 +263,7 @@ if __name__ == '__main__':
                        f'{DT=}',
                        f'{SWITCH_QUASI_LIN=}')
 
+    os.makedirs(PATH_DIR, exist_ok=True)
     path_info: Path = PATH_DIR / (NAME_FILE + NAME_FILE_SUFFIX[1])
     output_info(Path(__file__), path_info)
 
