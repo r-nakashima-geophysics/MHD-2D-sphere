@@ -460,25 +460,30 @@ def calc_qty(m_order: int,
 
     psm: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
     pse: ArrayFloat = np.zeros(size_mat, dtype=np.float64)
+    psm_1: ArrayComplex
+    psm_2: ArrayComplex
+    pse_u1: ArrayComplex
+    pse_u2: ArrayComplex
+    pse_b: ArrayComplex
     if not background_field['NY24']:
         dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
         if alpha == 0:
             psm = np.real(dict_quad['quad_psm_hd'].quadrature(
                 vec_1=vec_psi, vec_2=vec_psi))
             pse = np.real(dict_quad['quad_pse_hd'].quadrature(
-                vec_1=vec_psi, vec_2=vec_psi)) + pke + pme
+                vec_1=vec_psi, vec_2=vec_psi)) + pke
         else:
-            psm_1: ArrayComplex = dict_quad['quad_psm_1'].quadrature(
+            psm_1 = dict_quad['quad_psm_1'].quadrature(
                 vec_1=vec_psi, vec_2=vec_mvp) / alpha
-            psm_2: ArrayComplex = dict_quad['quad_psm_2'].quadrature(
+            psm_2 = dict_quad['quad_psm_2'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp) / (alpha**2)
             psm = np.real(psm_1 + np.conj(psm_1) + psm_2)
 
-            pse_u1: ArrayComplex = dict_quad['quad_pse_u1'].quadrature(
+            pse_u1 = dict_quad['quad_pse_u1'].quadrature(
                 vec_1=vec_psi, vec_2=vec_mvp) / alpha
-            pse_u2: ArrayComplex = dict_quad['quad_pse_u2'].quadrature(
+            pse_u2 = dict_quad['quad_pse_u2'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp) / (alpha**2)
-            pse_b: ArrayComplex = dict_quad['quad_pse_b'].quadrature(
+            pse_b = dict_quad['quad_pse_b'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp)
             pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
                 + pke + pme

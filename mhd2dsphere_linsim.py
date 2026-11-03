@@ -3,9 +3,9 @@ two-dimensional (2D) incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under a toroidal background field, B_phi = B_0 B(theta)
 sin(theta), and a background zonal flow, U_phi = U_0 U(theta) sin(theta).
 
-This script outputs two npz files of results, which include values for the
-stream function, vector potential, background fields, and information on
-simulation settings.
+This script outputs a txt file for information of simulation settings and a npz
+file of the simulation results, which include values for the stream function,
+vector potential, and background fields.
 
 Parameters
 ----------

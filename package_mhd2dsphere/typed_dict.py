@@ -119,5 +119,5 @@ class DictLinsimResults(TypedDict):
     time: ArrayFloat
     psi: ArrayComplex
     mvp: ArrayComplex
-    bf_u_sin: ArrayComplex
-    bf_b_sin: ArrayComplex
+    bf_u_sin: ArrayFloat
+    bf_b_sin: ArrayFloat
