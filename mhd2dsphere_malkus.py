@@ -692,7 +692,7 @@ def plot_pse(pse: ArrayFloat) -> None:
         labels = [labels[i_label] for i_label in order_leg]
 
     plotter.leg = plotter.axes.legend(
-        handles=handles, labels=labels, loc='lower left', fontsize=12)
+        handles=handles, labels=labels, loc='best', fontsize=12)
 
     plotter.axes.tick_params(labelsize=13)
 
