@@ -251,7 +251,7 @@ def create_mat(m_order: int,
 
     Returns
     -------
-    mat: ArrayFloat | ArrayComplex
+    mat : ArrayFloat | ArrayComplex
         The total matrix.
 
     Notes

@@ -4,7 +4,9 @@ rotating sphere under the Malkus background field, B_phi = B_0 sin(theta).
 
 This script can create up to five figures: a linear-linear plot of the
 dispersion relation, a plot showing energy partitioning for various eigenmodes,
-and a log-log plot of the dispersion relation.
+a log-log plot of the dispersion relation, a plot showing angular
+pseudomomentum for various eigenmodes, and a plot showing pseudoenergy for
+various eigenmodes.
 
 Parameters
 ----------
