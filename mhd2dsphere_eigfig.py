@@ -1357,7 +1357,7 @@ def calc_pseudospectrum(
     Returns
     -------
     pseudospectrum : ArrayFloat
-        The minimum singular values on the complex grid.
+        The inverse of the minimum singular values on the complex grid.
     """
 
     linsp_re: ArrayFloat = np.linspace(
