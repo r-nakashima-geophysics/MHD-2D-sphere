@@ -68,12 +68,12 @@ class DictChebyshevGaussQuad(TypedDict):
 
     quad_pke: ChebyshevGaussQuad
     quad_pme: ChebyshevGaussQuad
-    quad_psm_1: ChebyshevGaussQuad
-    quad_psm_2: ChebyshevGaussQuad
-    quad_pse_u1: ChebyshevGaussQuad
-    quad_pse_u2: ChebyshevGaussQuad
-    quad_pse_b: ChebyshevGaussQuad
-    quad_ohm: ChebyshevGaussQuad
+    quad_psm_1: ChebyshevGaussQuad | None
+    quad_psm_2: ChebyshevGaussQuad | None
+    quad_pse_u1: ChebyshevGaussQuad | None
+    quad_pse_u2: ChebyshevGaussQuad | None
+    quad_pse_b: ChebyshevGaussQuad | None
+    quad_ohm: ChebyshevGaussQuad | None
     quad_psm_hd: ChebyshevGaussQuad
     quad_pse_hd: ChebyshevGaussQuad
 

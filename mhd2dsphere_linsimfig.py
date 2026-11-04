@@ -194,7 +194,11 @@ def plot_map(result: DictLinsimResults,
     max_mvp: float = np.nanmax(np.abs(result['mvp']))
 
     level_psi: ArrayFloat = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_mvp: ArrayFloat = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    level_mvp: ArrayFloat
+    if max_mvp != 0:
+        level_mvp = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    else:
+        level_mvp = np.arange(-1, 1.2, 0.2)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
         grid_lon, grid_lat, psi_grid, levels=level_psi,
@@ -593,8 +597,6 @@ def plot_hovmoller(result: DictLinsimResults) -> None:
     grid_time: ArrayFloat
     grid_phi, grid_time = np.meshgrid(LINSP_PHI, time)
 
-    grid_lon: Final[ArrayFloat] = np.rad2deg(grid_phi)
-
     psi_hovmoller: ArrayFloat
     mvp_hovmoller: ArrayFloat
     psi_hovmoller, mvp_hovmoller = create_hovmoller(result)
@@ -605,20 +607,24 @@ def plot_hovmoller(result: DictLinsimResults) -> None:
     max_mvp: float = np.nanmax(np.abs(mvp_hovmoller))
 
     level_psi: ArrayFloat = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_mvp: ArrayFloat = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    level_mvp: ArrayFloat
+    if max_mvp != 0:
+        level_mvp = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    else:
+        level_mvp = np.arange(-1, 1.2, 0.2)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
-        grid_lon, grid_time, psi_hovmoller, levels=level_psi,
+        grid_phi, grid_time, psi_hovmoller, levels=level_psi,
         vmin=-max_psi, vmax=max_psi, cmap='bwr_r')
     plotter.axes[0].contour(
-        grid_lon, grid_time, psi_hovmoller, levels=level_psi,
+        grid_phi, grid_time, psi_hovmoller, levels=level_psi,
         colors='k', linewidths=0.8)
 
     contour2: QuadContourSet = plotter.axes[1].contourf(
-        grid_lon, grid_time, mvp_hovmoller, levels=level_mvp,
+        grid_phi, grid_time, mvp_hovmoller, levels=level_mvp,
         vmin=-max_mvp, vmax=max_mvp, cmap='PiYG_r')
     plotter.axes[1].contour(
-        grid_lon, grid_time, mvp_hovmoller, levels=level_mvp,
+        grid_phi, grid_time, mvp_hovmoller, levels=level_mvp,
         colors='k', linewidths=0.8)
 
     plotter.axes[0].grid(linestyle=':')
@@ -629,10 +635,11 @@ def plot_hovmoller(result: DictLinsimResults) -> None:
     cbar1.ax.tick_params(labelsize=14)
     cbar2.ax.tick_params(labelsize=14)
 
-    plotter.axes[0].set_xlabel(r'$\phi$', fontsize=14)
-    plotter.axes[0].set_ylabel(r'$\tau=2\Omega_0 t$', fontsize=14)
-    plotter.axes[1].set_xlabel('longitude [degree]', fontsize=14)
-    plotter.axes[1].set_ylabel(r'$\tau=2\Omega_0 t$', fontsize=14)
+    for axis in (plotter.axes[0], plotter.axes[1]):
+        axis.set_xticks([0, np.pi/2, np.pi, 3*np.pi/2, 2*np.pi])
+        axis.set_xticklabels(['$0$', '$90$', '$180$', '$270$', '$360$'])
+        axis.set_xlabel('longitude [degree]', fontsize=14)
+        axis.set_ylabel(r'$\tau=2\Omega_0 t$', fontsize=14)
 
     plotter.axes[0].set_title(r'stream function $\psi_1$', fontsize=16)
     plotter.axes[1].set_title(

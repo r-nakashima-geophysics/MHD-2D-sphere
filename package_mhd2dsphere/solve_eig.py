@@ -209,31 +209,31 @@ def prepare_chebyshev_gauss_quad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
             weight=_weight_psm_1
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_psm_2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
             weight=_weight_psm_2
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_pse_u1': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
             weight=_weight_pse_u1
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_pse_u2': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
             weight=_weight_pse_u2
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_pse_b': ChebyshevGaussQuad(
             func_1=heinrichs,
             func_2=heinrichs,
             weight=_weight_pse_b
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_ohm': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs
-        ),
+        ) if background_field['B'].name != 'hydro' else None,
         'quad_psm_hd': ChebyshevGaussQuad(
             func_1=_minus_spherical_laplacian_heinrichs,
             func_2=_minus_spherical_laplacian_heinrichs,
@@ -353,7 +353,8 @@ def solve_eig(m_order: int,
                                        background_field=background_field,
                                        dict_quad=dict_quad)
     check: ArrayBool \
-        = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c)
+        = check_eig(m_order, alpha, eig_valvec, criterion_c=criterion_c,
+                    background_field=background_field)
 
     tuple_phys_qtys: tuple[ArrayFloat,
                            ArrayFloat,
@@ -467,7 +468,7 @@ def calc_qty(m_order: int,
     pse_b: ArrayComplex
     if not background_field['NY24']:
         dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
-        if alpha == 0:
+        if (alpha == 0) or (background_field['B'].name == 'hydro'):
             psm = np.real(dict_quad['quad_psm_hd'].quadrature(
                 vec_1=vec_psi, vec_2=vec_psi))
             pse = np.real(dict_quad['quad_pse_hd'].quadrature(
@@ -489,7 +490,7 @@ def calc_qty(m_order: int,
                 + pke + pme
 
     ohm: ArrayFloat = np.zeros(size_mat)
-    if e_eta != 0:
+    if (e_eta != 0) and (background_field['B'].name != 'hydro'):
         if background_field['NY24']:
             n_degree: int
             for i_n in range(size_submat):
@@ -592,7 +593,8 @@ def check_eig(m_order: int,
               alpha: float,
               eig_valvec: ArrayComplex,
               *,
-              criterion_c: DictCriterionC) -> ArrayBool:
+              criterion_c: DictCriterionC,
+              background_field: DictBackgroundField) -> ArrayBool:
     """Check the validity of eigenmodes.
 
     Parameters
@@ -605,6 +607,8 @@ def check_eig(m_order: int,
         The matrix storing the eigenvalues and eigenvectors.
     criterion_c : DictCriterionC
         A criterion for convergence.
+    background_field : DictBackgroundField
+        The background field.
 
     Returns
     -------
@@ -639,7 +643,7 @@ def check_eig(m_order: int,
             high_a += (np.abs(eig_valvec[size_submat+i_n, :])**2)
 
     check: ArrayBool = np.empty(size_mat, dtype=np.bool_)
-    if alpha != 0:
+    if (alpha != 0) and (background_field['B'].name != 'hydro'):
         check = (low_psi > high_psi*r_c) & (low_a > high_a*r_c)
     else:
         check = low_psi > high_psi*r_c

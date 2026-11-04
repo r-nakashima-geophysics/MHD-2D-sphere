@@ -97,6 +97,8 @@ def choose_eigfunc(results: DictResult,
 
     Warnings
     --------
+    No valid eigenmodes
+        If there are no valid eigenmodes.
     Invalid eigenmode
         When you choose an eigenmode that can not be plotted.
     """
@@ -127,6 +129,9 @@ def choose_eigfunc(results: DictResult,
               + f'[{eig[i_mode].real:10.7f},{eig[i_mode].imag:10.7f}] '
               + f'{sym[i_mode]:>9s}  Q={q_value:4.2f}  '
               + f'PKE={pke[i_mode]:4.2f}  PME={pme[i_mode]:4.2f}')
+
+    if mode_list == []:
+        logger.error('No valid eigenmodes')
 
     print('==============================')
     i_mode_min: int = min(mode_list) + 1

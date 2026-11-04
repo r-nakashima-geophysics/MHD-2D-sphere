@@ -11,6 +11,11 @@ Parameters
 ALPHA : float
     The Lehnert number.
 
+Warnings
+--------
+Meaningless settings
+    If a magnetic parameter is set in the hydrodynamic case.
+
 Notes
 -----
 All other parameters aside from command line arguments are described within the
@@ -343,7 +348,11 @@ def plot_map(psi_grid: ArrayFloat,
     max_mvp: float = np.nanmax(np.abs(mvp_grid))
 
     level_psi: ArrayFloat = np.arange(-max_psi, 1.2*max_psi, 0.2*max_psi)
-    level_mvp: ArrayFloat = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    level_mvp: ArrayFloat
+    if max_mvp != 0:
+        level_mvp = np.arange(-max_mvp, 1.2*max_mvp, 0.2*max_mvp)
+    else:
+        level_mvp = np.arange(-1, 1.2, 0.2)
 
     contour1: QuadContourSet = plotter.axes[0].contourf(
         GRID_LON, GRID_LAT, psi_grid, levels=level_psi,
@@ -461,6 +470,11 @@ def plot_convergence(result: DictEigenmodeInfo,
 if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
+
+    if ((ALPHA == 0) and ((BG_FIELD_B.name != 'hydro') or (E_ETA != 0))) \
+            or ((BG_FIELD_B.name == 'hydro')
+                and ((ALPHA != 0) or (E_ETA != 0))):
+        logger.error('Meaningless settings')
 
     if SWITCH_NY24:
         logger.show_params(f'{SWITCH_NY24=}',
