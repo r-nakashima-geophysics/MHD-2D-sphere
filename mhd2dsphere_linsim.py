@@ -42,7 +42,7 @@ from pathlib import Path
 import numpy as np
 
 from package_common.background_field import BackgroundField
-from package_common.common_types import Any, ArrayFloat, Final
+from package_common.common_types import ArrayFloat, Final
 from package_common.default_logger import DefaultLogger
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
@@ -115,11 +115,11 @@ LINSP_MU: Final[ArrayFloat] = np.array([
 
 def initialize_fields(psi: list[Field],
                       mvp: list[Field],
-                      bf_u_sin: Field,
-                      bf_b_sin: Field) -> tuple[list[Field],
-                                                list[Field],
-                                                Field,
-                                                Field]:
+                      bf_u: Field,
+                      bf_b: Field) -> tuple[list[Field],
+                                            list[Field],
+                                            Field,
+                                            Field]:
     """Initialize the values of the fields for the (quasi-)linear simulation.
 
     Parameters
@@ -128,15 +128,15 @@ def initialize_fields(psi: list[Field],
         The list of the stream function (psi).
     mvp : list[Field]
         The list of the vector potential (a).
-    bf_u_sin : Field
-        The background zonal flow.
-    bf_b_sin : Field
-        The toroidal background field.
+    bf_u : Field
+        The background zonal flow (U).
+    bf_b : Field
+        The toroidal background field (B).
 
     Returns
     -------
     tuple[list[Field], list[Field], Field, Field]
-        The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
+        The list of fields (list of psi, list of mvp, bf_u, and bf_b).
     """
 
     for i_m, m_order in enumerate(M_ORDERS):
@@ -145,24 +145,24 @@ def initialize_fields(psi: list[Field],
         if m_order in DICT_INIT_MVP.keys():
             mvp[i_m].value += DICT_INIT_MVP[m_order]
 
-    bf_u_sin.value += np.array(
-        [INIT_BG_FIELD_U.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
-    bf_b_sin.value += np.array(
-        [INIT_BG_FIELD_B.r_value(mu) * np.sqrt(1-mu**2) for mu in LINSP_MU])
+    bf_u.value += np.array(
+        [INIT_BG_FIELD_U.r_value(mu) for mu in LINSP_MU])
+    bf_b.value += np.array(
+        [INIT_BG_FIELD_B.r_value(mu) for mu in LINSP_MU])
 
-    for field in [*psi, *mvp, bf_u_sin, bf_b_sin]:
+    for field in [*psi, *mvp, bf_u, bf_b]:
         field.store()
 
-    return psi, mvp, bf_u_sin, bf_b_sin
+    return psi, mvp, bf_u, bf_b
 
 
 def wrapper_time_integrate(psi: list[Field],
                            mvp: list[Field],
-                           bf_u_sin: Field,
-                           bf_b_sin: Field) -> tuple[list[Field],
-                                                     list[Field],
-                                                     Field,
-                                                     Field]:
+                           bf_u: Field,
+                           bf_b: Field) -> tuple[list[Field],
+                                                 list[Field],
+                                                 Field,
+                                                 Field]:
     """Perform time integration for the (quasi-)linear simulation.
 
     Parameters
@@ -171,13 +171,18 @@ def wrapper_time_integrate(psi: list[Field],
         The list of the stream function (psi).
     mvp : list[Field]
         The list of the vector potential (a).
-    bf_u_sin : Field
-        The background zonal flow.
-    bf_b_sin : Field
-        The toroidal background field.
+    bf_u : Field
+        The background zonal flow (U).
+    bf_b : Field
+        The toroidal background field (B).
+
+    Returns
+    -------
+    tuple[list[Field], list[Field], Field, Field]
+        The list of fields (list of psi, list of mvp, bf_u, and bf_b).
     """
 
-    fields: list[Field] = [*psi, *mvp, bf_u_sin, bf_b_sin]
+    fields: list[Field] = [*psi, *mvp, bf_u, bf_b]
     rhss: list[Rhs] = [
         *[wrapper_rhs('psi', m_order,
                       list_m_order=M_ORDERS, linsp_mu=LINSP_MU,
@@ -189,10 +194,10 @@ def wrapper_time_integrate(psi: list[Field],
                       alpha=ALPHA, e_eta=E_ETA, rossby=ROSSBY,
                       switch_quasi_lin=SWITCH_QUASI_LIN)
           for m_order in M_ORDERS],
-        wrapper_rhs('bf_u_sin', list_m_order=M_ORDERS, linsp_mu=LINSP_MU,
+        wrapper_rhs('bf_u', list_m_order=M_ORDERS, linsp_mu=LINSP_MU,
                     alpha=ALPHA, e_eta=E_ETA, rossby=ROSSBY,
                     switch_quasi_lin=SWITCH_QUASI_LIN),
-        wrapper_rhs('bf_b_sin', list_m_order=M_ORDERS, linsp_mu=LINSP_MU,
+        wrapper_rhs('bf_b', list_m_order=M_ORDERS, linsp_mu=LINSP_MU,
                     alpha=ALPHA, e_eta=E_ETA, rossby=ROSSBY,
                     switch_quasi_lin=SWITCH_QUASI_LIN)
     ]
@@ -210,13 +215,13 @@ def wrapper_time_integrate(psi: list[Field],
 
         progress_bar.update(i_step)
 
-    return psi, mvp, bf_u_sin, bf_b_sin
+    return psi, mvp, bf_u, bf_b
 
 
 def save_results(psi: list[Field],
                  mvp: list[Field],
-                 bf_u_sin: Field,
-                 bf_b_sin: Field) -> None:
+                 bf_u: Field,
+                 bf_b: Field) -> None:
     """Save npz files of the simulation results.
 
     Parameters
@@ -225,10 +230,10 @@ def save_results(psi: list[Field],
         The list of the stream function (psi).
     mvp : list[Field]
         The list of the vector potential (a).
-    bf_u_sin : Field
-        The background zonal flow.
-    bf_b_sin : Field
-        The toroidal background field.
+    bf_u : Field
+        The background zonal flow (U).
+    bf_b : Field
+        The toroidal background field (B).
     """
 
     name_file: str = NAME_FILE + NAME_FILE_SUFFIX[0]
@@ -241,8 +246,8 @@ def save_results(psi: list[Field],
         time=Field.storage_time,
         psi=[field.storage_value for field in psi],
         mvp=[field.storage_value for field in mvp],
-        bf_u_sin=bf_u_sin.storage_value,
-        bf_b_sin=bf_b_sin.storage_value)
+        bf_u=bf_u.storage_value,
+        bf_b=bf_b.storage_value)
 
     DefaultLogger(name_file).info('Saved')
 
@@ -272,15 +277,13 @@ if __name__ == '__main__':
         Field(f'psi_{m}', dtype=np.complex128) for m in M_ORDERS]
     mvp: list[Field] = [
         Field(f'mvp_{m}', dtype=np.complex128) for m in M_ORDERS]
-    bf_u_sin: Field = Field('bf_u_sin')
-    bf_b_sin: Field = Field('bf_b_sin')
+    bf_u: Field = Field('bf_u')
+    bf_b: Field = Field('bf_b')
 
-    psi, mvp, bf_u_sin, bf_b_sin = initialize_fields(
-        psi, mvp, bf_u_sin, bf_b_sin)
+    psi, mvp, bf_u, bf_b = initialize_fields(psi, mvp, bf_u, bf_b)
 
-    psi, mvp, bf_u_sin, bf_b_sin = wrapper_time_integrate(
-        psi, mvp, bf_u_sin, bf_b_sin)
+    psi, mvp, bf_u, bf_b = wrapper_time_integrate(psi, mvp, bf_u, bf_b)
 
-    save_results(psi, mvp, bf_u_sin, bf_b_sin)
+    save_results(psi, mvp, bf_u, bf_b)
 
     timer.end()

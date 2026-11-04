@@ -139,27 +139,27 @@ def wrapper_rhs(name: str,
 
         return func_rhs_mvp
 
-    elif name == 'bf_u_sin':
-        def func_rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                              time: float,
-                              *args: Any) -> ArrayFloat:
-            return rhs_bf_u_sin(fields_value,
-                                list_m_order=list_m_order,
-                                switch_quasi_lin=switch_quasi_lin,
-                                common_parts=common_parts)
+    elif name == 'bf_u':
+        def func_rhs_bf_u(fields_value: list[ArrayComplex | ArrayFloat],
+                          time: float,
+                          *args: Any) -> ArrayFloat:
+            return rhs_bf_u(fields_value,
+                            list_m_order=list_m_order,
+                            switch_quasi_lin=switch_quasi_lin,
+                            common_parts=common_parts)
 
-        return func_rhs_bf_u_sin
+        return func_rhs_bf_u
 
-    elif name == 'bf_b_sin':
-        def func_rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                              time: float,
-                              *args: Any) -> ArrayFloat:
-            return rhs_bf_b_sin(fields_value,
-                                list_m_order=list_m_order,
-                                switch_quasi_lin=switch_quasi_lin,
-                                common_parts=common_parts)
+    elif name == 'bf_b':
+        def func_rhs_bf_b(fields_value: list[ArrayComplex | ArrayFloat],
+                          time: float,
+                          *args: Any) -> ArrayFloat:
+            return rhs_bf_b(fields_value,
+                            list_m_order=list_m_order,
+                            switch_quasi_lin=switch_quasi_lin,
+                            common_parts=common_parts)
 
-        return func_rhs_bf_b_sin
+        return func_rhs_bf_b
 
     logger: DefaultLogger = create_function_name_logger()
     logger.error('Unknown name')
@@ -179,7 +179,7 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
     Parameters
     ----------
     fields_value : list[ArrayComplex | ArrayFloat]
-        The list of fields (list of psi, list of mvp, bf_u_sin, bf_b_sin).
+        The list of fields (list of psi, list of mvp, bf_u, bf_b).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
     linsp_mu : ArrayFloat
@@ -203,31 +203,23 @@ def rhs_psi(fields_value: list[ArrayComplex | ArrayFloat],
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
-    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
-    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+    bf_u: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
 
     psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
     mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
 
-    sin: ArrayFloat = np.sqrt(1-(linsp_mu**2))
-    bf_u: ArrayFloat = bf_u_sin / sin
-    bf_b: ArrayFloat = bf_b_sin / sin
-
     diff_mat: ArrayFloat = common_parts["diff_mat"]
-    bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
-    bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
-    bf_u_shear: ArrayFloat = (
-        bf_u_sin_d2[1:-1] * sin
-        - (2*linsp_mu/sin) * bf_u_sin_d[1:-1]
-        - bf_u / (sin**2)
-    )
-    bf_b_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
-    bf_b_sin_d2: ArrayFloat = diff_mat @ bf_b_sin_d
-    bf_b_shear: ArrayFloat = (
-        bf_b_sin_d2[1:-1] * sin
-        - (2*linsp_mu/sin) * bf_b_sin_d[1:-1]
-        - bf_b / (sin**2)
-    )
+    sin2: ArrayFloat = 1-(linsp_mu**2)
+    bf_u_sin2: ArrayFloat = bf_u * sin2
+    bf_u_shear: ArrayFloat \
+        = diff_mat @ (diff_mat @ np.concatenate(([0], bf_u_sin2, [0])))
+    bf_b_sin2: ArrayFloat = bf_b * sin2
+    bf_b_shear: ArrayFloat \
+        = diff_mat @ (diff_mat @ np.concatenate(([0], bf_b_sin2, [0])))
+
+    bf_u_shear = bf_u_shear[1:-1]
+    bf_b_shear = bf_b_shear[1:-1]
 
     hein: ArrayFloat = common_parts["heinrichs"].T
     laplacian: ArrayFloat = common_parts["laplacian"].T
@@ -265,7 +257,7 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     Parameters
     ----------
     fields_value : list[ArrayComplex | ArrayFloat]
-        The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
+        The list of fields (list of psi, list of mvp, bf_u, and bf_b).
     list_m_order : list[int]
         The list of zonal wavenumbers (orders).
     linsp_mu : ArrayFloat
@@ -291,15 +283,11 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
-    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
-    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+    bf_u: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
 
     psi: ArrayFloat | ArrayComplex = list_psi[list_m_order.index(m_order)]
     mvp: ArrayFloat | ArrayComplex = list_mvp[list_m_order.index(m_order)]
-
-    sin: ArrayFloat = np.sqrt(1-(linsp_mu**2))
-    bf_u: ArrayFloat = bf_u_sin / sin
-    bf_b: ArrayFloat = bf_b_sin / sin
 
     hein: ArrayFloat = common_parts["heinrichs"].T
     laplacian: ArrayFloat = common_parts["laplacian"].T
@@ -318,18 +306,18 @@ def rhs_mvp(fields_value: list[ArrayComplex | ArrayFloat],
     return lu_solve((lu_submat_b_22, piv_submat_b_22), rhs)
 
 
-def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                 *,
-                 list_m_order: list[int],
-                 switch_quasi_lin: bool,
-                 common_parts: DictRhsCommonParts) -> ArrayFloat:
+def rhs_bf_u(fields_value: list[ArrayComplex | ArrayFloat],
+             *,
+             list_m_order: list[int],
+             switch_quasi_lin: bool,
+             common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the background
     zonal flow.
 
     Parameters
     ----------
     fields_value : list[ArrayComplex | ArrayFloat]
-        The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
+        The list of fields (list of psi, list of mvp, bf_u, and bf_b).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
     switch_quasi_lin : bool
@@ -349,10 +337,10 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
-    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
-    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+    bf_u: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
 
-    rhs: ArrayFloat = np.zeros_like(bf_u_sin)
+    rhs: ArrayFloat = np.zeros_like(bf_u)
     if not switch_quasi_lin:
         return rhs
 
@@ -368,18 +356,18 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
     return rhs
 
 
-def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
-                 *,
-                 list_m_order: list[int],
-                 switch_quasi_lin: bool,
-                 common_parts: DictRhsCommonParts) -> ArrayFloat:
+def rhs_bf_b(fields_value: list[ArrayComplex | ArrayFloat],
+             *,
+             list_m_order: list[int],
+             switch_quasi_lin: bool,
+             common_parts: DictRhsCommonParts) -> ArrayFloat:
     """Create the right-hand side of the governing equation for the toroidal
     background field.
 
     Parameters
     ----------
     fields_value : list[ArrayComplex | ArrayFloat]
-        The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
+        The list of fields (list of psi, list of mvp, bf_u, and bf_b).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
     switch_quasi_lin : bool
@@ -399,10 +387,10 @@ def rhs_bf_b_sin(fields_value: list[ArrayComplex | ArrayFloat],
 
     list_psi: list[ArrayFloat | ArrayComplex] = fields_value[0:num_m]
     list_mvp: list[ArrayFloat | ArrayComplex] = fields_value[num_m:2*num_m]
-    bf_u_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
-    bf_b_sin: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
+    bf_u: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m])
+    bf_b: ArrayFloat = cast(ArrayFloat, fields_value[2*num_m+1])
 
-    rhs: ArrayFloat = np.zeros_like(bf_b_sin)
+    rhs: ArrayFloat = np.zeros_like(bf_b)
     if not switch_quasi_lin:
         return rhs
 

@@ -51,7 +51,7 @@ from package_common.default_plotter import (Colorbar, DefaultGridPlotter,
 from package_common.default_timer import DefaultTimer
 from package_common.progress_bar import ProgressBar
 from package_common.spectral_deform import init_complex_coordinate_standard
-from package_common.utils_collocation import (ChebyshevGaussQuad,
+from package_common.utils_collocation import (ChebyshevGaussQuad, Func4Quad,
                                               create_cheb_diff_mat,
                                               create_cheb_invexpan_mat,
                                               spherical_laplacian_heinrichs)
@@ -90,6 +90,9 @@ NUM_PHI: Final[int] = 361
 # The maximum values for the color scales
 MAX_PSI: Final[float] = 5
 MAX_MVP: Final[float] = 5
+
+# The latitude for the Hovmoller diagram
+LAT_HOVMOLLER: Final[float] = 90
 
 # The path and filename of inputs
 PATH_DIR_INPUT: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_linsim'
@@ -133,10 +136,10 @@ def wrapper_plot(result: DictLinsimResults) -> None:
         The dictionary of the simulation results.
     """
 
-    invexpan_mat: ArrayFloat \
-        = create_cheb_invexpan_mat(SIZE_SUBMAT+2)[1:-1, :SIZE_SUBMAT]
-
     if SWITCH_PLOT[0]:
+        invexpan_mat: ArrayFloat \
+            = create_cheb_invexpan_mat(SIZE_SUBMAT+2)[1:-1, :SIZE_SUBMAT]
+
         num_snapshot: int = len(result['time'])
         progress_bar: ProgressBar \
             = create_function_name_progress_bar(num_snapshot)
@@ -300,13 +303,14 @@ def plot_time_series(result: DictLinsimResults) -> None:
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(7, 4))
 
     plotter.axes.plot(time, pke+pme, color='red', linestyle='-.',
-                      label='Perturbation energy')
+                      label='perturbation energy')
     plotter.axes.plot(time, psm, color='blue',
-                      label='Angular pseudomomentum')
+                      label='angular pseudomomentum')
     plotter.axes.plot(time, pse, color='red', linestyle='-',
-                      label='Pseudoenergy')
-    plotter.axes.plot(time, ohm, color='green',
-                      label='Ohmic dissipation')
+                      label='pseudoenergy')
+    if E_ETA != 0:
+        plotter.axes.plot(time, ohm, color='green',
+                          label='ohmic dissipation')
 
     plotter.axes.set_xlabel(r'$\tau=2\Omega_0 t$', fontsize=16)
     plotter.axes.set_title(TEXT_TITLE, fontsize=16)
@@ -372,18 +376,25 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
 
     num_snapshot: int = len(result['time'])
     progress_bar: ProgressBar \
-        = create_function_name_progress_bar(num_snapshot)
+        = create_function_name_progress_bar(num_snapshot * len(m_orders))
     progress_bar.start()
-    for i_snapshot in range(num_snapshot):
+    for i_m, m_order in enumerate(m_orders):
 
-        for i_m, m_order in enumerate(m_orders):
+        def _minus_spherical_laplacian_heinrichs(n_degree: int,
+                                                 mu: float) -> float:
+            return (-1) \
+                * cast(float,
+                       spherical_laplacian_heinrichs(m_order, n_degree, mu))
+
+        for i_snapshot in range(num_snapshot):
 
             vec_psi = array_psi[i_m, i_snapshot]
             vec_mvp = array_mvp[i_m, i_snapshot]
 
             dict_quad: DictChebyshevGaussQuad \
                 = prepare_chebyshev_gauss_quad(
-                    result, i_snapshot, diff_mat, m_order)
+                    result, i_snapshot, diff_mat,
+                    cast(Func4Quad, _minus_spherical_laplacian_heinrichs))
 
             pke[i_snapshot] += np.real(dict_quad['quad_pke'].quadrature(
                 vec_1=vec_psi, vec_2=vec_psi))
@@ -414,18 +425,22 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
             ohm[i_snapshot] += np.real(dict_quad['quad_ohm'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp))
 
-        progress_bar.update(i_snapshot)
+            progress_bar.update(i_m * num_snapshot + i_snapshot)
 
-    pse += pke + pme
+    pse += pke
+    if ALPHA != 0:
+        pse += pme
+
     ohm *= E_ETA
 
     return pke, pme, psm, pse, ohm
 
 
-def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
-                                 i_snapshot: int,
-                                 diff_mat: ArrayFloat,
-                                 m_order: float) \
+def prepare_chebyshev_gauss_quad(
+        result: DictLinsimResults,
+        i_snapshot: int,
+        diff_mat: ArrayFloat,
+        minus_spherical_laplacian_heinrichs: Func4Quad) \
         -> DictChebyshevGaussQuad:
     """Prepare the Chebyshev-Gauss quadrature.
 
@@ -437,8 +452,8 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
         The current time step.
     diff_mat : ArrayFloat
         The Chebyshev differentiation matrix.
-    m_order : int
-        The zonal wavenumber (order).
+    minus_spherical_laplacian_heinrichs : Func4Quad
+        The negative of the spherical Laplacian of Heinrichs bases.
 
     Returns
     -------
@@ -447,100 +462,68 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
     """
 
     linsp_mu: ArrayFloat = result['linsp_mu']
-    bf_u_sin: ArrayFloat = result['bf_u_sin'][i_snapshot]
-    bf_b_sin: ArrayFloat = result['bf_b_sin'][i_snapshot]
+    bf_u: ArrayFloat = result['bf_u'][i_snapshot]
+    bf_b: ArrayFloat = result['bf_b'][i_snapshot]
 
-    bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
-    bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
-    bf_b_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
-    bf_b_sin_d2: ArrayFloat = diff_mat @ bf_b_sin_d
+    sin2: ArrayFloat = 1-(linsp_mu**2)
+    bf_u_sin2: ArrayFloat = bf_u * sin2
+    bf_u_shear: ArrayFloat \
+        = diff_mat @ (diff_mat @ np.concatenate(([0], bf_u_sin2, [0])))
+    bf_b_sin2: ArrayFloat = bf_b * sin2
+    bf_b_shear: ArrayFloat \
+        = diff_mat @ (diff_mat @ np.concatenate(([0], bf_b_sin2, [0])))
 
-    bf_u_sin_d = bf_u_sin_d[1:-1]
-    bf_u_sin_d2 = bf_u_sin_d2[1:-1]
-    bf_b_sin_d = bf_b_sin_d[1:-1]
-    bf_b_sin_d2 = bf_b_sin_d2[1:-1]
-
-    def _minus_spherical_laplacian_heinrichs(n_degree: int,
-                                             mu: float) -> float:
-        return (-1) * cast(float,
-                           spherical_laplacian_heinrichs(
-                               m_order, n_degree, mu))
+    bf_u_shear = bf_u_shear[1:-1]
+    bf_b_shear = bf_b_shear[1:-1]
 
     def _weight_psm_1(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        b_mu: float = bf_b_sin[i_mu] / sin
+        b_mu: float = bf_b[i_mu]
         return (-1) / (4 * b_mu)
 
     def _weight_psm_2(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        b_mu: float = bf_b_sin[i_mu] / sin
-        u_mu: float = bf_u_sin[i_mu] / sin
-        u_sin_d_mu: float = bf_u_sin_d[i_mu]
-        u_sin_d2_mu: float = bf_u_sin_d2[i_mu]
-        u_shear_mu: float = (
-            u_sin_d2_mu * sin
-            - (2*mu/sin) * u_sin_d_mu
-            - u_mu / (sin**2)
-        )
+        b_mu: float = bf_b[i_mu]
+        u_shear_mu: float = bf_u_shear[i_mu]
         return (-1) * (ROSSBY*u_shear_mu-1) / (4 * (b_mu**2))
 
     def _weight_pse_u1(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        u_mu: float = bf_u_sin[i_mu] / sin
+        u_mu: float = bf_u[i_mu]
         return 4 * ROSSBY * u_mu * _weight_psm_1(mu)
 
     def _weight_pse_u2(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        u_mu: float = bf_u_sin[i_mu] / sin
+        u_mu: float = bf_u[i_mu]
         return 4 * ROSSBY * u_mu * _weight_psm_2(mu)
 
     def _weight_pse_b(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        b_mu: float = bf_b_sin[i_mu] / sin
-        b_sin_d_mu: float = bf_b_sin_d[i_mu]
-        b_sin_d2_mu: float = bf_b_sin_d2[i_mu]
-        b_shear_mu: float = (
-            b_sin_d2_mu * sin
-            - (2*mu/sin) * b_sin_d_mu
-            - b_mu / (sin**2)
-        )
+        b_mu: float = bf_b[i_mu]
+        b_shear_mu: float = bf_b_shear[i_mu]
         return b_shear_mu / b_mu
 
     def _weight_psm_hd(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        u_mu: float = bf_u_sin[i_mu] / sin
-        u_sin_d_mu: float = bf_u_sin_d[i_mu]
-        u_sin_d2_mu: float = bf_u_sin_d2[i_mu]
-        u_shear_mu: float = (
-            u_sin_d2_mu * sin
-            - (2*mu/sin) * u_sin_d_mu
-            - u_mu / (sin**2)
-        )
+        u_shear_mu: float = bf_u_shear[i_mu]
         return 1 / (4 * (ROSSBY*u_shear_mu-1))
 
     def _weight_pse_hd(mu: float) -> float:
         i_mu: int = int(np.argmin(np.abs(linsp_mu - mu)))
-        sin: float = np.sqrt(1 - mu**2)
-        u_mu: float = bf_u_sin[i_mu] / sin
+        u_mu: float = bf_u[i_mu]
         return 4 * ROSSBY * u_mu * _weight_psm_hd(mu)
 
     quad: DictChebyshevGaussQuad = {
         'quad_pke': ChebyshevGaussQuad(
             func_1=heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs
+            func_2=minus_spherical_laplacian_heinrichs
         ),
         'quad_pme': ChebyshevGaussQuad(
             func_1=heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs
+            func_2=minus_spherical_laplacian_heinrichs
         ),
         'quad_psm_1': ChebyshevGaussQuad(
-            func_1=_minus_spherical_laplacian_heinrichs,
+            func_1=minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
             weight=_weight_psm_1
         ),
@@ -550,7 +533,7 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
             weight=_weight_psm_2
         ),
         'quad_pse_u1': ChebyshevGaussQuad(
-            func_1=_minus_spherical_laplacian_heinrichs,
+            func_1=minus_spherical_laplacian_heinrichs,
             func_2=heinrichs,
             weight=_weight_pse_u1
         ),
@@ -565,17 +548,17 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
             weight=_weight_pse_b
         ),
         'quad_ohm': ChebyshevGaussQuad(
-            func_1=_minus_spherical_laplacian_heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs
+            func_1=minus_spherical_laplacian_heinrichs,
+            func_2=minus_spherical_laplacian_heinrichs
         ),
         'quad_psm_hd': ChebyshevGaussQuad(
-            func_1=_minus_spherical_laplacian_heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs,
+            func_1=minus_spherical_laplacian_heinrichs,
+            func_2=minus_spherical_laplacian_heinrichs,
             weight=_weight_psm_hd
         ),
         'quad_pse_hd': ChebyshevGaussQuad(
-            func_1=_minus_spherical_laplacian_heinrichs,
-            func_2=_minus_spherical_laplacian_heinrichs,
+            func_1=minus_spherical_laplacian_heinrichs,
+            func_2=minus_spherical_laplacian_heinrichs,
             weight=_weight_pse_hd
         ),
     }
@@ -584,7 +567,26 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
 
 
 def plot_hovmoller(result: DictLinsimResults) -> None:
-    pass
+    """Plot the Hovmoller diagram.
+
+    Parameters
+    ----------
+    result : DictLinsimResults
+        The dictionary of the simulation results.
+    """
+
+    invexpan_mat: ArrayFloat \
+        = create_cheb_invexpan_mat(SIZE_SUBMAT+2)[1:-1, :SIZE_SUBMAT]
+
+    psi_grid: ArrayFloat
+    mvp_grid: ArrayFloat
+
+    num_snapshot: int = len(result['time'])
+    progress_bar: ProgressBar \
+        = create_function_name_progress_bar(num_snapshot)
+    progress_bar.start()
+    for i_snapshot in range(num_snapshot):
+        psi_grid, mvp_grid = create_profile(result, i_snapshot, invexpan_mat)
 
 
 if __name__ == '__main__':

@@ -157,8 +157,8 @@ def load_linsim_results(path_dir: Path,
             'time': npz_kw['time'],
             'psi': npz_kw['psi'],
             'mvp': npz_kw['mvp'],
-            'bf_u_sin': npz_kw['bf_u_sin'],
-            'bf_b_sin': npz_kw['bf_b_sin']
+            'bf_u': npz_kw['bf_u'],
+            'bf_b': npz_kw['bf_b']
         }
 
     return results
