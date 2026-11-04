@@ -311,7 +311,7 @@ def calc_psm(n_degree: int,
     ma2: float = (M_ORDER**2) * (alpha**2)
     nn1: int = n_degree * (n_degree+1)
     lambda_mr: float = calc_eig(n_degree, alpha, name_mode)
-    return (2*M_ORDER*lambda_mr + (M_ORDER**2)/nn1) / ((lambda_mr**2)+ma2)
+    return (2*M_ORDER*lambda_mr + (M_ORDER**2)/nn1) / (4*((lambda_mr**2)+ma2))
 
 
 def calc_pse(n_degree: int,
@@ -613,7 +613,7 @@ def plot_psm(psm: ArrayFloat) -> None:
 
     plotter.axes.set_xlabel(TEXT_XLABEL, fontsize=16)
     plotter.axes.set_ylabel(
-        r'$(2\Omega_0R_0)\mathrm{PSM}/(\mathrm{PKE}+\mathrm{PME})$',
+        r'$(\Omega_0R_0/\rho_0\pi)\mathrm{PSM}$',
         fontsize=16)
     plotter.axes.set_title(
         r'Angular pseudomomentum [$B_{0\phi}=B_0\sin\theta$] : $m=$'

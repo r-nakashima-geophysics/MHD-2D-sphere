@@ -66,6 +66,12 @@ from package_mhd2dsphere.typed_dict import (DictChebyshevGaussQuad,
 # the run index
 ID: Final[str] = input_string('0000')
 
+# The boolean values to switch whether to plot figures or not
+# SWITCH_PLOT[0]: 2D contour maps
+# SWITCH_PLOT[1]: time series plot
+# SWITCH_PLOT[2]: Hovmoller diagram
+SWITCH_PLOT: Final[tuple[bool, bool, bool]] = (True, True, True)
+
 # The Lehnert number
 ALPHA: Final[float] = 0.1
 
@@ -127,19 +133,24 @@ def wrapper_plot(result: DictLinsimResults) -> None:
         The dictionary of the simulation results.
     """
 
-    invexpan_mat: ArrayFloat = create_cheb_invexpan_mat(SIZE_SUBMAT)
+    invexpan_mat: ArrayFloat \
+        = create_cheb_invexpan_mat(SIZE_SUBMAT+2)[1:-1, :SIZE_SUBMAT]
 
-    num_snapshot: int = len(result['time'])
-    progress_bar: ProgressBar \
-        = create_function_name_progress_bar(num_snapshot)
-    progress_bar.start()
-    for i_snapshot in range(num_snapshot):
+    if not SWITCH_PLOT[0]:
+        num_snapshot: int = len(result['time'])
+        progress_bar: ProgressBar \
+            = create_function_name_progress_bar(num_snapshot)
+        progress_bar.start()
+        for i_snapshot in range(num_snapshot):
+            plot_map(result, i_snapshot, invexpan_mat)
 
-        plot_map(result, i_snapshot, invexpan_mat)
+            progress_bar.update(i_snapshot)
 
-        progress_bar.update(i_snapshot)
+    if SWITCH_PLOT[1]:
+        plot_time_series(result)
 
-    plot_time_series(result)
+    if SWITCH_PLOT[2]:
+        plot_hovmoller(result)
 
 
 def plot_map(result: DictLinsimResults,
@@ -346,7 +357,7 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
     pse: ArrayFloat = np.zeros_like(time)
     ohm: ArrayFloat = np.zeros_like(time)
 
-    diff_mat: ArrayFloat = create_cheb_diff_mat(SIZE_SUBMAT)
+    diff_mat: ArrayFloat = create_cheb_diff_mat(SIZE_SUBMAT+2)
 
     ChebyshevGaussQuad.set_class_variable(
         SIZE_SUBMAT, y_complex=init_complex_coordinate_standard(-1, 1))
@@ -358,12 +369,17 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
     pse_u1: ArrayComplex
     pse_u2: ArrayComplex
     pse_b: ArrayComplex
-    for i_snapshot in range(len(result['time'])):
+
+    num_snapshot: int = len(result['time'])
+    progress_bar: ProgressBar \
+        = create_function_name_progress_bar(num_snapshot)
+    progress_bar.start()
+    for i_snapshot in range(num_snapshot):
 
         for i_m, m_order in enumerate(m_orders):
 
-            vec_psi = array_psi[i_snapshot, i_m]
-            vec_mvp = array_mvp[i_snapshot, i_m]
+            vec_psi = array_psi[i_m, i_snapshot]
+            vec_mvp = array_mvp[i_m, i_snapshot]
 
             dict_quad: DictChebyshevGaussQuad \
                 = prepare_chebyshev_gauss_quad(
@@ -375,16 +391,16 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
                 vec_1=vec_mvp, vec_2=vec_mvp))
 
             if ALPHA == 0:
-                psm = np.real(dict_quad['quad_psm_hd'].quadrature(
+                psm[i_snapshot] += np.real(dict_quad['quad_psm_hd'].quadrature(
                     vec_1=vec_psi, vec_2=vec_psi))
-                pse = np.real(dict_quad['quad_pse_hd'].quadrature(
+                pse[i_snapshot] += np.real(dict_quad['quad_pse_hd'].quadrature(
                     vec_1=vec_psi, vec_2=vec_psi)) + pke[i_snapshot]
             else:
                 psm_1 = dict_quad['quad_psm_1'].quadrature(
                     vec_1=vec_psi, vec_2=vec_mvp) / ALPHA
                 psm_2 = dict_quad['quad_psm_2'].quadrature(
                     vec_1=vec_mvp, vec_2=vec_mvp) / (ALPHA**2)
-                psm = np.real(psm_1 + np.conj(psm_1) + psm_2)
+                psm[i_snapshot] += np.real(psm_1 + np.conj(psm_1) + psm_2)
 
                 pse_u1 = dict_quad['quad_pse_u1'].quadrature(
                     vec_1=vec_psi, vec_2=vec_mvp) / ALPHA
@@ -392,8 +408,16 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
                     vec_1=vec_mvp, vec_2=vec_mvp) / (ALPHA**2)
                 pse_b = dict_quad['quad_pse_b'].quadrature(
                     vec_1=vec_mvp, vec_2=vec_mvp)
-                pse = np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
+                pse[i_snapshot] \
+                    += np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
                     + pke[i_snapshot] + pme[i_snapshot]
+
+            ohm[i_snapshot] += np.real(dict_quad['quad_ohm'].quadrature(
+                vec_1=vec_mvp, vec_2=vec_mvp))
+
+            progress_bar.update(i_snapshot)
+
+    ohm *= E_ETA
 
     return pke, pme, psm, pse, ohm
 
@@ -426,12 +450,15 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
     bf_u_sin: ArrayFloat = result['bf_u_sin'][i_snapshot]
     bf_b_sin: ArrayFloat = result['bf_b_sin'][i_snapshot]
 
-    bf_u_sin_d: ArrayFloat \
-        = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
+    bf_u_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_u_sin, [0]))
     bf_u_sin_d2: ArrayFloat = diff_mat @ bf_u_sin_d
-    bf_b_sin_d: ArrayFloat \
-        = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
+    bf_b_sin_d: ArrayFloat = diff_mat @ np.concatenate(([0], bf_b_sin, [0]))
     bf_b_sin_d2: ArrayFloat = diff_mat @ bf_b_sin_d
+
+    bf_u_sin_d = bf_u_sin_d[1:-1]
+    bf_u_sin_d2 = bf_u_sin_d2[1:-1]
+    bf_b_sin_d = bf_b_sin_d[1:-1]
+    bf_b_sin_d2 = bf_b_sin_d2[1:-1]
 
     def _minus_spherical_laplacian_heinrichs(n_degree: int,
                                              mu: float) -> float:
@@ -554,6 +581,10 @@ def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
     }
 
     return quad
+
+
+def plot_hovmoller(result: DictLinsimResults) -> None:
+    pass
 
 
 if __name__ == '__main__':

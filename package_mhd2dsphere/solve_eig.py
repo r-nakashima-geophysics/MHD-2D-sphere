@@ -57,7 +57,7 @@ def prepare_chebyshev_gauss_quad(
 
     Returns
     -------
-    quad : DictChebyshevGaussQuad
+    quad : DictChebyshevGaussQuad | None
         The dictionary for the Chebyshev-Gauss quadrature.
     """
 
@@ -497,11 +497,11 @@ def calc_qty(m_order: int,
 
                 ohm += (n_degree**2) * ((n_degree+1)**2) * (
                     np.abs(eig_valvec[size_submat+i_n, :])**2)
-            ohm *= e_eta
         else:
             dict_quad = cast(DictChebyshevGaussQuad, dict_quad)
             ohm = np.real(dict_quad['quad_ohm'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp))
+        ohm *= e_eta
 
     even: ArrayFloat = np.zeros(size_mat)
     odd: ArrayFloat = np.zeros(size_mat)
