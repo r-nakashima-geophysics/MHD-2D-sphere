@@ -46,7 +46,7 @@ def wrapper_rhs(name: str,
     ----------
     name : str
         The name of the field.
-    m_order : int | None, optional, default 0.
+    m_order : int, optional, default 0.
         The given zonal wavenumber (order).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
@@ -70,9 +70,9 @@ def wrapper_rhs(name: str,
     Warnings
     --------
     Invalid argument
-            If m_order is 0 when `name` is 'psi' or 'mvp'.
+        If m_order is 0 when `name` is 'psi' or 'mvp'.
     Unknown name
-        If the name is undefined
+        If the name is undefined.
     """
 
     if ((name == 'psi') or (name == 'mvp')) and (m_order == 0):
@@ -332,7 +332,7 @@ def rhs_bf_u_sin(fields_value: list[ArrayComplex | ArrayFloat],
         The list of fields (list of psi, list of mvp, bf_u_sin, and bf_b_sin).
     list_m_order : list[int]
         The list of all the zonal wavenumbers (orders).
-    switch_quasi_lin: bool
+    switch_quasi_lin : bool
         The boolean value to switch whether to perform quasi-linear simulations
         or not.
     common_parts : DictRhsCommonParts

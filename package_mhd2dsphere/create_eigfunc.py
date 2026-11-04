@@ -110,7 +110,7 @@ def choose_eigfunc(results: DictResult,
 
     print('==============================')
 
-    mode_list: list = []
+    mode_list: list[int] = []
     q_value: float
     for i_mode in range(size_mat):
 
@@ -192,7 +192,7 @@ def create_eigfunc(result: DictEigenmodeInfo,
         The background field.
 
     Returns
-    ----------
+    -------
     psi : ArrayComplex
         The stream function (psi).
     mvp : ArrayComplex

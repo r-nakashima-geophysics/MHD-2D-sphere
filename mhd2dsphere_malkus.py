@@ -2,7 +2,7 @@
 two-dimensional (2D) ideal incompressible magnetohydrodynamic (MHD) waves on a
 rotating sphere under the Malkus background field, B_phi = B_0 sin(theta).
 
-This script can create up to three figures: a linear-linear plot of the
+This script can create up to five figures: a linear-linear plot of the
 dispersion relation, a plot showing energy partitioning for various eigenmodes,
 and a log-log plot of the dispersion relation.
 

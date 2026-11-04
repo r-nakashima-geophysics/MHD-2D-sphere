@@ -323,7 +323,7 @@ def solve_eig(m_order: int,
         The Lehnert number.
     e_eta : float
         The magnetic Ekman number.
-    mat: ArrayFloat | ArrayComplex
+    mat : ArrayFloat | ArrayComplex
         The total matrix.
     criterion_c : DictCriterionC
         The criterion for convergence.

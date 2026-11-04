@@ -69,7 +69,7 @@ def load_results(name_file: str,
 
     Returns
     -------
-    result : DictResult
+    results : DictResult
         The dictionary of the results of the eigenvalue problem.
 
     Warnings
@@ -114,7 +114,7 @@ def load_results(name_file: str,
     return results
 
 
-def load_linsim_results(path_dir: Path, 
+def load_linsim_results(path_dir: Path,
                         name_file: str) -> DictLinsimResults:
     """Load a npz file of the simulation results.
 
@@ -127,9 +127,9 @@ def load_linsim_results(path_dir: Path,
 
     Returns
     -------
-    result : DictLinsimResults
+    results : DictLinsimResults
         The dictionary of the simulation results.
-    
+
     Warnings
     --------
     File not found
@@ -143,7 +143,7 @@ def load_linsim_results(path_dir: Path,
     path_file: Path = path_dir / name_file
 
     file_logger.info('Start loading')
-    
+
     if not path_file.exists():
         logger.error('File not found')
 
@@ -151,7 +151,7 @@ def load_linsim_results(path_dir: Path,
 
         file_logger.info('Loaded')
 
-        result: DictLinsimResults = {
+        results: DictLinsimResults = {
             'm_orders': npz_kw['m_orders'],
             'linsp_mu': npz_kw['linsp_mu'],
             'time': npz_kw['time'],
@@ -161,4 +161,4 @@ def load_linsim_results(path_dir: Path,
             'bf_b_sin': npz_kw['bf_b_sin']
         }
 
-    return result
+    return results

@@ -237,16 +237,16 @@ def create_mat(m_order: int,
 
     Parameters
     ----------
-    m_order: int
+    m_order : int
         The zonal wavenumber(order).
-    alpha: float
+    alpha : float
         The Lehnert number.
-    e_eta: float
+    e_eta : float
         The magnetic Ekman number.
-    submatrices: tuple[ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex,
+    submatrices : tuple[ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex,
     ArrayFloat | ArrayComplex, ArrayFloat | ArrayComplex]
         The(1, 1)th, (1, 2)th, (2, 1)th, and (2, 2)th block matrices.
-    background_field: DictBackgroundField
+    background_field : DictBackgroundField
         The background field.
 
     Returns

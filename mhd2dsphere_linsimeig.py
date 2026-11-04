@@ -31,9 +31,9 @@ Astrophysical Fluid Dynamics 118(5-6), 387-440 (2024). doi:
 Examples
 --------
 Run the script with the default value of `ID`.
-    $ uv run python mhd2dsphere_linsim.py
+    $ uv run python mhd2dsphere_linsimfig.py
 Run the script with a specified value of `ID` (say 0001):
-    $ uv run python mhd2dsphere_linsim.py 0001
+    $ uv run python mhd2dsphere_linsimfig.py 0001
 """
 
 from pathlib import Path
@@ -136,7 +136,7 @@ def wrapper_plot(result: DictLinsimResults) -> None:
     invexpan_mat: ArrayFloat \
         = create_cheb_invexpan_mat(SIZE_SUBMAT+2)[1:-1, :SIZE_SUBMAT]
 
-    if not SWITCH_PLOT[0]:
+    if SWITCH_PLOT[0]:
         num_snapshot: int = len(result['time'])
         progress_bar: ProgressBar \
             = create_function_name_progress_bar(num_snapshot)
@@ -221,7 +221,7 @@ def plot_map(result: DictLinsimResults,
 
     plotter.axes[0].set_title(r'stream function $\psi_1$', fontsize=16)
     plotter.axes[1].set_title(
-        r'vector potential $\mathrm{sgn}(\alpha)_1'
+        r'vector potential $\mathrm{sgn}(\alpha)a_1'
         + r'/\sqrt{\rho_0\mu_\mathrm{m}}$', fontsize=16)
 
     plotter.fig.suptitle(
@@ -394,7 +394,7 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
                 psm[i_snapshot] += np.real(dict_quad['quad_psm_hd'].quadrature(
                     vec_1=vec_psi, vec_2=vec_psi))
                 pse[i_snapshot] += np.real(dict_quad['quad_pse_hd'].quadrature(
-                    vec_1=vec_psi, vec_2=vec_psi)) + pke[i_snapshot]
+                    vec_1=vec_psi, vec_2=vec_psi))
             else:
                 psm_1 = dict_quad['quad_psm_1'].quadrature(
                     vec_1=vec_psi, vec_2=vec_mvp) / ALPHA
@@ -409,14 +409,14 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
                 pse_b = dict_quad['quad_pse_b'].quadrature(
                     vec_1=vec_mvp, vec_2=vec_mvp)
                 pse[i_snapshot] \
-                    += np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b) \
-                    + pke[i_snapshot] + pme[i_snapshot]
+                    += np.real(pse_u1 + np.conj(pse_u1) + pse_u2 + pse_b)
 
             ohm[i_snapshot] += np.real(dict_quad['quad_ohm'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp))
 
-            progress_bar.update(i_snapshot)
+        progress_bar.update(i_snapshot)
 
+    pse += pke + pme
     ohm *= E_ETA
 
     return pke, pme, psm, pse, ohm
@@ -425,7 +425,7 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
 def prepare_chebyshev_gauss_quad(result: DictLinsimResults,
                                  i_snapshot: int,
                                  diff_mat: ArrayFloat,
-                                 m_order) \
+                                 m_order: float) \
         -> DictChebyshevGaussQuad:
     """Prepare the Chebyshev-Gauss quadrature.
 

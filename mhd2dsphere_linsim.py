@@ -87,7 +87,7 @@ INIT_BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 DICT_INIT_PSI: Final[dict[int, ArrayFloat]] = {
     M_ORDERS[0]: init_linsim.init_spherical_harmonics(N_T+1, 2, M_ORDERS[0])
 }
-DICT_INIT_MVP: Final[dict[int, Any]] = {}
+DICT_INIT_MVP: Final[dict[int, ArrayFloat]] = {}
 
 # The boolean value to switch whether to perform quasi-linear simulations or
 # not.
@@ -97,7 +97,7 @@ SWITCH_QUASI_LIN: Final[bool] = False
 # The paths and filenames of outputs
 PATH_DIR: Final[Path] = Path('.') / 'output' / 'MHD2Dsphere_linsim'
 NAME_FILE: Final[str] = (
-    f'MHD2Dsphere_linsim'
+    'MHD2Dsphere_linsim'
     + f'_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}_#{ID}'
 )
 NAME_FILE_SUFFIX: Final[tuple[str, str]] = ('.npz', '.txt')

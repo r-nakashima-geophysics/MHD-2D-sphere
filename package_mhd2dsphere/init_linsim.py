@@ -7,7 +7,7 @@ U_phi = U_0 U(theta) sin(theta)."""
 import numpy as np
 from scipy.special import assoc_legendre_p, legendre_p
 
-from package_common.common_types import ArrayFloat
+from package_common.common_types import ArrayFloat, NoReturn
 from package_common.default_logger import DefaultLogger
 from package_common.utils_collocation import (calc_collocation_point,
                                               create_cheb_expan_mat)
@@ -16,7 +16,7 @@ from package_common.utils_name import create_function_name_logger
 
 def init_spherical_harmonics(size_submat: int,
                              n_degree: int,
-                             m_order: int) -> ArrayFloat:
+                             m_order: int) -> ArrayFloat | NoReturn:
     """Compute the Heinrichs expansion coefficients of the spherical harmonics.
 
     Parameters

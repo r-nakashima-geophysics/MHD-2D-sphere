@@ -33,7 +33,7 @@ def is_symmetric_b(b_field: BackgroundField) -> bool | NoReturn:
     --------
     >>> from package_mhd2dsphere.init_background_b import is_symmetric_b
     >>> from package_mhd2dsphere.init_background_b import b_malkus
-    >>is_symmetric_b(b_malkus())> 
+    >>> is_symmetric_b(b_malkus())
     True
     """
 

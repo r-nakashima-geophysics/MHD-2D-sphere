@@ -269,6 +269,13 @@ def init_worker(num_threads: int,
     """Initialize each worker process once.
 
     This avoids sending `dict_quad` for every task.
+
+    Parameters
+    ----------
+    num_threads : int
+        The number of threads for each worker process.
+    dict_quad : DictChebyshevGaussQuad | None
+        The dictionary for the Chebyshev-Gauss quadrature.
     """
 
     global DICT_QUAD_4WORKER

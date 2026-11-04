@@ -280,11 +280,11 @@ def sort_alfvenic(pke: ArrayFloat) -> tuple[ArrayFloat,
         The perturbation kinetic energy for a given alpha.
 
     Returns
-    ----------
+    -------
     alfvenic : ArrayFloat
         The identifier of alfvenic modes.
     non_alfvenic : ArrayFloat
-        The identifier of non-alfvenic modes
+        The identifier of non-alfvenic modes.
     """
 
     size_mat: int = len(pke)

@@ -12,7 +12,7 @@ ALPHA : float
     The Lehnert number.
 
 Notes
-----------
+-----
 All other parameters aside from command line arguments are described within the
 script.
 
