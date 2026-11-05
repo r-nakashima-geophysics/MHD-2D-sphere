@@ -618,14 +618,14 @@ def plot_hovmoller(result: DictLinsimResults) -> None:
         vmin=-max_psi, vmax=max_psi, cmap='bwr_r')
     plotter.axes[0].contour(
         grid_phi, grid_time, psi_hovmoller, levels=level_psi,
-        colors='k', linewidths=0.8)
+        colors='k', linewidths=0.3)
 
     contour2: QuadContourSet = plotter.axes[1].contourf(
         grid_phi, grid_time, mvp_hovmoller, levels=level_mvp,
         vmin=-max_mvp, vmax=max_mvp, cmap='PiYG_r')
     plotter.axes[1].contour(
         grid_phi, grid_time, mvp_hovmoller, levels=level_mvp,
-        colors='k', linewidths=0.8)
+        colors='k', linewidths=0.3)
 
     plotter.axes[0].grid(linestyle=':')
     plotter.axes[1].grid(linestyle=':')
@@ -708,7 +708,8 @@ if __name__ == '__main__':
                        f'{ALPHA=}',
                        f'{E_ETA=}',
                        f'{ROSSBY=}',
-                       f'{N_T=}')
+                       f'{N_T=}',
+                       f'{THETA_HOVMOLLER=}')
 
     data: DictLinsimResults \
         = load_linsim_results(PATH_DIR_INPUT, NAME_FILE)

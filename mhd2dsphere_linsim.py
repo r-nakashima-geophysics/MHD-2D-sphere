@@ -77,9 +77,9 @@ N_T: Final[int] = 500
 
 # --- [start] output info --- #
 # Time step
-NUM_STEP: Final[int] = 10**4
-DT: Final[float] = 1e-2
-SAVE_INTERVAL: Final[int] = 100
+NUM_STEP: Final[int] = 10**3
+DT: Final[float] = 0.1
+SAVE_INTERVAL: Final[int] = NUM_STEP // 100
 
 # Initial conditions
 INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
