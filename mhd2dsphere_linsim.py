@@ -12,6 +12,11 @@ Parameters
 ID : str
     The run index.
 
+Warnings
+--------
+Meaningless settings
+    If a magnetic parameter is set in the hydrodynamic case.
+
 Notes
 -----
 All other parameters aside from command line arguments are described within the
@@ -78,8 +83,8 @@ N_T: Final[int] = 500
 # --- [start] output info --- #
 # Time step
 NUM_STEP: Final[int] = 10**3
-DT: Final[float] = 0.1
-SAVE_INTERVAL: Final[int] = NUM_STEP // 100
+DT: Final[float] = 0.3
+SAVE_INTERVAL: Final[int] = 10
 
 # Initial conditions
 INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
@@ -258,6 +263,9 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
+    if (ALPHA == 0) and (E_ETA != 0):
+        logger.error('Meaningless settings')
+
     logger.show_params(f'{ID=}',
                        f'{M_ORDERS=}',
                        f'{ALPHA=}',
@@ -266,6 +274,7 @@ if __name__ == '__main__':
                        f'{N_T=}',
                        f'{NUM_STEP=}',
                        f'{DT=}',
+                       f'{SAVE_INTERVAL=}',
                        f'{SWITCH_QUASI_LIN=}')
 
     os.makedirs(PATH_DIR, exist_ok=True)
