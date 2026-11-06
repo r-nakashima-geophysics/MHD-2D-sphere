@@ -103,7 +103,8 @@ NAME_DIR: Final[str] = (
     f'MHD2Dsphere_linsim'
     + f'_a={ALPHA}_E={E_ETA}_R={ROSSBY}_N={N_T}_#{ID}'
 )
-PATH_DIR_FIG: Final[Path] = Path('.') / 'fig' / 'MHD2Dsphere_linsim' / NAME_DIR
+PATH_DIR_FIG: Final[Path] \
+    = Path('.') / 'fig' / 'MHD2Dsphere_linsimfig' / NAME_DIR
 NAME_FIG: Final[tuple[str, str, str]] = ('2d', 'time_series', 'hovmoller')
 NAME_FIG_SUFFIX: Final[str] = '.png'
 FIG_DPI: Final[int] = 600
@@ -315,16 +316,23 @@ def plot_time_series(result: DictLinsimResults) -> None:
 
     plotter: DefaultPlotter = create_plotter(1, 1, figsize=(5, 5))
 
-    plotter.axes.plot(time, pke+pme, color='red', linestyle='-.',
-                      label='perturbation energy')
-    plotter.axes.plot(time, psm, color='blue',
-                      label='angular pseudomomentum')
-    plotter.axes.plot(time, pse, color='red', linestyle='-',
-                      label='pseudoenergy')
+    plotter.axes.semilogy(time, pke+pme, color='red', linestyle='-.',
+                          label='perturbation energy')
+    if norm_psm != 0:
+        plotter.axes.semilogy(time, psm, color='blue',
+                              label='angular pseudomomentum')
+    plotter.axes.semilogy(time, pse, color='red', linestyle='-',
+                          label='pseudoenergy')
     if E_ETA != 0:
         ohm /= norm_ene
-        plotter.axes.plot(time, ohm, color='green',
-                          label='ohmic dissipation')
+        plotter.axes.semilogy(time, ohm, color='green',
+                              label='ohmic dissipation')
+
+    # decay_rate: float = 5.5*(10**(-6))
+    # exponetial_decay: ArrayFloat = np.exp(-2 * decay_rate * time)
+    # plotter.axes.semilogy(time, exponetial_decay,
+    #                       color='black', linestyle='--', linewidth=1,
+    #                       label=r'$\exp(-2 \mathrm{Im}(\omega) t)$')
 
     plotter.axes.set_xlabel(r'$\tau=2\Omega_0 t$', fontsize=16)
     plotter.axes.set_title(TEXT_TITLE, fontsize=16)
@@ -389,6 +397,10 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
     pse_u2: ArrayComplex
     pse_b: ArrayComplex
 
+    num_snapshot: int = len(result['time'])
+    progress_bar: ProgressBar \
+        = create_function_name_progress_bar(len(m_orders) * num_snapshot)
+    progress_bar.start()
     for i_m, m_order in enumerate(m_orders):
 
         def _minus_spherical_laplacian_heinrichs(n_degree: int,
@@ -397,7 +409,7 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
                 * cast(float,
                        spherical_laplacian_heinrichs(m_order, n_degree, mu))
 
-        for i_snapshot in range(len(result['time'])):
+        for i_snapshot in range(num_snapshot):
 
             vec_psi = array_psi[i_m, i_snapshot]
             vec_mvp = array_mvp[i_m, i_snapshot]
@@ -435,6 +447,8 @@ def calc_qty(result: DictLinsimResults) -> tuple[ArrayFloat,
 
             ohm[i_snapshot] += np.real(dict_quad['quad_ohm'].quadrature(
                 vec_1=vec_mvp, vec_2=vec_mvp))
+
+            progress_bar.update(i_m * num_snapshot + i_snapshot)
 
     pse += pke
     if ALPHA != 0:
@@ -627,6 +641,13 @@ def plot_hovmoller(result: DictLinsimResults) -> None:
         grid_phi, grid_time, mvp_hovmoller, levels=level_mvp,
         colors='k', linewidths=0.3)
 
+    # phase_velocity: float = 6.7*(10**(-5)) / 2
+    # range_phi: ArrayFloat = np.array([np.pi/2+np.pi/8, 3*np.pi/4+np.pi/8])
+    # tau: ArrayFloat \
+    #     = range_phi / phase_velocity - (range_phi[0] / phase_velocity - 3000)
+    # plotter.axes[1].plot(range_phi, tau,
+    #                      color='k', linewidth=2, linestyle='--')
+
     plotter.axes[0].grid(linestyle=':')
     plotter.axes[1].grid(linestyle=':')
 
@@ -704,12 +725,19 @@ if __name__ == '__main__':
 
     logger: DefaultLogger = DefaultLogger(__name__)
 
-    logger.show_params(f'{ID=}',
-                       f'{ALPHA=}',
-                       f'{E_ETA=}',
-                       f'{ROSSBY=}',
-                       f'{N_T=}',
-                       f'{THETA_HOVMOLLER=}')
+    if not SWITCH_PLOT[2]:
+        logger.show_params(f'{ID=}',
+                           f'{ALPHA=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}')
+    else:
+        logger.show_params(f'{ID=}',
+                           f'{ALPHA=}',
+                           f'{E_ETA=}',
+                           f'{ROSSBY=}',
+                           f'{N_T=}',
+                           f'{THETA_HOVMOLLER=}')
 
     data: DictLinsimResults \
         = load_linsim_results(PATH_DIR_INPUT, NAME_FILE)
