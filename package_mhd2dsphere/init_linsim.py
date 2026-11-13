@@ -76,3 +76,62 @@ def init_spherical_harmonics(size_submat: int,
 
     logger: DefaultLogger = create_function_name_logger()
     logger.error('Invalid argument')
+
+
+def init_latitudinal_gaussian(size_submat: int,
+                              theta_peak: float,
+                              sigma: float) -> ArrayFloat | NoReturn:
+    """Compute the Heinrichs expansion coefficients of the latitudinal
+    Gaussian, (sin(theta)**2) * exp(-(theta-theta_0)**2/(2*(sigma**2))), where
+    theta_0 = theta_peak - 2 * (sigma**2) * cot(theta_peak).
+
+    Parameters
+    ----------
+    size_submat : int
+        The size of submatrices.
+    theta_peak : float
+        The colatitude (degree) of the peak of the latitudinal Gaussian.
+    sigma : float
+        The standard deviation (degree) of the latitudinal Gaussian.
+
+    Returns
+    -------
+    ArrayFloat
+        The Heinrichs expansion coefficients of the latitudinal Gaussian.
+
+    Warnings
+    --------
+    Invalid argument
+        If `size_submat` is not positive, `sigma` is not positive, or
+        `theta_peak` is not within (0, 180).
+
+    Examples
+    --------
+    >>> from package_mhd2dsphere.init_linsim import init_latitudinal_gaussian
+    >>> init_latitudinal_gaussian(5, theta_peak=45, sigma=10)
+    array([ 0.11611699,  0.17904461,  0.05581078, -0.06028718, -0.11606773])
+    """
+
+    if (size_submat > 0) and (sigma > 0) and (0 < theta_peak < 180):
+
+        theta_peak = np.deg2rad(theta_peak)
+        sigma_squared: float = np.deg2rad(sigma) ** 2
+        theta_0: float = theta_peak - 2 * sigma_squared / np.tan(theta_peak)
+
+        mu: ArrayFloat = np.array(
+            [calc_collocation_point(i_l+1, size_submat+2)
+             for i_l in range(size_submat)])
+        theta: ArrayFloat = np.arccos(mu)
+        gaussian: ArrayFloat = np.exp(-(theta-theta_0)**2 / (2*sigma_squared))
+        gaussian_sp: float = np.exp(-(np.pi-theta_0)**2 / (2*sigma_squared))
+        gaussian_np: float = np.exp(-(0-theta_0)**2 / (2*sigma_squared))
+        expan_mat: ArrayFloat = create_cheb_expan_mat(size_submat+2)
+
+        coeff: ArrayFloat = expan_mat @ np.concatenate(
+            ([gaussian_sp], gaussian, [gaussian_np])
+        )
+
+        return coeff[:size_submat]
+
+    logger: DefaultLogger = create_function_name_logger()
+    logger.error('Invalid argument')

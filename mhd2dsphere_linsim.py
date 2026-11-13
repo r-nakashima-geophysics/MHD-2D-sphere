@@ -91,6 +91,8 @@ INIT_BG_FIELD_B: Final[BackgroundField] = init_background_b.b_malkus('mu')
 INIT_BG_FIELD_U: Final[BackgroundField] = init_background_u.u_rigid('mu')
 DICT_INIT_PSI: Final[dict[int, ArrayFloat]] = {
     M_ORDERS[0]: init_linsim.init_spherical_harmonics(N_T+1, 2, M_ORDERS[0])
+    # M_ORDERS[0]: init_linsim.init_latitudinal_gaussian(N_T+1, 90, 5)
+    # - init_linsim.init_latitudinal_gaussian(N_T+1, 135, 5)
 }
 DICT_INIT_MVP: Final[dict[int, ArrayFloat]] = {}
 

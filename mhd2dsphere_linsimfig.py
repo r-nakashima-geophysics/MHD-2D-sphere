@@ -88,7 +88,7 @@ N_T: Final[int] = 500
 # The number of grid points in the phi direction
 NUM_PHI: Final[int] = 361
 
-# The colatitude for the Hovmoller diagram
+# The colatitude (degree) for the Hovmoller diagram
 THETA_HOVMOLLER: Final[float] = 90
 
 # The path and filename of inputs
